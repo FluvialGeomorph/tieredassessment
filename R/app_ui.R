@@ -5,15 +5,36 @@
 #' @import shiny
 #' @noRd
 app_ui <- function(request) {
+  library(shiny)
+  library(leaflet)
+  library(mapedit)
+  library(sf)
+  
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
+    
+    
     # Your application UI logic
     fluidPage(
-      golem::golem_welcome_page() # Remove this line to start building your UI
+      # Application title
+      titlePanel("Minimal Shiny Leaflet Mapedit"),
+      
+      # Sidebar with a ui for grabbing mapedit data
+      sidebarLayout(
+        sidebarPanel(
+          actionButton('save', 'Save from Map')
+        ),
+        
+        # add map
+        mainPanel(
+          editModUI("map")
+        )
+      )
     )
   )
 }
+
 
 #' Add external Resources to the Application
 #'
@@ -37,5 +58,6 @@ golem_add_external_resources <- function() {
     )
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert()
+    
   )
 }
