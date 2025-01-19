@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "new_geom",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "_leaflet_id": 665, "feature_type": "polyline" }, "geometry": { "type": "LineString", "coordinates": [ [ -88.83784, 42.617217 ], [ -88.787628, 42.592263 ] ] } },
+{ "type": "Feature", "properties": { "_leaflet_id": 735, "feature_type": "polyline" }, "geometry": { "type": "LineString", "coordinates": [ [ -88.88257, 42.605916 ], [ -88.878365, 42.595491 ], [ -88.867464, 42.588414 ], [ -88.847208, 42.575712 ], [ -88.829613, 42.566862 ] ] } },
+{ "type": "Feature", "properties": { "_leaflet_id": 746, "feature_type": "polyline" }, "geometry": { "type": "LineString", "coordinates": [ [ -88.835621, 42.610591 ], [ -88.818527, 42.585628 ] ] } },
+{ "type": "Feature", "properties": { "_leaflet_id": 746, "feature_type": "polyline" }, "geometry": { "type": "LineString", "coordinates": [ [ -88.833119, 42.61248 ], [ -88.818527, 42.585628 ] ] } }
+]
+}
