@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "xs",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "_leaflet_id": 645, "layerId": "645", "edit_id": "645" }, "geometry": { "type": "LineString", "coordinates": [ [ -91.008773, 41.364063 ], [ -91.004975, 41.361937 ] ] } },
+{ "type": "Feature", "properties": { "_leaflet_id": 675, "layerId": "675", "edit_id": "675" }, "geometry": { "type": "LineString", "coordinates": [ [ -91.007121, 41.364868 ], [ -91.004095, 41.362485 ] ] } }
+]
+}
