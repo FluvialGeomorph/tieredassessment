@@ -4,6 +4,7 @@
 #'
 #' @import shiny
 #' @importFrom mapedit editMod
+#' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf write_sf
 #' @noRd
 #' 
@@ -11,24 +12,27 @@ app_server <- function(input, output, session) {
   
   # Create the map  
   map <- leaflet() %>%
-      addTiles()
+      addTiles() %>%
+      setView(lng = -93.85, lat = 37.45, zoom = 4)
   
-  edits <- callModule(editMod,
-                      leafmap = map,
-                      id = "map",
-                      editor = "leafpm")
+  draw_xs <- callModule(editMod,
+                        id = "xs",
+                        leafmap = map,
+                        editor = "leafpm",
+                        editorOptions = list(
+                          toolbarOptions = pmToolbarOptions(
+                                                 drawMarker = FALSE,
+                                                 drawPolygon = FALSE,
+                                                 drawCircle = FALSE,
+                                                 drawRectangle = FALSE,
+                                                 cutPolygon = FALSE,
+                                                 position = "topright")
+                          ))
+  
+  observeEvent(input$calc_xs, {
+    xs <- draw_xs()$finished
+    assign('xs', xs, envir = .GlobalEnv)
+    sf::write_sf(xs, 'xs.geojson', delete_layer = TRUE, delete_dsn = TRUE)
     
-  observeEvent(input$save, {
-    
-    geom <- edits()$finished
-    
-    if (!is.null(geom)) {
-      
-      
-      # Save layer
-      assign('new_geom', geom, envir = .GlobalEnv)
-      sf::write_sf(geom, 'new_geom.geojson', 
-                   delete_layer = TRUE, delete_dsn = TRUE)
-    }
   })
 }

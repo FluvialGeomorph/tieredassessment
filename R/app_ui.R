@@ -10,6 +10,7 @@ app_ui <- function(request) {
   library(shiny)
   library(leaflet)
   library(mapedit)
+  library(leafpm)
   library(sf)
   
   tagList(# Leave this function for adding external resources
@@ -17,14 +18,13 @@ app_ui <- function(request) {
     
     # Your application UI logic
     fluidPage(
-      titlePanel("Minimal Shiny Leaflet Mapedit"),
+      titlePanel("Shiny Leaflet Mapedit"),
       
       sidebarLayout(
         position = "right",
-        
-        sidebarPanel(actionButton('save', 'Save from Map')),
-        
-        mainPanel(editModUI("map"))
+        sidebarPanel(actionButton('calc_xs', 'Calculate XS')),
+        mainPanel(editModUI(id = "xs"))
       )
-    ))
+    )
+  )
 }
