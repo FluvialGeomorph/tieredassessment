@@ -15,13 +15,13 @@ app_ui <- function(request) {
     
     # Your application UI logic
     page_sidebar(
-      title = "Shiny Leaflet Mapedit",
-      editModUI(id = "xs"), 
-      
+      title = "EMRRP Tiered Assessment",
+      editModUI(id = "xs_editor"), 
       sidebar = sidebar(
         position = "right",
-        actionButton('calc_xs', 'Calculate XS')
-      ),
+        actionButton('calc_xs', 'Calculate XS'),
+        
+      )
     )
     
   )

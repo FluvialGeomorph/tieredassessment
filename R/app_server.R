@@ -4,7 +4,7 @@
 #'
 #' @import shiny
 #' @importFrom leaflet leaflet addTiles setView
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% bind_rows
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf write_sf
@@ -12,14 +12,22 @@
 #' @noRd
 app_server <- function(input, output, session) {
   
+  xs <- reactive({
+    sf <- data.frame(Seq = integer()) %>%
+      st_as_sf(geometry = st_sfc(), 
+               crs = 4326)
+    return(sf)
+  })
+  
   # Create the map  
   map <- leaflet() %>%
       addTiles() %>%
       setView(lng = -93.85, lat = 37.45, zoom = 4)
   
   draw_xs <- callModule(editMod,
-                        id = "xs",
+                        id = "xs_editor",
                         leafmap = map,
+                        targetLayerId = xs,
                         editor = "leafpm",
                         editorOptions = list(
                           toolbarOptions = pmToolbarOptions(
@@ -31,10 +39,13 @@ app_server <- function(input, output, session) {
                                                  position = "topright")
                           ))
   
+  ns <- shiny::NS("xs_editor")
+  
   observeEvent(input$calc_xs, {
-    xs <- draw_xs()$finished
-    assign('xs', xs, envir = .GlobalEnv)
-    #sf::write_sf(xs, 'xs.geojson', delete_layer = TRUE, delete_dsn = TRUE)
+    xs <- bind_rows(shiny::req(xs()),
+                    draw_xs()$finished)
+    
+    #dem <- get_dem(xs)
     
   })
 }
