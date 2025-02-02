@@ -8,6 +8,7 @@
 #' 
 app_ui <- function(request) {
   library(shiny)
+  library(bslib)
   library(leaflet)
   library(mapedit)
   library(leafpm)
@@ -17,14 +18,15 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     
     # Your application UI logic
-    fluidPage(
-      titlePanel("Shiny Leaflet Mapedit"),
+    page_sidebar(
+      title = "Shiny Leaflet Mapedit",
+      editModUI(id = "xs"), 
       
-      sidebarLayout(
+      sidebar = sidebar(
         position = "right",
-        sidebarPanel(actionButton('calc_xs', 'Calculate XS')),
-        mainPanel(editModUI(id = "xs"))
-      )
+        actionButton('calc_xs', 'Calculate XS')
+      ),
     )
+    
   )
 }
