@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(tiered-assessment)
+library(tieredassessment)
 
-test_check("tiered-assessment")
+test_check("tieredassessment")
