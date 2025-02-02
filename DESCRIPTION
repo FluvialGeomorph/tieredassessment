@@ -1,5 +1,5 @@
 Package: tieredassessment
-Title: An Amazing Shiny App
+Title: Fluvial Geomorphic Tiered Assessment App
 Version: 0.0.1
 Authors@R: c(
     person("Michael", "Dougherty", 
@@ -10,7 +10,7 @@ Authors@R: c(
            email = "Christopher.P.Haring@usace.army.mil",
            role = c("aut"))
     )
-Description: What the package does (one paragraph).
+Description: Calculates fluvial geomorphic metrics. 
 License: file LICENSE
 URL: https://github.com/FluvialGeomorph/tiered-assessment
 Imports: 
