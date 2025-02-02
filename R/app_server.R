@@ -3,11 +3,13 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #'
 #' @import shiny
+#' @importFrom leaflet leaflet addTiles setView
+#' @importFrom dplyr %>%
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf write_sf
-#' @noRd
 #' 
+#' @noRd
 app_server <- function(input, output, session) {
   
   # Create the map  

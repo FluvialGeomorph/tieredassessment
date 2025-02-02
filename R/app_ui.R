@@ -2,18 +2,14 @@
 #'
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
+#'
 #' @import shiny
+#' @importFrom bslib page_sidebar sidebar
 #' @importFrom mapedit editModUI
-#' @noRd
 #' 
+#' @noRd
 app_ui <- function(request) {
-  library(shiny)
-  library(bslib)
-  library(leaflet)
-  library(mapedit)
-  library(leafpm)
-  library(sf)
-  
+
   tagList(# Leave this function for adding external resources
     golem_add_external_resources(),
     

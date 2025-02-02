@@ -14,10 +14,17 @@ Description: Calculates fluvial geomorphic metrics.
 License: file LICENSE
 URL: https://github.com/FluvialGeomorph/tiered-assessment
 Imports: 
-    arcgis (>= 0.1.1),
+    arcgislayers,
+    arcgisutils,
+    bslib,
     config,
+    dplyr,
     golem,
-    pkgload,
+    httr2,
+    leaflet,
+    leafpm,
+    mapedit,
+    sf,
     shiny
 Encoding: UTF-8
 LazyData: true
@@ -25,5 +32,6 @@ RoxygenNote: 7.3.2
 Remotes: 
     r-arcgis/arcgis
 Suggests: 
+    pkgload,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
