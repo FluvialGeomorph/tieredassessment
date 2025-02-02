@@ -20,6 +20,10 @@ rhub::check_for_cran()
 
 # Deploy
 
+## shinylive
+shinylive::export(appdir = "c:/workspace/FluvialGeomorph/tieredassessment",
+                  destdir = "doc")
+
 ## Local, CRAN or Package Manager ----
 ## This will build a tar.gz that can be installed locally,
 ## sent to CRAN, or to a package manager
@@ -38,6 +42,8 @@ golem::add_shinyappsio_file()
 golem::add_shinyserver_file()
 
 ## Deploy to Posit Connect or ShinyApps.io ----
+
+add_shinyappsio_file()
 
 ## Add/update manifest file (optional; for Git backed deployment on Posit )
 rsconnect::writeManifest()
