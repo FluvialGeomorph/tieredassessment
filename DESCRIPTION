@@ -25,14 +25,12 @@ Imports:
     leafpm,
     mapedit,
     sf,
-    shiny,
-    tieredassessment (>= 0.0.1)
+    shiny
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Remotes:  
-    r-arcgis/arcgis,
-    FluvialGeomorph/tieredassessment
+    r-arcgis/arcgis
 Suggests: 
     pkgload,
     testthat (>= 3.0.0)

@@ -5,5 +5,6 @@
 pkgload::load_all(export_all = FALSE,
                   helpers = FALSE,
                   attach_testthat = FALSE)
-options( "golem.app.prod" = TRUE)
+options( "golem.app.prod" = TRUE )
+options( rsconnect.packrat = TRUE )
 tieredassessment::run_app() # add parameters here (if any)
