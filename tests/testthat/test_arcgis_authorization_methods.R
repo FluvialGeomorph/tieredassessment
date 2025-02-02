@@ -1,4 +1,5 @@
 test_that("Does testing OAuth token auth work?", {
+  skip("remember to reset temporary token before running")
   unset_arc_token()
   # ESRI Living Atlas
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
@@ -16,6 +17,7 @@ test_that("Does testing OAuth token auth work?", {
 })
 
 test_that("Does 'auth_code' function for auth work?", {
+  skip("this only work interactively")
   unset_arc_token()
   # ESRI Living Atlas
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
@@ -45,6 +47,7 @@ test_that("Does 'auth_user' function for auth work?", {
 })
 
 test_that("Does 'auth_binding' function for auth work?", {
+  skip("need to confirm with esri how to configure this")
   unset_arc_token()
   # arcgisbinding::arc.portal_connect(
   #  url = "https://usace-mvr.maps.arcgis.com/",
@@ -55,15 +58,19 @@ test_that("Does 'auth_binding' function for auth work?", {
 })
 
 test_that("Does 'auth_client' function for auth work?", {
+  skip("need to confirm with esri how to configure this")
+  unset_arc_token()
   perm_token <- arcgisutils::auth_client(
   client = Sys.getenv("ARCGIS_CLIENT"),
   secret = Sys.getenv("ARCGIS_SECRET"),
   host = Sys.getenv("ARCGIS_HOST"),
   expiration = 120)
-set_arc_token(perm_token)
+  set_arc_token(perm_token)
 })
 
-thest_that("Does 'auth_key' function for auth work?", {
+test_that("Does 'auth_key' function for auth work?", {
+  skip("need to confirm with esri how to configure this")
+  unset_arc_token()
   key_token <- arcgisutils::auth_key(
     api_key = Sys.getenv("ARCGIS_API_KEY"),
     host    = Sys.getenv("ARCGIS_HOST"))
