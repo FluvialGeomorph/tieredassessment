@@ -44,6 +44,9 @@ golem::add_shinyserver_file()
 ## Deploy to Posit Connect or ShinyApps.io ----
 
 add_shinyappsio_file()
+renv::settings$ignored.packages("tieredassessment")
+usethis::use_dev_package("tieredassessment", type = "Imports", 
+                         remote = "FluvialGeomorph/tieredassessment")
 
 ## Add/update manifest file (optional; for Git backed deployment on Posit )
 rsconnect::writeManifest()
