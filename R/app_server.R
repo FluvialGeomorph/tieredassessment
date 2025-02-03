@@ -7,7 +7,8 @@
 #' @importFrom dplyr %>% bind_rows
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
-#' @importFrom sf write_sf
+#' @importFrom sf st_as_sf st_sfc
+#' @importFrom terra plot
 #' 
 #' @noRd
 app_server <- function(input, output, session) {
@@ -44,8 +45,13 @@ app_server <- function(input, output, session) {
   observeEvent(input$calc_xs, {
     xs <- bind_rows(shiny::req(xs()),
                     draw_xs()$finished)
+    # XS summary
+    output$xs_stats <- renderTable({summary(xs)})
     
     #dem <- get_dem(xs)
     
+    # output$plot <- renderPlot({
+    #   terra::plot(dem)
+    #})
   })
 }
