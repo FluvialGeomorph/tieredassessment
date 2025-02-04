@@ -45,7 +45,7 @@ golem::add_shinyserver_file()
 
 add_shinyappsio_file()
 #renv::settings$ignored.packages("tieredassessment")
-#renv::snapshot()
+renv::snapshot()
 # configure in app.R
 rsconnect::deployApp()
 

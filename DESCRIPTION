@@ -19,14 +19,15 @@ Imports:
     bslib,
     config,
     dplyr,
-    fluvgeo (>= 0.1.52),
+    fluvgeo (>= 0.1.53),
     golem,
     httr2,
     leaflet,
     leafpm,
     mapedit,
     sf,
-    shiny
+    shiny,
+    terra
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2

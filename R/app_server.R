@@ -48,6 +48,8 @@ app_server <- function(input, output, session) {
     # XS summary
     output$xs_stats <- renderTable({summary(xs)})
     
+    dummy <- fluvgeo::gte(c(1,1,1), 1)
+    
     #dem <- get_dem(xs)
     
     # output$plot <- renderPlot({
