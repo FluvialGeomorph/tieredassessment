@@ -125,18 +125,25 @@
     },
     "RegionalCurve": {
       "Package": "RegionalCurve",
-      "Version": "0.1.6",
+      "Version": "0.1.7",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "RegionalCurve",
       "RemoteUsername": "FluvialGeomorph",
-      "RemoteRef": "0.1.6",
-      "RemoteSha": "a553c8cb20bbaaa8d3769338b2e47e727c49439f",
+      "RemoteRef": "v0.1.7",
+      "RemoteSha": "7e32129ae2bf7ac62f1bf29592ec2d87d326201c",
       "Requirements": [
-        "R"
+        "R",
+        "cli",
+        "dplyr",
+        "ggplot2",
+        "lifecycle",
+        "rlang",
+        "stringr",
+        "tidyr"
       ],
-      "Hash": "a197454b82523d67e0830bf229bfa56b"
+      "Hash": "9883d36e0c088e20f8bc939d2f4e4364"
     },
     "XML": {
       "Package": "XML",
@@ -825,7 +832,13 @@
     "fluvgeo": {
       "Package": "fluvgeo",
       "Version": "0.1.53",
-      "Source": "unknown",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "fluvgeo",
+      "RemoteUsername": "FluvialGeomorph",
+      "RemoteRef": "v0.1.53",
+      "RemoteSha": "82df23c9e8c260c16744a7ad6d5649ac6c44b4ca",
       "Requirements": [
         "Metrics",
         "R",
@@ -857,7 +870,7 @@
         "tmap",
         "utils"
       ],
-      "Hash": "04400f77fb60117d849c0cf97d5be4bb"
+      "Hash": "c9be5ecb7400f0496f19263c24466789"
     },
     "fontawesome": {
       "Package": "fontawesome",
@@ -2534,7 +2547,7 @@
     },
     "stars": {
       "Package": "stars",
-      "Version": "0.6-7",
+      "Version": "0.6-8",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2547,7 +2560,7 @@
         "sf",
         "units"
       ],
-      "Hash": "0df88c47fce8cda8cfe84ce05cc4c5a1"
+      "Hash": "c5934e48efbbbab89a52629921857120"
     },
     "stringdist": {
       "Package": "stringdist",
@@ -2774,13 +2787,13 @@
     },
     "tmap": {
       "Package": "tmap",
-      "Version": "3.99.9003",
+      "Version": "4.0.0.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "tmap",
       "RemoteUsername": "r-tmap",
-      "RemoteSha": "08f19fcc61891eb8fdfdc5d91dbf97fdc50c5c69",
+      "RemoteSha": "ae0c27ce6644e1698c19616d2fc6f313e01b1d6e",
       "Requirements": [
         "R",
         "classInt",
@@ -2798,13 +2811,14 @@
         "methods",
         "rlang",
         "s2",
+        "servr",
         "sf",
         "stars",
         "stats",
         "tmaptools",
         "units"
       ],
-      "Hash": "f22c01576edc5112df5d3397e6e7e53e"
+      "Hash": "67e6147211c15385e16a37994e5bfd4c"
     },
     "tmaptools": {
       "Package": "tmaptools",

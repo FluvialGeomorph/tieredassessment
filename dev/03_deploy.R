@@ -20,6 +20,10 @@ rhub::check_for_cran()
 
 # Deploy
 
+## use remotes::install_github to indicate to install source to renv
+remotes::install_github("FluvialGeomorph/fluvgeo@*release")
+remotes::install_github("FluvialGeomorph/RegionalCurve@*release")
+
 ## shinylive
 shinylive::export(appdir = "c:/workspace/FluvialGeomorph/tieredassessment",
                   destdir = "doc")
