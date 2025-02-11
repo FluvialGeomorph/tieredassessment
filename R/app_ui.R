@@ -4,7 +4,7 @@
 #'     DO NOT REMOVE.
 #'
 #' @import shiny
-#' @importFrom bslib page_sidebar sidebar
+#' @importFrom bslib page_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
 #' 
 #' @noRd
@@ -15,6 +15,7 @@ app_ui <- function(request) {
     
     # Your application UI logic
     page_sidebar(
+      theme = bs_theme(bootswatch = "cerulean"),
       title = "EMRRP Tiered Assessment",
       editModUI(id = "xs_editor"), 
       sidebar = sidebar(
