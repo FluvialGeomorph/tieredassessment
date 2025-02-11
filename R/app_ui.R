@@ -20,7 +20,8 @@ app_ui <- function(request) {
       sidebar = sidebar(
         position = "right",
         actionButton('calc_xs', 'Calculate XS'),
-        tableOutput("xs_stats")
+        tableOutput("xs_stats"),
+        width = "25%"
       )
     )
     
