@@ -22,6 +22,7 @@ app_ui <- function(request) {
         position = "right",
         actionButton('calc_xs', 'Calculate XS'),
         tableOutput("xs_stats"),
+        plotOutput("plot"),
         width = "25%"
       )
     )

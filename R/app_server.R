@@ -50,10 +50,10 @@ app_server <- function(input, output, session) {
     
     #dummy <- fluvgeo::gte(c(1,1,1), 1)
     
-    #dem <- get_dem(xs)
+    dem <- get_dem(xs)
     
-    # output$plot <- renderPlot({
-    #   terra::plot(dem)
-    #})
+     output$plot <- renderPlot({
+       terra::plot(dem)
+    })
   })
 }
