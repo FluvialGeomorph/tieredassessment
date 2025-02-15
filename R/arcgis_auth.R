@@ -4,19 +4,18 @@
 #' 
 #' @return an httr token
 #' 
-#' @importFrom httr2 oauth_token
-#' @importFrom arcgisutils auth_user set_arc_token unset_arc_token arc_token
+#' @importFrom arcgisutils auth_client set_arc_token arc_token
 #'
 arcgis_auth <- function() {
   # create a token using a named user account
-  user_token <- auth_user(
-    username = Sys.getenv("ARCGIS_USER"),
-    password = Sys.getenv("ARCGIS_PASSWORD"),
+  client_token <- auth_client(
+    client = Sys.getenv("ARCGIS_CLIENTID"),
+    secret = Sys.getenv("ARCGIS_CLIENTSECRET"),
     host = Sys.getenv("ARCGIS_HOST"),
     expiration = 60)
   
-  # set the token for the current session
-  set_arc_token(token = user_token)
+  # set the arc_token for the current session
+  set_arc_token(token = client_token)
   
   return(arc_token())
 }

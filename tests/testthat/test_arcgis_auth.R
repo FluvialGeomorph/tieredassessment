@@ -1,5 +1,5 @@
-test_that("Does 'auth_user' function for auth work?", {
-  unset_arc_token()
+test_that("Does 'auth_client' function for auth work?", {
+  arcgisutils::unset_arc_token()
   # ensure .Renviron has variables set, restart R session
  
   token <- arcgis_auth()
