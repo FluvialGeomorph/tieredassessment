@@ -25,8 +25,8 @@ remotes::install_github("FluvialGeomorph/fluvgeo@*release")
 remotes::install_github("FluvialGeomorph/RegionalCurve@*release")
 
 ## shinylive
-shinylive::export(appdir = "c:/workspace/FluvialGeomorph/tieredassessment",
-                  destdir = "doc")
+#shinylive::export(appdir = "c:/workspace/FluvialGeomorph/tieredassessment",
+#                  destdir = "doc")
 
 ## Local, CRAN or Package Manager ----
 ## This will build a tar.gz that can be installed locally,
