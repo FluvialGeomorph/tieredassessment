@@ -6,21 +6,24 @@
 #' @param xs      sf object
 #'
 #' @return terra::SpatRaster
+#' @export
 #'
 #' @importFrom arcgislayers arc_open arc_raster
 #' @importFrom sf st_transform st_bbox
 #' 
 get_dem <- function(xs) {
   # authenticate to AGOL
-  arcgis_auth()
+  tieredassessment:::arcgis_auth()
   
-  url <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
-  imgsrv  <- arc_open(url)
-  dem_crs <- imgsrv$spatialReference$latestWkid
+  dem_url <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
+  dem_service  <- arc_open(dem_url)
+  dem_crs <- dem_service$spatialReference$latestWkid
+  # ensure xs is in the same crs as dem
   xs_dem  <- sf::st_transform(xs, dem_crs)
   xs_bbox <- sf::st_bbox(xs_dem)
 
-  dem <- arc_raster(imgsrv, 
+  dem <- arc_raster(dem_service, 
+                    # only get the extent of the xs
                     xmin = xs_bbox$xmin, 
                     ymin = xs_bbox$ymin,
                     xmax = xs_bbox$xmax,
