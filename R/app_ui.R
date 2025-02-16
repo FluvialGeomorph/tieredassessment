@@ -6,6 +6,7 @@
 #' @import shiny
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
+#' @importFrom tmap tmapOutput
 #' 
 #' @noRd
 app_ui <- function(request) {
@@ -18,6 +19,7 @@ app_ui <- function(request) {
       
       nav_panel(title = "Draw XS",
         layout_sidebar(
+          # display the xs editing module
           editModUI(id = "xs_editor"), 
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
@@ -27,17 +29,21 @@ app_ui <- function(request) {
       
       nav_panel(title = "View Terrain",
         layout_sidebar(
+          # display the terrain map
+          tmapOutput("terrain_map", mode = "view"),
           sidebar = sidebar(title = "View Terrain Instructions", 
             position = "right", width = "25%",
             uiOutput("view_terrain_instructions"),
             actionButton("calc_xs", "Calc XS")
             ))),
       
-      nav_panel(title = "Calc' XS",
+      nav_panel(title = "Calc XS",
         layout_sidebar(
-            sidebar = sidebar(title = "Calculate XS Instructions",
+          # map
+          sidebar = sidebar(title = "Calculate XS Instructions",
             position = "right", width = "25%",
             uiOutput("calc_xs_instructions")
+            # Calc results
             )))
     )
   )
