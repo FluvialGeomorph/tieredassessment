@@ -20,7 +20,7 @@ get_dem <- function(xs) {
   dem_crs <- dem_service$spatialReference$latestWkid
   # ensure xs is in the same crs as dem
   xs_dem  <- sf::st_transform(xs, dem_crs)
-  xs_bbox <- sf::st_bbox(xs_dem)
+  xs_bbox <- fluvgeo::map_extent(xs_dem, extent_factor = 1.2)
 
   dem <- arc_raster(dem_service, 
                     # only get the extent of the xs
