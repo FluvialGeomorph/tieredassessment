@@ -36,14 +36,6 @@ app_server <- function(input, output, session) {
     setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
     addProviderTiles("Esri.WorldTopoMap")
   
-  # Define the xs_map
-  tmap_mode("view")
-  xs_map <- 
-    tm_basemap("Esri.WorldTopoMap") + 
-    tm_view(use_WebGL = FALSE,
-            #set_bounds = TRUE,
-            set_view = c(-93.85, 37.45, 4))
-  
   # Define the mapedit module
   draw_xs <- callModule(editMod,
                         id = "xs_editor",
@@ -61,28 +53,36 @@ app_server <- function(input, output, session) {
                           ))
   ns <- shiny::NS("xs_editor")
   
-  # Create the xs map
+  # Create the terrain_map
   output$terrain_map <- renderTmap({
-    xs_map
-  })
+    tm <- 
+      tm_basemap("Esri.WorldTopoMap")
+  },
+  mode = "view")
   
   # Events
   observeEvent(input$get_terrain, {
     # get finished xs
     xs <- dplyr::bind_rows(shiny::req(xs()),
                            draw_xs()$finished)
-    
     # overwrite dem
     dem <- get_dem(xs)
     
     tmapProxy("terrain_map", session, {
-      xs_extent <- fluvgeo::map_extent(xs)
-      get_terrain_map(xs, dem) +
-      tm_view(set_view = c(mean(c(xs_extent$xmin-xs_extent$xmax)) + xs_extent$xmin,
-                           mean(c(xs_extent$ymin-xs_extent$ymax)) + xs_extent$ymin,
-                           14))
+      get_terrain_map(xs, dem) 
     })
   })
+  
+  # observe({
+  #   vt <- input$view_terrain
+  #   xs_extent <- fluvgeo::map_extent(xs())
+  #   tmapProxy("terrain_map", session, {
+  #     tm_view(set_view = c(
+  #         mean(c(xs_extent$xmin-xs_extent$xmax)) + xs_extent$xmin,
+  #         mean(c(xs_extent$ymin-xs_extent$ymax)) + xs_extent$ymin,
+  #         14))
+  #   })
+  # })
   
   # Instructions
   ## create draw xs page instructions

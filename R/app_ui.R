@@ -24,7 +24,9 @@ app_ui <- function(request) {
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
-            actionButton('get_terrain', 'Get Terrain')
+            actionButton('get_terrain', 'Get Terrain'),
+            # progress bar
+            #actionButton('view_terrain', 'View Terrain')
             ))),
       
       nav_panel(title = "View Terrain",

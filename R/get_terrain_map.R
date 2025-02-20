@@ -20,7 +20,7 @@ get_terrain_map <- function(xs, dem) {
                           msg = "must be SpatRaster object")
   
   # set extent
-  #xs_extent <- fluvgeo::map_extent(xs, extent_factor = 1.2)
+  xs_extent <- fluvgeo::map_extent(xs, extent_factor = 1.2)
   
   # Create a topo color ramp
   esri_topo <- grDevices::colorRampPalette(colors = c("cadetblue2", "khaki1",
@@ -50,6 +50,7 @@ get_terrain_map <- function(xs, dem) {
     tm_shape(shp = xs,
              id = "Cross Section",
              is.main = TRUE,
+             bbox = xs_extent,
              zindex = 402) + 
       tm_lines() + 
     tm_layout(meta.margins = c(0, 0, 0, 0.15))
