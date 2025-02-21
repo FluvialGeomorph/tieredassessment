@@ -26,7 +26,7 @@ app_ui <- function(request) {
             uiOutput("draw_xs_instructions"),
             actionButton('get_terrain', 'Get Terrain'),
             # progress bar
-            #actionButton('view_terrain', 'View Terrain')
+            actionButton('view_terrain', 'View Terrain')
             ))),
       
       nav_panel(title = "View Terrain",

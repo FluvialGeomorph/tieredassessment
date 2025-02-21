@@ -55,8 +55,11 @@ app_server <- function(input, output, session) {
   
   # Create the terrain_map
   output$terrain_map <- renderTmap({
-    tm <- 
-      tm_basemap("Esri.WorldTopoMap")
+    tm_shape(shp = xs,
+             id = "Cross Section",
+             is.main = TRUE,
+             bbox = fluvgeo::map_extent(xs()),
+             zindex = 402)
   },
   mode = "view")
   
@@ -69,20 +72,20 @@ app_server <- function(input, output, session) {
     dem <- get_dem(xs)
     
     tmapProxy("terrain_map", session, {
+      
       get_terrain_map(xs, dem) 
     })
   })
   
-  # observe({
-  #   vt <- input$view_terrain
-  #   xs_extent <- fluvgeo::map_extent(xs())
-  #   tmapProxy("terrain_map", session, {
-  #     tm_view(set_view = c(
-  #         mean(c(xs_extent$xmin-xs_extent$xmax)) + xs_extent$xmin,
-  #         mean(c(xs_extent$ymin-xs_extent$ymax)) + xs_extent$ymin,
-  #         14))
-  #   })
-  # })
+  observeEvent(input$view_terrain, {
+    xs_extent <- fluvgeo::map_extent(xs())
+    tmapProxy("terrain_map", session, {
+      tm_view(set_view = c(
+          mean(c(xs_extent$xmin-xs_extent$xmax)) + xs_extent$xmin,
+          mean(c(xs_extent$ymin-xs_extent$ymax)) + xs_extent$ymin,
+          14))
+    })
+  })
   
   # Instructions
   ## create draw xs page instructions
