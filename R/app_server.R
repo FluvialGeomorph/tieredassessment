@@ -10,7 +10,7 @@
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf st_as_sf st_sfc
-#' @importFrom tmap tm_basemap tm_view renderTmap tmapProxy
+#' @importFrom tmap renderTmap tm_basemap
 #' @importFrom terra plot
 #' 
 #' @noRd
@@ -53,37 +53,26 @@ app_server <- function(input, output, session) {
                           ))
   ns <- shiny::NS("xs_editor")
   
-  # Create the terrain_map
-  output$terrain_map <- renderTmap({
-    tm_shape(shp = xs,
-             id = "Cross Section",
-             is.main = TRUE,
-             bbox = fluvgeo::map_extent(xs()),
-             zindex = 402)
-  },
-  mode = "view")
-  
   # Events
   observeEvent(input$get_terrain, {
     # get finished xs
     xs <- dplyr::bind_rows(shiny::req(xs()),
                            draw_xs()$finished)
+    print(xs)
+    
     # overwrite dem
     dem <- get_dem(xs)
+    print(dem)
     
-    tmapProxy("terrain_map", session, {
-      
-      get_terrain_map(xs, dem) 
+    # Create the terrain_map
+    output$terrain_map <- renderTmap({
+      get_terrain_map(xs, dem) + 
+      tm_basemap("Esri.WorldTopoMap")
     })
-  })
-  
-  observeEvent(input$view_terrain, {
-    xs_extent <- fluvgeo::map_extent(xs())
-    tmapProxy("terrain_map", session, {
-      tm_view(set_view = c(
-          mean(c(xs_extent$xmin-xs_extent$xmax)) + xs_extent$xmin,
-          mean(c(xs_extent$ymin-xs_extent$ymax)) + xs_extent$ymin,
-          14))
+    
+    # Add view terrain button
+    output$view_terrain_button <- renderUI({
+        actionButton("view_terrain", "View Terrain")
     })
   })
   
@@ -117,5 +106,4 @@ app_server <- function(input, output, session) {
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
   })
-  options = list(launch.browser=TRUE)
 } 

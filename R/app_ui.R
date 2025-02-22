@@ -4,6 +4,7 @@
 #'     DO NOT REMOVE.
 #'
 #' @import shiny
+#' @importFrom shinybusy add_busy_spinner spin_epic
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
 #' @importFrom tmap tmapOutput
@@ -13,6 +14,10 @@ app_ui <- function(request) {
 
   tagList(
     golem_add_external_resources(),
+    
+    add_busy_spinner(spin = "fading-circle", 
+                     color = "#FFFFFF", margins = c(20,20),
+                     position = "top-right"),
     
     page_navbar(title = "EMRRP Tiered Assessment",
       theme = bs_theme(bootswatch = "cerulean", version = 5),
@@ -25,8 +30,7 @@ app_ui <- function(request) {
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
             actionButton('get_terrain', 'Get Terrain'),
-            # progress bar
-            actionButton('view_terrain', 'View Terrain')
+            uiOutput('view_terrain_button')
             ))),
       
       nav_panel(title = "View Terrain",

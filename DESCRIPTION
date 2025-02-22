@@ -27,6 +27,7 @@ Imports:
     mapedit,
     sf,
     shiny,
+    shinybusy,
     tmap,
     terra
 Encoding: UTF-8
