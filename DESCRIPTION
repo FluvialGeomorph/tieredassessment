@@ -1,6 +1,6 @@
 Package: tieredassessment
 Title: Fluvial Geomorphic Tiered Assessment App
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person("Michael", "Dougherty", 
            email = "Michael.P.Dougherty@usace.army.mil", 
@@ -21,10 +21,12 @@ Imports:
     dplyr,
     fluvgeo (>= 0.1.53),
     golem,
+    htmltools,
     httr2,
     leaflet,
     leafpm,
     mapedit,
+    purrr,
     sf,
     shiny,
     shinybusy,
