@@ -3,6 +3,7 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #'
 #' @import shiny
+#' @importFrom bslib nav_select
 #' @importFrom htmltools tags
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView
@@ -74,6 +75,10 @@ app_server <- function(input, output, session) {
     output$view_terrain_button <- renderUI({
         actionButton("view_terrain", "View Terrain")
     })
+  })
+  
+  observeEvent(input$view_terrain, {
+    nav_select(id = "main", selected = "View Terrain")
   })
   
   # Instructions

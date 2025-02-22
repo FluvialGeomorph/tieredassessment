@@ -16,10 +16,11 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     
     add_busy_spinner(spin = "fading-circle", 
-                     color = "#FFFFFF", margins = c(20,20),
-                     position = "top-right"),
+                     #color = "#FFFFFF", margins = c(20,20),
+                     position = "full-page"),
     
-    page_navbar(title = "EMRRP Tiered Assessment",
+    page_navbar(title = "Tiered Assessment", 
+      id = "main",
       theme = bs_theme(bootswatch = "cerulean", version = 5),
       
       nav_panel(title = "Draw XS",
