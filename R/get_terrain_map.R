@@ -12,12 +12,13 @@
 #'                  tm_scale_continuous tm_legend tm_layout 
 #' @importFrom grDevices colorRampPalette
 #' @importFrom fluvgeo map_extent
+#' @importFrom assertthat assert_that
 #'
 get_terrain_map <- function(xs, dem) {
-  assertthat::assert_that("sf" %in% class(xs), 
-                          msg = "must be sf object")
-  assertthat::assert_that("SpatRaster" %in% class(dem), 
-                          msg = "must be SpatRaster object")
+  assert_that("sf" %in% class(xs), 
+               msg = "must be sf object")
+  assert_that("SpatRaster" %in% class(dem), 
+              msg = "must be SpatRaster object")
   
   # set extent
   xs_extent <- fluvgeo::map_extent(xs, extent_factor = 1.2)
