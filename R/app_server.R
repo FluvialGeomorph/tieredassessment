@@ -8,7 +8,7 @@
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
 #'                     renderLeaflet
-#' @importFrom dplyr %>% bind_rows
+#' @importFrom dplyr %>% bind_rows mutate 
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf st_as_sf st_sfc
@@ -57,9 +57,14 @@ app_server <- function(input, output, session) {
   
   observeEvent(input$get_terrain, {
     # get finished xs
-    xs <- dplyr::bind_rows(shiny::req(xs()),
-                           sf::st_transform(draw_xs()$finished,
-                                            crs = 3857))  # ensure Web Mercator
+    new_xs <- sf::st_transform(draw_xs()$finished, crs = 3857) # Web Mercator
+    
+    xs <- shiny::req(xs()) %>%
+      bind_rows(., new_xs) %>% 
+      mutate(Seq = row.names(.))
+    # save test data
+    # sf::st_write(xs, file.path(golem::get_golem_wd(), 
+    #                            "inst", "extdata", "xs.shp"))  
     print(xs)
     
     # overwrite dem
@@ -95,9 +100,9 @@ app_server <- function(input, output, session) {
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({
     steps <- c('Zoom to the desired AOI.', 
-               'Draw cross sections.', 
+               'Draw cross sections beginning with the most downstream cross section first.', 
                'Click the "Get Terrain" button below to retrieve the digital elevation model (DEM).',
-               'View the terrain using the "View Terrain" item on the top menu.')
+               'View the terrain using the "View Terrain" button or top menu.')
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
   })
