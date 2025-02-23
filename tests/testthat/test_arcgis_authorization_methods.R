@@ -1,6 +1,6 @@
 test_that("Does testing OAuth token auth work?", {
   skip("remember to reset temporary token before running")
-  unset_arc_token()
+  arcgisutils::unset_arc_token()
   # ESRI Living Atlas
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
   # Get updated key before test
@@ -9,28 +9,29 @@ test_that("Does testing OAuth token auth work?", {
   test_token <- httr2::oauth_token(
                      test_key,
                      arcgis_host = "https://usace-mvr.maps.arcgis.com/")
-  set_arc_token(test_token)
-  token <- arc_token()
+  arcgisutils::set_arc_token(test_token)
+  token <- arcgisutils::arc_token()
   expect_true("httr2_token" %in% class(token))
-  imgsrv  <- arc_open(url_image_server)
+  imgsrv  <- arcgislayers::arc_open(url_image_server)
   expect_true("ImageServer" %in% class(imgsrv))
 })
 
 test_that("Does 'auth_code' function for auth work?", {
   skip("this only work interactively")
-  unset_arc_token()
+  arcgisutils::unset_arc_token()
   # ESRI Living Atlas
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
   # enter credentials in browser, copy code, close browser, paste in console
   token <- arcgisutils::auth_code()
   expect_true("httr2_token" %in% class(token))
-  set_arc_token(token)
-  imgsrv  <- arc_open(url_image_server)
+  arcgisutils::set_arc_token(token)
+  imgsrv  <- arcgislayers::arc_open(url_image_server)
   expect_true("ImageServer" %in% class(imgsrv))
 })
 
 test_that("Does 'auth_user' function for auth work?", {
-  unset_arc_token()
+  skip("not recommended")
+  arcgisutils::unset_arc_token()
   # ESRI Living Atlas
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
   # ensure .Renviron has variables set, restart R session
@@ -39,22 +40,22 @@ test_that("Does 'auth_user' function for auth work?", {
     password = Sys.getenv("ARCGIS_PASSWORD"),
     host = Sys.getenv("ARCGIS_HOST"),
     expiration = 60)
-  set_arc_token(token = user_token)
-  token <- arc_token()
+  arcgisutils::set_arc_token(token = user_token)
+  token <- arcgisutils::arc_token()
   expect_true("httr2_token" %in% class(token))
-  imgsrv  <- arc_open(url_image_server)
+  imgsrv  <- arcgislayers::arc_open(url_image_server)
   expect_true("ImageServer" %in% class(imgsrv))
 })
 
 test_that("Does 'auth_binding' function for auth work?", {
   skip("need to confirm with esri how to configure this")
-  unset_arc_token()
+  arcgisutils::unset_arc_token()
   token <- arcgisutils::auth_binding()
-  set_arc_token(token)
+  arcgisutils::set_arc_token(token)
 })
 
 test_that("Does 'auth_client' function for auth work?", {
-  unset_arc_token()
+  arcgisutils::unset_arc_token()
   url_image_server <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
   perm_token <- arcgisutils::auth_client(
   client = Sys.getenv("ARCGIS_CLIENTID"),
@@ -62,10 +63,10 @@ test_that("Does 'auth_client' function for auth work?", {
   host = Sys.getenv("ARCGIS_HOST"),
   expiration = 120)
   
-  set_arc_token(token = perm_token)
-  token <- arc_token()
+  arcgisutils::set_arc_token(token = perm_token)
+  token <- arcgisutils::arc_token()
   expect_true("httr2_token" %in% class(token))
-  imgsrv  <- arc_open(url_image_server)
+  imgsrv  <- arcgislayers::arc_open(url_image_server)
   expect_true("ImageServer" %in% class(imgsrv))
 })
 
