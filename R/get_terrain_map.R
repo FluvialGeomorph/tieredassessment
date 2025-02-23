@@ -1,6 +1,6 @@
 #' Get a Terrain Map
 #' 
-#' @description Get a terrain map as a tmap object.#' 
+#' @description Get a terrain map as a tmap object. 
 #'
 #' @param xs        sf object, The cross sections
 #' @param dem       SpatRaster object, The digital elevation model. 
@@ -38,8 +38,9 @@ get_terrain_map <- function(xs, dem) {
   
   terrain_map <- 
     tm_shape(shp = dem,
-             id = "Elevation",
+             name = "Elevation",
              unit = "ft",
+             is.main = FALSE,
              zindex = 401) +
       tm_raster(col.scale = tm_scale_continuous(values = esri_topo(1000)),
                 col.legend = tm_legend(
@@ -48,7 +49,7 @@ get_terrain_map <- function(xs, dem) {
                   frame = FALSE,
                   position = legend_pos)) +
     tm_shape(shp = xs,
-             id = "Cross Section",
+             name = "Cross Section",
              is.main = TRUE,
              bbox = xs_extent,
              zindex = 402) + 

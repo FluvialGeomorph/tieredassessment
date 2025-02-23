@@ -21,7 +21,7 @@ app_server <- function(input, output, session) {
   xs <- reactive({
     sf <- data.frame(Seq = integer()) %>%
       st_as_sf(geometry = st_sfc(), 
-               crs = 4326)
+               crs = 3857)  # ensure Web Mercator
     return(sf)
   })
   
@@ -34,7 +34,7 @@ app_server <- function(input, output, session) {
   
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
+    setView(lng = -93.85, lat = 37.45, zoom = 13) %>%
     addProviderTiles("Esri.WorldTopoMap")
   
   # Define the mapedit module
@@ -54,11 +54,11 @@ app_server <- function(input, output, session) {
                           ))
   ns <- shiny::NS("xs_editor")
   
-  # Events
   observeEvent(input$get_terrain, {
     # get finished xs
     xs <- dplyr::bind_rows(shiny::req(xs()),
-                           draw_xs()$finished)
+                           sf::st_transform(draw_xs()$finished,
+                                            crs = 3857))  # ensure Web Mercator
     print(xs)
     
     # overwrite dem
@@ -66,8 +66,9 @@ app_server <- function(input, output, session) {
     print(dem)
     
     # Create the terrain_map
+    tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
     output$terrain_map <- renderTmap({
-      get_terrain_map(xs, dem) + 
+      get_terrain_map(xs, dem)  +
       tm_basemap("Esri.WorldTopoMap")
     })
     
@@ -78,9 +79,11 @@ app_server <- function(input, output, session) {
   })
   
   observeEvent(input$view_terrain, {
-    nav_select(id = "main", selected = "View Terrain")
+    nav_select(id = "main", selected = "View Terrain", session)
+    print("View Terrain button")
   })
   
+
   # Instructions
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({

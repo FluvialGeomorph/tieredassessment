@@ -4,7 +4,7 @@
 #'     DO NOT REMOVE.
 #'
 #' @import shiny
-#' @importFrom shinybusy add_busy_spinner spin_epic
+#' @importFrom shinybusy add_busy_spinner
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
 #' @importFrom tmap tmapOutput
@@ -15,8 +15,7 @@ app_ui <- function(request) {
   tagList(
     golem_add_external_resources(),
     
-    add_busy_spinner(spin = "fading-circle", 
-                     #color = "#FFFFFF", margins = c(20,20),
+    add_busy_spinner(spin = "fading-circle",
                      position = "full-page"),
     
     page_navbar(title = "Tiered Assessment", 

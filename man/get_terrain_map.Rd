@@ -15,5 +15,5 @@ get_terrain_map(xs, dem)
 a tmap object
 }
 \description{
-Get a terrain map as a tmap object.#'
+Get a terrain map as a tmap object.
 }
