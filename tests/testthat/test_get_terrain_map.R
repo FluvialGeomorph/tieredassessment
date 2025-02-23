@@ -11,6 +11,12 @@ test_that("map is a tmap", {
 test_that("map is a tmap", {
   xs <- sf::st_read(system.file("extdata", "xs.shp", 
                                 package = "tieredassessment"), quiet = TRUE)
+  
+  clean_xs <- xs %>%
+    mutate(Seq = as.numeric(Seq)) %>%
+    mutate(ReachName = " ") %>%
+    fluvgeo::xs_bearing(.)
+  
   dem <- get_dem(xs)
   map <- get_terrain_map(xs, dem)
   tmap::tmap_mode("plot")
