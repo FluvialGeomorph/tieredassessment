@@ -79,7 +79,8 @@ get_terrain_map <- function(xs, dem) {
                col = "grey50",
                col_alpha = 0.6,
                lwd = 7) + 
-      tm_text(text = "Seq",
+      tm_text(group = "Cross Section",
+              text = "Seq",
               col = "black",
               size = 1.1,
               fontface = "bold",

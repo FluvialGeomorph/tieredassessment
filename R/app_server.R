@@ -61,7 +61,8 @@ app_server <- function(input, output, session) {
     
     xs <- shiny::req(xs()) %>%
       bind_rows(., new_xs) %>% 
-      mutate(Seq = row.names(.))
+      mutate(Seq = as.numeric(row.names(.))) %>%
+      select(Seq, geometry) 
     # save test data
     # sf::st_write(xs, file.path(golem::get_golem_wd(), 
     #                            "inst", "extdata", "xs.shp"))  
