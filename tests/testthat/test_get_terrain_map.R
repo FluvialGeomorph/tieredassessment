@@ -3,7 +3,7 @@ test_that("map is a tmap", {
                                 package = "tieredassessment"), quiet = TRUE)
   dem <- get_dem(xs)
   map <- get_terrain_map(xs, dem)
-  #tmap_mode("plot")
+  #tmap::tmap_mode("plot")
   #map
   expect_true("tmap" %in% class(map))
 })
