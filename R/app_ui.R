@@ -7,7 +7,7 @@
 #' @importFrom shinybusy add_busy_spinner
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
-#' @importFrom tmap tmapOutput
+#' @importFrom leaflet leafletOutput
 #' 
 #' @noRd
 app_ui <- function(request) {
@@ -36,7 +36,7 @@ app_ui <- function(request) {
       nav_panel(title = "View Terrain",
         layout_sidebar(
           # display the terrain map
-          tmapOutput("terrain_map", mode = "view"),
+          leafletOutput("terrain_map"),
           sidebar = sidebar(title = "View Terrain Instructions", 
             position = "right", width = "25%",
             uiOutput("view_terrain_instructions"),

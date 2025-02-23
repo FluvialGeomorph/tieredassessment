@@ -45,16 +45,17 @@ get_terrain_map <- function(xs, dem) {
              zindex = 401) +
       tm_raster(col.scale = tm_scale_continuous(values = esri_topo(1000)),
                 col.legend = tm_legend(
-                  title = "Elevation \n(NAVD88, ft)",
+                  title = "NAVD88, ft",
                   reverse = TRUE,
                   frame = FALSE,
-                  position = legend_pos)) +
+                  position = legend_pos),
+                group = "Elevation") +
     tm_shape(shp = xs,
              name = "Cross Section",
              is.main = TRUE,
              bbox = xs_extent,
              zindex = 402) + 
-      tm_lines() + 
+      tm_lines(group = "Cross Section") + 
     tm_layout(meta.margins = c(0, 0, 0, 0.15))
   
   #terrain_map

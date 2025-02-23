@@ -6,12 +6,13 @@
 #' @importFrom bslib nav_select
 #' @importFrom htmltools tags
 #' @importFrom purrr map
-#' @importFrom leaflet leaflet addProviderTiles setView
+#' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
+#'                     renderLeaflet
 #' @importFrom dplyr %>% bind_rows
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf st_as_sf st_sfc
-#' @importFrom tmap renderTmap tm_basemap
+#' @importFrom tmap tm_basemap tmap_leaflet
 #' @importFrom terra plot
 #' 
 #' @noRd
@@ -67,9 +68,15 @@ app_server <- function(input, output, session) {
     
     # Create the terrain_map
     tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
-    output$terrain_map <- renderTmap({
-      get_terrain_map(xs, dem)  +
+    map <- get_terrain_map(xs, dem)  +
       tm_basemap("Esri.WorldTopoMap")
+    
+    output$terrain_map <- renderLeaflet({
+      map %>%
+        tmap_leaflet(in.shiny = TRUE) %>%
+        addLayersControl(
+          overlayGroups = c("Elevation", "Cross Section"),
+          position = "topleft")
     })
     
     # Add view terrain button
