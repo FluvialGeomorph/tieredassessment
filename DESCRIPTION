@@ -26,6 +26,7 @@ Imports:
     leaflet,
     leafpm,
     mapedit,
+    maptiles,
     purrr,
     sf,
     shiny,

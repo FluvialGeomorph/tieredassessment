@@ -1561,6 +1561,26 @@
       ],
       "Hash": "398b8cbf8d03283f0a1015ff0a1b4a4d"
     },
+    "maptiles": {
+      "Package": "maptiles",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "curl",
+        "digest",
+        "grDevices",
+        "graphics",
+        "png",
+        "sf",
+        "slippymath",
+        "terra",
+        "tools",
+        "utils"
+      ],
+      "Hash": "bbeaca48622a2fc8e8bcd74022a00c7f"
+    },
     "mapview": {
       "Package": "mapview",
       "Version": "2.11.2",
