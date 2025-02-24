@@ -8,7 +8,7 @@
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
 #'                     renderLeaflet
-#' @importFrom dplyr %>% bind_rows mutate 
+#' @importFrom dplyr %>% bind_rows mutate select
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf st_as_sf st_sfc
@@ -18,13 +18,20 @@
 #' @noRd
 app_server <- function(input, output, session) {
   
-  # Define the cross sections
+  # Define an empty cross section
   xs <- reactive({
     sf <- data.frame(Seq = integer()) %>%
       st_as_sf(geometry = st_sfc(), 
                crs = 3857)  # ensure Web Mercator
     return(sf)
   })
+  
+  # Define an empty flowline
+  # fl <- reactive({
+  #   fl <- data.frame(ReachName = as.character()) %>%
+  #     st_as_sf(geometry = st_sfc(),
+  #              crs = 3857)  # ensure Web Mercator
+  # })
   
   # Define an empty dem
   dem <- reactive({
@@ -33,12 +40,14 @@ app_server <- function(input, output, session) {
     return(raster)
   })
   
+  
+  
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
     setView(lng = -93.85, lat = 37.45, zoom = 13) %>%
-    addProviderTiles("Esri.WorldTopoMap")
+    addProviderTiles("USGS.USTopo")
   
-  # Define the mapedit module
+  # Define the draw_xs mapedit module
   draw_xs <- callModule(editMod,
                         id = "xs_editor",
                         leafmap = draw_xs_map,
@@ -54,6 +63,11 @@ app_server <- function(input, output, session) {
                                                  position = "topright")
                           ))
   ns <- shiny::NS("xs_editor")
+  
+  # # Define the draw_fl mapedit module
+  # draw_fl <- callModule(editMod,
+  #                       id = "fl_editor",
+  #                       )
   
   observeEvent(input$get_terrain, {
     # get finished xs
@@ -75,7 +89,7 @@ app_server <- function(input, output, session) {
     # Create the terrain_map
     tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
     map <- get_terrain_map(xs, dem)  +
-      tm_basemap("Esri.WorldTopoMap")
+      tm_basemap("USGS.USTopo")
     
     output$terrain_map <- renderLeaflet({
       map %>%
