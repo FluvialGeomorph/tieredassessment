@@ -7,12 +7,12 @@
 #' @importFrom htmltools tags
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
-#'                     renderLeaflet
+#'                     renderLeaflet leafletProxy
 #' @importFrom dplyr %>% bind_rows mutate select
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom sf st_as_sf st_sfc
-#' @importFrom tmap tm_basemap tmap_leaflet
+#' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot
 #' 
 #' @noRd
@@ -27,11 +27,11 @@ app_server <- function(input, output, session) {
   })
   
   # Define an empty flowline
-  # fl <- reactive({
-  #   fl <- data.frame(ReachName = as.character()) %>%
-  #     st_as_sf(geometry = st_sfc(),
-  #              crs = 3857)  # ensure Web Mercator
-  # })
+  fl <- reactive({
+    fl <- data.frame(ReachName = as.character()) %>%
+      st_as_sf(geometry = st_sfc(),
+               crs = 3857)  # ensure Web Mercator
+  })
   
   # Define an empty dem
   dem <- reactive({
@@ -39,8 +39,6 @@ app_server <- function(input, output, session) {
       terra::rast()
     return(raster)
   })
-  
-  
   
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
@@ -55,19 +53,40 @@ app_server <- function(input, output, session) {
                         editor = "leafpm",
                         editorOptions = list(
                           toolbarOptions = pmToolbarOptions(
-                                                 drawMarker = FALSE,
-                                                 drawPolygon = FALSE,
-                                                 drawCircle = FALSE,
-                                                 drawRectangle = FALSE,
-                                                 cutPolygon = FALSE,
-                                                 position = "topright")
-                          ))
+                            drawMarker = FALSE,
+                            drawPolygon = FALSE,
+                            drawCircle = FALSE,
+                            drawRectangle = FALSE,
+                            cutPolygon = FALSE,
+                            position = "topright")
+                        ))
   ns <- shiny::NS("xs_editor")
   
+  # Define the terrain map
+  tmap_mode("view")
+  map <- qtm(fl())
+
+  # Define the draw_fl_map
+  draw_fl_map <- reactive({
+    tmap_leaflet(map()) 
+  })
+  
   # # Define the draw_fl mapedit module
-  # draw_fl <- callModule(editMod,
-  #                       id = "fl_editor",
-  #                       )
+  draw_fl <- callModule(editMod,
+                        id = "fl_editor",
+                        leafmap = draw_fl_map,
+                        targetLayerId = fl,
+                        editor = "leafpm",
+                        editorOptions = list(
+                          toolbarOptions = pmToolbarOptions(
+                            drawMarker = FALSE,
+                            drawPolygon = FALSE,
+                            drawCircle = FALSE,
+                            drawRectangle = FALSE,
+                            cutPolygon = FALSE,
+                            position = "topright")
+                        ))
+  ns <- shiny::NS("fl_editor")
   
   observeEvent(input$get_terrain, {
     # get finished xs
@@ -101,13 +120,19 @@ app_server <- function(input, output, session) {
     
     # Add view terrain button
     output$view_terrain_button <- renderUI({
-        actionButton("view_terrain", "View Terrain")
+        actionButton("draw_flowline", "Draw Flowline")
     })
   })
   
   observeEvent(input$view_terrain, {
-    nav_select(id = "main", selected = "View Terrain", session)
-    print("View Terrain button")
+    nav_select(id = "main", selected = "Draw Flowline", session)
+    print("Draw Flowline button")
+  })
+  
+  observeEvent(input$calc_xs, {
+    # get finished fl
+    new_fl <- sf::st_transform(draw_fl()$finished, crs = 3857) # Web Mercator
+    print(new_fl)
   })
   
 
@@ -122,8 +147,8 @@ app_server <- function(input, output, session) {
       purrr::map(steps, function(.x) tags$li(.x)))
   })
   
-  ## create view terrain page instructions
-  output$view_terrain_instructions <- renderUI({
+  ## create draw flowline page instructions
+  output$draw_flowline_instructions <- renderUI({
     steps <- c('Do this.', 
                'Then do that.', 
                'Then do this other important thing.',

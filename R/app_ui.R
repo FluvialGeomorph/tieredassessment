@@ -33,13 +33,13 @@ app_ui <- function(request) {
             uiOutput('view_terrain_button')
             ))),
       
-      nav_panel(title = "View Terrain",
+      nav_panel(title = "Draw Flowline",
         layout_sidebar(
-          # display the terrain map
-          leafletOutput("terrain_map"),
-          sidebar = sidebar(title = "View Terrain Instructions", 
+          # display fl editing module
+          editModUI(id = "fl_editor"),
+          sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
-            uiOutput("view_terrain_instructions"),
+            uiOutput("draw_flowline_instructions"),
             actionButton("calc_xs", "Calc XS")
             ))),
       
