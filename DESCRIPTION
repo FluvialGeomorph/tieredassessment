@@ -25,6 +25,7 @@ Imports:
     htmltools,
     httr2,
     leaflet,
+    leaflet.extras,
     leafpm,
     mapedit,
     maptiles,

@@ -11,6 +11,7 @@
 #' @importFrom dplyr %>% bind_rows mutate select
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
+#' @importFrom leaflet.extras addSearchOSM searchOptions
 #' @importFrom sf st_as_sf st_sfc
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot
@@ -42,9 +43,15 @@ app_server <- function(input, output, session) {
   
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 13) %>%
-    addProviderTiles("USGS.USTopo")
-  
+    setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
+    addProviderTiles("USGS.USTopo") %>%
+    leaflet.extras::addSearchOSM(
+      options = searchOptions(collapsed = TRUE, 
+                              autoCollapse = TRUE,
+                              minLength = 3,
+                              hideMarkerOnCollapse = TRUE,
+                              zoom = 15))
+    
   # Define the draw_xs mapedit module
   xs_editor_ui <- callModule(editMod,
                         id = "xs_editor_ui",
@@ -100,6 +107,7 @@ app_server <- function(input, output, session) {
                                id = "fl_editor",
                                leafmap = terrain_map,
                                targetLayerId = fl,
+                               crs = 3857,
                                editor = "leafpm",
                                editorOptions = list(
                                  toolbarOptions = pmToolbarOptions(
@@ -111,7 +119,7 @@ app_server <- function(input, output, session) {
                                    position = "topright")
                                ))
     ns <- shiny::NS("fl_editor")
-    print(class(fl_editor_ui))
+    print(ns("fl_editor_ui"))
     
     output$fl_editor_ui <- fl_editor_ui
     
@@ -119,7 +127,6 @@ app_server <- function(input, output, session) {
     output$draw_fl_button <- renderUI({
         actionButton("draw_flowline", "Draw Flowline")
     })
-    print("Draw Flowline button add")
   })
   
   observeEvent(input$draw_flowline, {
