@@ -28,6 +28,10 @@ get_dem <- function(xs) {
                     ymin = xs_bbox$ymin,
                     xmax = xs_bbox$xmax,
                     ymax = xs_bbox$ymax)
-  return(dem)
+  
+  # Convert elevations from meters to feet
+  dem_m <- dem * 3.28084
+  
+  return(dem_m)
 }  
 
