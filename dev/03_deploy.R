@@ -49,8 +49,9 @@ golem::add_shinyserver_file()
 
 add_shinyappsio_file()
 #renv::settings$ignored.packages("tieredassessment")
+
 renv::snapshot()
-# configure in app.R
+
 rsconnect::deployApp()
 
 ## Add/update manifest file (optional; for Git backed deployment on Posit )

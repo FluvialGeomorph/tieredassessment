@@ -43,15 +43,19 @@ app_server <- function(input, output, session) {
   
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 14) %>%
-    addProviderTiles("USGS.USTopo") %>%
+    setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
+    addProviderTiles("USGS.USTopo", group = "USGS Topo") %>%
+    addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
     leaflet.extras::addSearchOSM(
       options = searchOptions(collapsed = TRUE, 
                               autoCollapse = TRUE,
                               autoCollapseTime = 20000,
                               minLength = 3,
                               hideMarkerOnCollapse = TRUE,
-                              zoom = 14))
+                              zoom = 14)) %>%
+    addLayersControl(
+      baseGroups = c("USGS Topo", "Imagery"),
+      position = "topleft")
     
   # Define the draw_xs mapedit module
   ns <- shiny::NS("xs_editor_ui")
@@ -93,11 +97,12 @@ app_server <- function(input, output, session) {
     tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
     terrain_map <- 
       tmap_leaflet(get_terrain_map(xs, dem), in.shiny = TRUE) %>%
-      addProviderTiles("USGS.USTopo") %>%
+      addProviderTiles("USGS.USTopo", group = "USGS Topo") %>%
+      addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
       addLayersControl(
+        baseGroups = c("USGS Topo", "Imagery"),
         overlayGroups = c("Elevation", "Cross Section"),
         position = "topleft")
-    print(class(terrain_map))
     
     # Define the draw_fl mapedit module
     ns <- shiny::NS("fl_editor_ui")
@@ -124,7 +129,6 @@ app_server <- function(input, output, session) {
   
   observeEvent(input$draw_flowline, {
     nav_select(id = "main", selected = "Draw Flowline", session)
-    print("Draw Flowline button event")
   })
   
   observeEvent(input$calc_xs, {

@@ -13,7 +13,7 @@
 #' 
 get_dem <- function(xs) {
   # authenticate to AGOL
-  tieredassessment:::arcgis_auth()
+  tieredassessment::arcgis_auth()
   
   dem_url <- "https://elevation.arcgis.com/arcgis/rest/services/WorldElevation/Terrain/ImageServer"
   dem_service  <- arc_open(dem_url)

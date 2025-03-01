@@ -808,13 +808,7 @@
     "fluvgeo": {
       "Package": "fluvgeo",
       "Version": "0.1.53",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "fluvgeo",
-      "RemoteUsername": "FluvialGeomorph",
-      "RemoteRef": "v0.1.53",
-      "RemoteSha": "82df23c9e8c260c16744a7ad6d5649ac6c44b4ca",
+      "Source": "unknown",
       "Requirements": [
         "Metrics",
         "R",
@@ -846,7 +840,7 @@
         "tmap",
         "utils"
       ],
-      "Hash": "c9be5ecb7400f0496f19263c24466789"
+      "Hash": "04400f77fb60117d849c0cf97d5be4bb"
     },
     "fontawesome": {
       "Package": "fontawesome",
