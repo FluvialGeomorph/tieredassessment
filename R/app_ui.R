@@ -25,7 +25,7 @@ app_ui <- function(request) {
       nav_panel(title = "Draw XS",
         layout_sidebar(
           # display the xs editing module
-          editModUI(id = "xs_editor_ui"), 
+          editModUI(id = "xs_editor_ui_id"), 
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
@@ -36,7 +36,7 @@ app_ui <- function(request) {
       nav_panel(title = "Draw Flowline",
         layout_sidebar(
           # display fl editing module
-          editModUI("fl_editor_ui"),
+          editModUI("fl_editor_ui_id"),
           sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_fl_instructions"),
