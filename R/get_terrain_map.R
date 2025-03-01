@@ -30,11 +30,6 @@ get_terrain_map <- function(xs, dem) {
   dem_i <- terra::crop(x = dem,
                        y = terra::ext(xs_extent_poly) + 20)
   
-  # Create a hillshade from dem_i
-  slp <- terra::terrain(dem_i, v = "slope", unit = "radians")
-  asp <- terra::terrain(dem_i, v = "aspect", unit = "radians")
-  hill <- terra::shade(slope = slp, aspect = asp)
-  
   # Create a topo color ramp
   esri_topo <- grDevices::colorRampPalette(colors = c("cadetblue2", "khaki1",
                                                       "chartreuse4", "goldenrod1",
@@ -50,43 +45,37 @@ get_terrain_map <- function(xs, dem) {
                            pos.h = "left")
   
   terrain_map <- 
-    tm_shape(shp = hill,
-             name = "Hillshade",
-             is.main = FALSE,
-             zindex = 401) +
-      tm_raster(group = "Elevation",
-                col.scale = tm_scale_continuous(values = "hcl.grays"),
-                col.legend = tm_legend(show = FALSE)) +
     tm_shape(shp = dem_i,
              name = "DEM",
              unit = "ft",
-             is.main = FALSE,
-             zindex = 402) +
+             is.main = FALSE) +
       tm_raster(group = "Elevation",
+                zindex = 401,
                 col.scale = tm_scale_continuous(values = esri_topo(1000)),
-                col_alpha = 0.8,
+                col_alpha = 1,
                 col.legend = tm_legend(
                   title = "NAVD88, ft",
-                  reverse = TRUE,
+                  reverse = FALSE,
                   frame = FALSE,
                   position = legend_pos)) +
     tm_shape(shp = xs,
              name = "XS",
              is.main = TRUE,
-             bbox = xs_extent,
-             zindex = 403) + 
+             bbox = xs_extent) + 
       tm_lines(group = "Cross Section",
+               zindex = 402,
                col = "grey50",
-               col_alpha = 0.6,
+               col_alpha = 1,
                lwd = 7) + 
       tm_text(group = "Cross Section",
+              zindex = 403,
               text = "Seq",
               col = "black",
               size = 1.1,
               fontface = "bold",
               options = opt_tm_text(remove_overlap = FALSE,
                                     shadow = FALSE)) +
-    tm_layout(meta.margins = c(0, 0, 0, 0.15))
+    tm_layout(meta.margins = c(0, 0, 0, 0.15)) 
   
   terrain_map
   return(terrain_map)
