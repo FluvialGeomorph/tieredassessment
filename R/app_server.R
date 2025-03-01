@@ -46,8 +46,8 @@ app_server <- function(input, output, session) {
     addProviderTiles("USGS.USTopo")
   
   # Define the draw_xs mapedit module
-  draw_xs <- callModule(editMod,
-                        id = "xs_editor",
+  xs_editor_ui <- callModule(editMod,
+                        id = "xs_editor_ui",
                         leafmap = draw_xs_map,
                         targetLayerId = xs,
                         editor = "leafpm",
@@ -62,35 +62,10 @@ app_server <- function(input, output, session) {
                         ))
   ns <- shiny::NS("xs_editor")
   
-  # Define the terrain map
-  tmap_mode("view")
-  map <- qtm(fl())
-
-  # Define the draw_fl_map
-  draw_fl_map <- reactive({
-    tmap_leaflet(map()) 
-  })
-  
-  # # Define the draw_fl mapedit module
-  draw_fl <- callModule(editMod,
-                        id = "fl_editor",
-                        leafmap = draw_fl_map,
-                        targetLayerId = fl,
-                        editor = "leafpm",
-                        editorOptions = list(
-                          toolbarOptions = pmToolbarOptions(
-                            drawMarker = FALSE,
-                            drawPolygon = FALSE,
-                            drawCircle = FALSE,
-                            drawRectangle = FALSE,
-                            cutPolygon = FALSE,
-                            position = "topright")
-                        ))
-  ns <- shiny::NS("fl_editor")
-  
   observeEvent(input$get_terrain, {
     # get finished xs
-    new_xs <- sf::st_transform(draw_xs()$finished, crs = 3857) # Web Mercator
+    new_xs <- sf::st_transform(xs_editor_ui()$finished, 
+                               crs = 3857) # Web Mercator
     
     xs <- shiny::req(xs()) %>%
       bind_rows(., new_xs) %>% 
@@ -107,32 +82,58 @@ app_server <- function(input, output, session) {
     
     # Create the terrain_map
     tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
-    map <- get_terrain_map(xs, dem)  +
-      tm_basemap("USGS.USTopo")
+    terrain_map <- 
+      tmap_leaflet(get_terrain_map(xs, dem) + 
+                   tm_basemap("USGS.USTopo"),
+                   in.shiny = TRUE) %>%
+      addLayersControl(
+        overlayGroups = c("Elevation", "Cross Section"),
+        position = "topleft")
+    print(class(terrain_map))
     
     output$terrain_map <- renderLeaflet({
-      map %>%
-        tmap_leaflet(in.shiny = TRUE) %>%
-        addLayersControl(
-          overlayGroups = c("Elevation", "Cross Section"),
-          position = "topleft")
+      terrain_map
     })
+ 
+    # Define the draw_fl mapedit module
+    fl_editor_ui <- callModule(editMod,
+                               id = "fl_editor",
+                               leafmap = terrain_map,
+                               targetLayerId = fl,
+                               editor = "leafpm",
+                               editorOptions = list(
+                                 toolbarOptions = pmToolbarOptions(
+                                   drawMarker = FALSE,
+                                   drawPolygon = FALSE,
+                                   drawCircle = FALSE,
+                                   drawRectangle = FALSE,
+                                   cutPolygon = FALSE,
+                                   position = "topright")
+                               ))
+    ns <- shiny::NS("fl_editor")
+    print(class(fl_editor_ui))
+    
+    output$fl_editor_ui <- fl_editor_ui
     
     # Add view terrain button
-    output$view_terrain_button <- renderUI({
+    output$draw_fl_button <- renderUI({
         actionButton("draw_flowline", "Draw Flowline")
     })
+    print("Draw Flowline button add")
   })
   
-  observeEvent(input$view_terrain, {
+  observeEvent(input$draw_flowline, {
     nav_select(id = "main", selected = "Draw Flowline", session)
-    print("Draw Flowline button")
+    print("Draw Flowline button event")
   })
   
   observeEvent(input$calc_xs, {
     # get finished fl
-    new_fl <- sf::st_transform(draw_fl()$finished, crs = 3857) # Web Mercator
+    new_fl <- sf::st_transform(fl_editor_ui()$finished, 
+                               crs = 3857) # Web Mercator
     print(new_fl)
+    
+    # fl logic here
   })
   
 
@@ -140,7 +141,7 @@ app_server <- function(input, output, session) {
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({
     steps <- c('Zoom to the desired AOI.', 
-               'Draw cross sections beginning with the most downstream cross section first.', 
+               'Draw cross sections.', 
                'Click the "Get Terrain" button below to retrieve the digital elevation model (DEM).',
                'View the terrain using the "View Terrain" button or top menu.')
     ul <- htmltools::tags$ul(
@@ -148,7 +149,7 @@ app_server <- function(input, output, session) {
   })
   
   ## create draw flowline page instructions
-  output$draw_flowline_instructions <- renderUI({
+  output$draw_fl_instructions <- renderUI({
     steps <- c('Do this.', 
                'Then do that.', 
                'Then do this other important thing.',

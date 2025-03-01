@@ -25,21 +25,21 @@ app_ui <- function(request) {
       nav_panel(title = "Draw XS",
         layout_sidebar(
           # display the xs editing module
-          editModUI(id = "xs_editor"), 
+          editModUI(id = "xs_editor_ui"), 
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
             actionButton('get_terrain', 'Get Terrain'),
-            uiOutput('view_terrain_button')
+            uiOutput('draw_fl_button')
             ))),
       
       nav_panel(title = "Draw Flowline",
         layout_sidebar(
           # display fl editing module
-          editModUI(id = "fl_editor"),
+          editModUI("fl_editor_ui"),
           sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
-            uiOutput("draw_flowline_instructions"),
+            uiOutput("draw_fl_instructions"),
             actionButton("calc_xs", "Calc XS")
             ))),
       

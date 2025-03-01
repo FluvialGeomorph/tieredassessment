@@ -15,11 +15,11 @@ test_that("map is a tmap", {
   clean_xs <- xs %>%
     mutate(Seq = as.numeric(Seq)) %>%
     mutate(ReachName = " ") %>%
-    fluvgeo::xs_bearing(.)
+    #fluvgeo::xs_bearing(.)
   
   dem <- get_dem(xs)
   map <- get_terrain_map(xs, dem)
-  tmap::tmap_mode("plot")
-  map
+  #tmap::tmap_mode("plot")
+  #map
   expect_true("tmap" %in% class(map))
 })
