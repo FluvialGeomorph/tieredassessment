@@ -43,16 +43,18 @@ app_server <- function(input, output, session) {
   
   # Define the draw_xs_map  
   draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
+    setView(lng = -93.85, lat = 37.45, zoom = 14) %>%
     addProviderTiles("USGS.USTopo") %>%
     leaflet.extras::addSearchOSM(
       options = searchOptions(collapsed = TRUE, 
                               autoCollapse = TRUE,
+                              autoCollapseTime = 20000,
                               minLength = 3,
                               hideMarkerOnCollapse = TRUE,
-                              zoom = 15))
+                              zoom = 14))
     
   # Define the draw_xs mapedit module
+  ns <- shiny::NS("xs_editor_ui")
   xs_editor_ui <- callModule(editMod,
                         id = "xs_editor_ui",
                         leafmap = draw_xs_map,
@@ -67,7 +69,7 @@ app_server <- function(input, output, session) {
                             cutPolygon = FALSE,
                             position = "topright")
                         ))
-  ns <- shiny::NS("xs_editor")
+  
   
   observeEvent(input$get_terrain, {
     # get finished xs
@@ -90,21 +92,17 @@ app_server <- function(input, output, session) {
     # Create the terrain_map
     tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
     terrain_map <- 
-      tmap_leaflet(get_terrain_map(xs, dem) + 
-                   tm_basemap("USGS.USTopo"),
-                   in.shiny = TRUE) %>%
+      tmap_leaflet(get_terrain_map(xs, dem), in.shiny = TRUE) %>%
+      addProviderTiles("USGS.USTopo") %>%
       addLayersControl(
         overlayGroups = c("Elevation", "Cross Section"),
         position = "topleft")
     print(class(terrain_map))
     
-    output$terrain_map <- renderLeaflet({
-      terrain_map
-    })
- 
     # Define the draw_fl mapedit module
+    ns <- shiny::NS("fl_editor_ui")
     fl_editor_ui <- callModule(editMod,
-                               id = "fl_editor",
+                               id = "fl_editor_ui",
                                leafmap = terrain_map,
                                targetLayerId = fl,
                                crs = 3857,
@@ -118,11 +116,6 @@ app_server <- function(input, output, session) {
                                    cutPolygon = FALSE,
                                    position = "topright")
                                ))
-    ns <- shiny::NS("fl_editor")
-    print(ns("fl_editor_ui"))
-    
-    output$fl_editor_ui <- fl_editor_ui
-    
     # Add view terrain button
     output$draw_fl_button <- renderUI({
         actionButton("draw_flowline", "Draw Flowline")
