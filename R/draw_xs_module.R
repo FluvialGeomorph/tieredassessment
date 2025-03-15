@@ -1,7 +1,11 @@
+#' @title Draw XS UI Function
+#' @param id 
+#' @return tagList containing a bslib sidebar layout
+#' @export
 draw_xs_ui <- function(id) {
   tagList(
     layout_sidebar(
-      editModUI(NS(id, "xs_editor")),
+      mapedit::editModUI(NS(id, "xs_editor")),
       sidebar = sidebar(
         title = "Draw XS Instructions",
         position = "right", width = "25%",
@@ -12,6 +16,10 @@ draw_xs_ui <- function(id) {
   )
 }
 
+#' @title Draw XS Server Function
+#' @param id 
+#' @return cross section reactive
+#' @export
 draw_xs_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     output$draw_xs_instructions <- renderUI({
@@ -25,9 +33,7 @@ draw_xs_server <- function(id) {
     
     xs <- reactive({
       sf <- data.frame(Seq = integer()) %>%
-        st_as_sf(geometry = st_sfc(), 
-                 crs = 3857)  # ensure Web Mercator
-      print(xs)
+        st_as_sf(geometry = st_sfc(), crs = 3857)  # ensure Web Mercator
     })
     
     draw_xs_map <- leaflet() %>%  # defaults to Web Mercator
@@ -35,7 +41,7 @@ draw_xs_server <- function(id) {
       addProviderTiles("USGS.USTopo")
     
     draw_xs <- callModule(
-      editMod,
+      mapedit::editMod,
       id = "xs_editor",
       leafmap = draw_xs_map,
       targetLayerId = xs,
@@ -52,13 +58,14 @@ draw_xs_server <- function(id) {
       ))
     
     observeEvent(draw_xs()$finished, {
-      new_xs <- sf::st_transform(draw_xs()$finished, crs = 3857) # Web Mercator
-      print(new_xs)
+      xs <- draw_xs()$finished
+      print(xs)
       output$get_terrain_button <- renderUI({
         actionButton("get_terrain", "Get Terrain")
       })
-      list(xs = reactive(new_xs))
     })
+    
+    list(xs = reactive(xs))
   })
 }
 
