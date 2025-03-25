@@ -33,6 +33,7 @@ Check out the [NEWS](NEWS.md) for details on the latest updates.
     <a itemprop="sameAs" content="https://orcid.org/0000-0002-1465-5927" href="https://orcid.org/0000-0002-1465-5927" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-1465-5927</a>
 -   Christopher Haring, Fluvial Geomorphologist/Research Physical
     Scientist, U.S. Army Corps of Engineers
+    <a itemprop="sameAs" content="https://orcid.org/0009-0004-3834-9811" href="https://orcid.org/0009-0004-3834-9811" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID iD icon" style="width:1em;margin-right:.5em;"/>https://orcid.org/0009-0004-3834-9811</a>
 -   Barrie Chileen Martinez, Geographer, U.S. Army Corps of Engineers
     <a itemprop="sameAs" content="https://orcid.org/0000-0002-6960-8167" href="https://orcid.org/0000-0002-6960-8167" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-6960-8167</a>
     
