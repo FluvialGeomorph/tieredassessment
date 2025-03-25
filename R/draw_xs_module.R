@@ -2,15 +2,20 @@
 #' @param id 
 #' @return tagList containing a bslib sidebar layout
 #' @export
+#' @import shiny
+#' @importFrom bslib layout_sidebar sidebar
+#' @importFrom mapedit editModUI
 draw_xs_ui <- function(id) {
+  ns <- NS(id)
   tagList(
     layout_sidebar(
       mapedit::editModUI(NS(id, "xs_editor")),
       sidebar = sidebar(
         title = "Draw XS Instructions",
         position = "right", width = "25%",
-        uiOutput(NS(id, "draw_xs_instructions")),
-        uiOutput(NS(id, "get_terrain_button"))
+        uiOutput(ns("draw_xs_instructions")),
+        button_ui(ns("get_terrain"), "Get Terrain"),
+        uiOutput(ns("draw_fl_button"))
       )
     )
   )
@@ -20,6 +25,12 @@ draw_xs_ui <- function(id) {
 #' @param id 
 #' @return cross section reactive
 #' @export
+#' @import shiny
+#' @importFrom purrr map
+#' @importFrom leaflet leaflet setView addProviderTiles
+#' @importFrom sf st_as_sf st_sfc
+#' @importFrom mapedit editMod
+#' @importFrom leafpm pmToolbarOptions
 draw_xs_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     output$draw_xs_instructions <- renderUI({
@@ -61,22 +72,21 @@ draw_xs_server <- function(id) {
       xs <- draw_xs()$finished
       print(xs)
       output$get_terrain_button <- renderUI({
-        actionButton("get_terrain", "Get Terrain")
+        actionButton(NS(id, "get_terrain"), "label")
       })
+      output$xs <- reactive({xs()})
     })
-    
-    list(xs = reactive(xs))
   })
 }
 
 draw_xs_app <- function() {
   ui <- page_navbar(title = "Main App", id = "main",
-    nav_panel( title = "Draw XS",
+    nav_panel(title = "Draw XS",
       draw_xs_ui("xs_editor"),
     )
   )
   server <- function(input, output, session) {
-    xs <- draw_xs_server("xs_editor")
+    draw_xs_server("xs_editor")
   }
   shinyApp(ui, server)
 }

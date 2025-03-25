@@ -1,4 +1,4 @@
-test_that("outpu instructionst", {  
+test_that("output instructions", {  
   testServer(draw_xs_server, args = list(), {
     # test outputs
     #print(session$output$draw_xs_instructions$html)
@@ -15,13 +15,11 @@ test_that("outpu instructionst", {
     # test return values
     print(session$getReturned())
     
-    #new_xs <- draw_xs_server("1")
-    #print(new_xs)
+    new_xs <- draw_xs_server("1")
+    print(new_xs)
+    print(new_xs$xs)
+    print(new_xs$xs())
   })
-})
-
-test_that("", {
-  xs <- callModule(draw_xs_server, "1")
 })
 
 test_that("", {

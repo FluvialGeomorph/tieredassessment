@@ -23,15 +23,8 @@ app_ui <- function(request) {
       theme = bs_theme(bootswatch = "cerulean", version = 5),
       
       nav_panel(title = "Draw XS",
-        layout_sidebar(
-          # display the xs editing module
-          editModUI(id = "xs_editor"), 
-          sidebar = sidebar(title = "Draw XS Instructions", 
-            position = "right", width = "25%",
-            uiOutput("draw_xs_instructions"),
-            actionButton('get_terrain', 'Get Terrain'),
-            uiOutput('view_terrain_button')
-            ))),
+        draw_xs_ui("xs_editor")
+      ),
       
       nav_panel(title = "Draw Flowline",
         layout_sidebar(

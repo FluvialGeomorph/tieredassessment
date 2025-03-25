@@ -18,13 +18,7 @@
 #' @noRd
 app_server <- function(input, output, session) {
   
-  # Define an empty cross section
-  xs <- reactive({
-    sf <- data.frame(Seq = integer()) %>%
-      st_as_sf(geometry = st_sfc(), 
-               crs = 3857)  # ensure Web Mercator
-    return(sf)
-  })
+  xs <- draw_xs_server("xs_editor")
   
   # Define an empty flowline
   fl <- reactive({
@@ -33,35 +27,7 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
   })
   
-  # Define an empty dem
-  dem <- reactive({
-    raster <- matrix(1:25, nrow=5, ncol=5) %>%
-      terra::rast()
-    return(raster)
-  })
-  
-  # Define the draw_xs_map  
-  draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 13) %>%
-    addProviderTiles("USGS.USTopo")
-  
-  # Define the draw_xs mapedit module
-  draw_xs <- callModule(editMod,
-                        id = "xs_editor",
-                        leafmap = draw_xs_map,
-                        targetLayerId = xs,
-                        editor = "leafpm",
-                        editorOptions = list(
-                          toolbarOptions = pmToolbarOptions(
-                            drawMarker = FALSE,
-                            drawPolygon = FALSE,
-                            drawCircle = FALSE,
-                            drawRectangle = FALSE,
-                            cutPolygon = FALSE,
-                            position = "topright")
-                        ))
-  ns <- shiny::NS("xs_editor")
-  
+
   # Define the terrain map
   tmap_mode("view")
   map <- qtm(fl())
@@ -89,18 +55,6 @@ app_server <- function(input, output, session) {
   ns <- shiny::NS("fl_editor")
   
   observeEvent(input$get_terrain, {
-    # get finished xs
-    new_xs <- sf::st_transform(draw_xs()$finished, crs = 3857) # Web Mercator
-    
-    xs <- shiny::req(xs()) %>%
-      bind_rows(., new_xs) %>% 
-      mutate(Seq = as.numeric(row.names(.))) %>%
-      select(Seq, geometry) 
-    # save test data
-    # sf::st_write(xs, file.path(golem::get_golem_wd(), 
-    #                            "inst", "extdata", "xs.shp"))  
-    print(xs)
-    
     # overwrite dem
     dem <- get_dem(xs)
     print(dem)
