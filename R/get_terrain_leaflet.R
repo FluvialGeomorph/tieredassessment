@@ -21,6 +21,8 @@ get_terrain_leaflet <- function(xs, dem) {
                msg = "must be sf object")
   assert_that("SpatRaster" %in% class(dem), 
               msg = "must be SpatRaster object")
+  assert_that(check_crs_3857(xs), msg = "xs must be crs 3857")
+  assert_that(check_crs_3857(dem), msg = "dem must be crs 3857")
   
   # set extent
   xs_extent <- fluvgeo::map_extent(xs, extent_factor = 1.2)
@@ -57,7 +59,7 @@ get_terrain_leaflet <- function(xs, dem) {
       position = "topright") %>%
     updateLayersControl(
       addOverlayGroups = c("Elevation"),
-      position = "topleft") %>%
+      position = "topleft")
     # customizeLayersControl(
     #   view_settings = list(
     #     "Elevation" = list(

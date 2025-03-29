@@ -1,4 +1,4 @@
-#' Get a Terrain Map
+#' Get a Terrain tmap
 #' 
 #' @description Get a terrain map as a tmap object. 
 #'
@@ -6,7 +6,6 @@
 #' @param dem       SpatRaster object, The digital elevation model. 
 #'
 #' @return a tmap object
-#' @export
 #'
 #' @importFrom tmap tmap_mode tm_shape tm_raster tm_lines tm_pos_out tm_text
 #'                  opt_tm_text tm_scale_continuous tm_legend tm_layout 
@@ -16,11 +15,13 @@
 #' @importFrom sf st_as_sf st_as_sfc
 #' @importFrom terra crop terrain shade
 #'
-get_terrain_map <- function(xs, dem) {
+get_terrain_tmap <- function(xs, dem) {
   assert_that("sf" %in% class(xs), 
                msg = "must be sf object")
   assert_that("SpatRaster" %in% class(dem), 
               msg = "must be SpatRaster object")
+  assert_that(check_crs_3857(xs), msg = "xs must be crs 3857")
+  assert_that(check_crs_3857(dem), msg = "dem must be crs 3857")
   
   # set extent
   xs_extent <- fluvgeo::map_extent(xs, extent_factor = 1.2)
