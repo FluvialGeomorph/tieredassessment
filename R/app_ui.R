@@ -4,7 +4,6 @@
 #'     DO NOT REMOVE.
 #'
 #' @import shiny
-#' @importFrom shinybusy add_busy_spinner
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
@@ -14,9 +13,6 @@ app_ui <- function(request) {
 
   tagList(
     golem_add_external_resources(),
-    
-    add_busy_spinner(spin = "fading-circle",
-                     position = "full-page"),
     
     page_navbar(title = "Tiered Assessment", 
       id = "main",
@@ -36,7 +32,7 @@ app_ui <- function(request) {
       nav_panel(title = "Draw Flowline",
         layout_sidebar(
           # display fl editing module
-          editModUI("fl_editor_ui_id"),
+          editModUI(id = "fl_editor_ui_id"),
           sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_fl_instructions"),
