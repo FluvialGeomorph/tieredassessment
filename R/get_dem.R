@@ -23,8 +23,10 @@ get_dem <- function(xs) {
   dem_service  <- arc_open(dem_url)
   dem_crs <- dem_service$spatialReference$latestWkid
   # Transform xs to the crs of the dem to get the bbox in the dem crs
-  xs_dem  <- st_transform(xs, dem_crs)
+  xs_dem  <- st_transform(xs, crs = dem_crs)
+  xs_dem
   xs_bbox <- fluvgeo::map_extent(xs_dem, extent_factor = 1.2)
+  xs_bbox
 
   dem <- arc_raster(dem_service, 
                     # only get the extent of the xs

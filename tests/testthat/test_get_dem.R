@@ -21,3 +21,14 @@ test_that("expect error - WGS84 input", {
                                 package = "tieredassessment"), quiet = TRUE)
   expect_error(get_dem(xs))
 })
+
+test_that("leaflet from shapefile", {
+  xs_mapedit_shp <- sf::st_read(system.file("extdata", "xs_mapedit.shp", 
+                                    package = "tieredassessment"), quiet = TRUE)
+  #plot(xs_mapedit_shp)
+  xs <- sf::st_transform(xs_mapedit_shp, crs = 3857) # Web Mercator
+  st_crs(xs_mapedit_shp) == st_crs(xs)
+  dem <- get_dem(xs)
+  #terra::plot(dem)
+  expect_true("SpatRaster" %in% class(dem))
+})
