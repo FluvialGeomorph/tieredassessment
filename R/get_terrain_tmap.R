@@ -50,12 +50,12 @@ get_terrain_map <- function(xs, dem) {
              unit = "ft",
              is.main = FALSE) +
       tm_raster(group = "Elevation",
-                zindex = 401,
+                zindex = 402,
                 col.scale = tm_scale_continuous(values = esri_topo(1000)),
                 col_alpha = 1,
                 col.legend = tm_legend(
                   title = "NAVD88, ft",
-                  reverse = FALSE,
+                  reverse = TRUE,
                   frame = FALSE,
                   position = legend_pos)) +
     tm_shape(shp = xs,
@@ -63,12 +63,12 @@ get_terrain_map <- function(xs, dem) {
              is.main = TRUE,
              bbox = xs_extent) + 
       tm_lines(group = "Cross Section",
-               zindex = 402,
+               zindex = 403,
                col = "grey50",
                col_alpha = 1,
                lwd = 7) + 
       tm_text(group = "Cross Section",
-              zindex = 403,
+              zindex = 404,
               text = "Seq",
               col = "black",
               size = 1.1,
