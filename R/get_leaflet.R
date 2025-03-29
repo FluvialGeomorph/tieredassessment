@@ -25,7 +25,7 @@ get_leaflet <- function(search = FALSE) {
   leaflet_search_map <- 
     leaflet_map %>%
     setView(lng = -93.85, 
-            lat = 37.45, zoom = 4) %>%
+            lat = 37.45, zoom = 14) %>%
     addSearchOSM(
       options = searchOptions(
         collapsed = TRUE,
