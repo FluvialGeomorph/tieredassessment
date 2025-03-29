@@ -7,24 +7,24 @@
 #' @importFrom htmltools tags
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
-#'                     renderLeaflet leafletProxy
+#'                     renderLeaflet leafletProxy leafletOptions leafletCRS
 #' @importFrom dplyr %>% bind_rows mutate select
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom leaflet.extras addSearchOSM searchOptions
 #' @importFrom sf st_as_sf st_sfc
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
-#' @importFrom terra plot
-#' 
+#' @importFrom terra plot crs
+#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
 #' @noRd
 app_server <- function(input, output, session) {
-  
+  # Create Reactives ##########################################################
   # Define an empty cross section
   xs <- reactive({
-    sf <- data.frame(Seq = integer()) %>%
+    xs <- data.frame(Seq = integer()) %>%
       st_as_sf(geometry = st_sfc(), 
                crs = 3857)  # ensure Web Mercator
-    return(sf)
+    return(xs)
   })
   
   # Define an empty flowline
@@ -32,36 +32,26 @@ app_server <- function(input, output, session) {
     fl <- data.frame(ReachName = as.character()) %>%
       st_as_sf(geometry = st_sfc(),
                crs = 3857)  # ensure Web Mercator
+    return(fl)
   })
-  
   # Define an empty dem
   dem <- reactive({
     raster <- matrix(1:25, nrow=5, ncol=5) %>%
       terra::rast()
+    terra::crs(raster) <- "EPSG:3857"
     return(raster)
   })
-  
-  # Define the draw_xs_map  
-  draw_xs_map <- leaflet() %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 14) %>%
-    addProviderTiles("USGS.USTopo", group = "USGS Topo") %>%
-    addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
-    leaflet.extras::addSearchOSM(
-      options = searchOptions(collapsed = TRUE, 
-                              autoCollapse = TRUE,
-                              autoCollapseTime = 20000,
-                              minLength = 3,
-                              hideMarkerOnCollapse = TRUE,
-                              zoom = 14)) %>%
-    addLayersControl(
-      baseGroups = c("USGS Topo", "Imagery"),
-      position = "topleft")
-    
+
+  # Draw XS ###################################################################
+  # Define the leaflet draw_xs_map
+  draw_xs_map <- get_leaflet(search = TRUE)
+
   # Define the draw_xs mapedit module
   xs_editor_ui <- callModule(editMod,
                         id = "xs_editor_ui_id",
                         leafmap = draw_xs_map,
                         targetLayerId = xs,
+                        crs = 4326,    # only suuports 4326, don't change
                         editor = "leafpm",
                         editorOptions = list(
                           toolbarOptions = pmToolbarOptions(
@@ -73,42 +63,50 @@ app_server <- function(input, output, session) {
                             position = "topright")
                         ))
   
+  # Get Terrain ###############################################################
+
+  # Ensure flowline mapedit module is available at app scope
+  terrain_map <- NULL
+  makeReactiveBinding("terrain_map")
+  fl_editor_ui <- NULL
+  makeReactiveBinding("fl_editor_ui")
   
   observeEvent(input$get_terrain, {
+    show_modal_spinner(spin = "circle", text = "Retrieving Terrain")
     # get finished xs
-    new_xs <- sf::st_transform(xs_editor_ui()$finished, 
-                               crs = 3857) # Web Mercator
+    xs_mapedit <- xs_editor_ui()$finished
+    print("mapedit xs -------------------------------------------------------")
+    print(xs_mapedit)
     
-    xs <- shiny::req(xs()) %>%
-      bind_rows(., new_xs) %>% 
+    print("tranform xs to 3857 ----------------------------------------------")
+    xs_3857 <- sf::st_transform(xs_mapedit, crs = 3857) # Web Mercator
+    xs <- xs() %>%
+      bind_rows(., xs_3857) %>%
       mutate(Seq = as.numeric(row.names(.))) %>%
-      select(Seq, geometry) 
+      select(Seq, geometry)
     # save test data
-    sf::st_write(xs, file.path(golem::get_golem_wd(), 
-                              "inst", "extdata", "xs.shp"), delete_dsn = TRUE)  
-    print(xs)
+    sf::st_write(xs, file.path(golem::get_golem_wd(),
+                              "inst", "extdata", "xs_mapedit.shp"), 
+                 delete_dsn = TRUE)
+    print("cross section transformed to 3857---------------------------------")
+    print(xs_3857)
+    check_crs_3857(xs_3857)
     
-    # overwrite dem
-    dem <- get_dem(xs)
+    # Overwrite dem
+    dem <- get_dem(xs_3857)
+    print("Returned DEM -----------------------------------------------------")
     print(dem)
+    check_crs_3857(dem)
     
-    # Create the terrain_map
-    tmap_mode("view")   # ensure tmnap mode is view or no output is produced!
-    terrain_map <- 
-      tmap_leaflet(get_terrain_map(xs, dem), in.shiny = TRUE) %>%
-      addProviderTiles("USGS.USTopo", group = "USGS Topo") %>%
-      addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
-      addLayersControl(
-        baseGroups = c("USGS Topo", "Imagery"),
-        overlayGroups = c("Elevation", "Cross Section"),
-        position = "topleft")
+    # Create the leaflet terrain_map
+    terrain_map <- get_terrain_leaflet(xs_3857, dem)
     
     # Define the draw_fl mapedit module
     fl_editor_ui <- callModule(editMod,
                                id = "fl_editor_ui_id",
                                leafmap = terrain_map,
                                targetLayerId = fl,
-                               crs = 3857,
+                               crs = 4326,  # only suuports 4326, don't change
                                editor = "leafpm",
                                editorOptions = list(
                                  toolbarOptions = pmToolbarOptions(
@@ -123,28 +121,30 @@ app_server <- function(input, output, session) {
     output$draw_fl_button <- renderUI({
         actionButton("draw_flowline", "Draw Flowline")
     })
+    remove_modal_spinner()
   })
   
+  # Draw Flowline ##############################################################
   observeEvent(input$draw_flowline, {
     nav_select(id = "main", selected = "Draw Flowline", session)
   })
   
   observeEvent(input$calc_xs, {
     # get finished fl
-    edited_fl <- fl_editor_ui()$finished
-    
-    new_fl <- sf::st_transform(edited_fl, 
-                               crs = 3857) # Web Mercator
+    edited_fl <- sf::st_transform(fl_editor_ui()$finished, 
+                                  crs = 3857) # Web Mercator
+    print("Digitized flowline -----------------------------------------------")
+    print(edited_fl)
+    check_crs_3857(edited_fl)
     # save test data
-    sf::st_write(new_fl, file.path(golem::get_golem_wd(), 
-                              "inst", "extdata", "fl.shp"), delete_dsn = TRUE)  
-    print(fl)
-    
+    # sf::st_write(new_fl, file.path(golem::get_golem_wd(),
+    #                           "inst", "extdata", "fl.shp"), delete_dsn = TRUE)
+
     # fl logic here
   })
   
 
-  # Instructions
+  # Instructions ###############################################################
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({
     steps <- c('Use the "Search" or "Zoom" tools to locate your desired area of interest (AOI).', 
@@ -173,4 +173,6 @@ app_server <- function(input, output, session) {
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
   })
+  
+  
 } 
