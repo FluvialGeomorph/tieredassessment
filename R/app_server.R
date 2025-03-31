@@ -102,7 +102,7 @@ app_server <- function(input, output, session) {
     terrain_map <- get_terrain_leaflet(xs_3857, dem)
     
     # Define the draw_fl mapedit module
-    fl_editor_ui <- callModule(editMod,
+    fl_editor_ui <<- callModule(editMod,
                                id = "fl_editor_ui_id",
                                leafmap = terrain_map,
                                targetLayerId = fl,
