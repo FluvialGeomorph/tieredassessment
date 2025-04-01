@@ -85,9 +85,9 @@ app_server <- function(input, output, session) {
       mutate(Seq = as.numeric(row.names(.))) %>%
       select(Seq, geometry)
     # save test data
-    sf::st_write(xs, file.path(golem::get_golem_wd(),
-                              "inst", "extdata", "xs_mapedit.shp"), 
-                 delete_dsn = TRUE)
+    # sf::st_write(xs, file.path(golem::get_golem_wd(),
+    #                           "inst", "extdata", "xs_mapedit.shp"), 
+    #              delete_dsn = TRUE)
     print("cross section transformed to 3857---------------------------------")
     print(xs_3857)
     check_crs_3857(xs_3857)
@@ -137,7 +137,7 @@ app_server <- function(input, output, session) {
     print(edited_fl)
     check_crs_3857(edited_fl)
     # save test data
-    # sf::st_write(new_fl, file.path(golem::get_golem_wd(),
+    # sf::st_write(edited_fl, file.path(golem::get_golem_wd(),
     #                           "inst", "extdata", "fl.shp"), delete_dsn = TRUE)
 
     # fl logic here
