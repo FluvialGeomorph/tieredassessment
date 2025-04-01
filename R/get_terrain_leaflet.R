@@ -55,19 +55,19 @@ get_terrain_leaflet <- function(xs, dem) {
       pal = leaflet_topo,
       values = values(dem_i),
       title = "NAVD88, ft",
-      decreasing = TRUE,
+      decreasing = FALSE,
       group = "Elevation",
       position = "topright") %>%
     addPolylines(
       data = st_transform(xs, crs = 4326),
       color = "black",
       group = "Cross Sections") %>%
-    addLabelOnlyMarkers(
-      data = st_centroid(st_transform(xs, crs = 4326)),
-      label = xs$Seq,
-      group = "Cross Sections",
-      labelOptions = labelOptions(noHide = TRUE, direction = 'top', 
-                                  textsize = "12px", textOnly = TRUE)) %>%
+    # addLabelOnlyMarkers(
+    #   data = st_centroid(st_transform(xs, crs = 4326)),
+    #   label = xs$Seq,
+    #   group = "Cross Sections",
+    #   labelOptions = labelOptions(noHide = TRUE, direction = 'top', 
+    #                               textsize = "12px", textOnly = TRUE)) %>%
     updateLayersControl(
       addOverlayGroups = c("Elevation", "Cross Sections"),
       position = "topleft")
@@ -84,37 +84,3 @@ get_terrain_leaflet <- function(xs, dem) {
   #terrain_leaflet
   return(terrain_leaflet)
 }
-
-# terrain_tmap <- 
-#   tm_shape(shp = dem_i,
-#            name = "DEM",
-#            unit = "ft",
-#            is.main = FALSE) +
-#     tm_raster(group = "Elevation",
-#               zindex = 402,
-#               col.scale = tm_scale_continuous(values = "brewer.rd_yl_gn"),
-#               col_alpha = 1,
-#               col.legend = tm_legend(
-#                 title = "NAVD88, ft",
-#                 reverse = FALSE,
-#                 frame = FALSE,
-#                 position = legend_pos)) +
-#   tm_shape(shp = xs,
-#            name = "XS",
-#            is.main = TRUE,
-#            bbox = xs_extent) + 
-#     tm_lines(group = "Cross Section",
-#              zindex = 403,
-#              col = "grey50",
-#              col_alpha = 1,
-#              lwd = 7) + 
-#     tm_text(group = "Cross Section",
-#             zindex = 404,
-#             text = "Seq",
-#             col = "black",
-#             size = 1.1,
-#             fontface = "bold",
-#             options = opt_tm_text(remove_overlap = FALSE,
-#                                   shadow = FALSE)) +
-#   tm_layout(meta.margins = c(0, 0, 0, 0.15)) 
-# terrain_tmap
