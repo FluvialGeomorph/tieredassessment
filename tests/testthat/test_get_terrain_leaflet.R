@@ -4,6 +4,7 @@ test_that("leaflet from geojson", {
   xs_geojson <- sf::st_read(system.file("extdata", "xs.geojson", 
                             package = "tieredassessment"), quiet = TRUE)
   xs <- sf::st_transform(xs_geojson, crs = 3857) # Web Mercator
+  xs$Seq <- row.names(xs)
   dem <- get_dem(xs)
   leaf <- get_terrain_leaflet(xs, dem)
   leaf

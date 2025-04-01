@@ -8,12 +8,13 @@
 #' @return a leaflet object
 #' @export
 #' 
-#' @importFrom leaflet colorNumeric addRasterImage 
-#' @importFrom leafem updateLayersControl customizeLayersControl
+#' @importFrom leaflet colorNumeric addRasterImage addPolylines labelOptions
+#'                     addLabelOnlyMarkers
+#' @importFrom leafem updateLayersControl
 #' @importFrom leaflegend addLegendNumeric
 #' @importFrom fluvgeo map_extent
 #' @importFrom assertthat assert_that
-#' @importFrom sf st_as_sf st_as_sfc st_bbox
+#' @importFrom sf st_as_sf st_as_sfc st_bbox st_centroid
 #' @importFrom terra crop minmax values
 #'
 get_terrain_leaflet <- function(xs, dem) {
@@ -57,10 +58,20 @@ get_terrain_leaflet <- function(xs, dem) {
       decreasing = TRUE,
       group = "Elevation",
       position = "topright") %>%
+    addPolylines(
+      data = st_transform(xs, crs = 4326),
+      color = "black",
+      group = "Cross Sections") %>%
+    addLabelOnlyMarkers(
+      data = st_centroid(st_transform(xs, crs = 4326)),
+      label = xs$Seq,
+      group = "Cross Sections",
+      labelOptions = labelOptions(noHide = TRUE, direction = 'top', 
+                                  textsize = "12px", textOnly = TRUE)) %>%
     updateLayersControl(
-      addOverlayGroups = c("Elevation"),
+      addOverlayGroups = c("Elevation", "Cross Sections"),
       position = "topleft")
-    # customizeLayersControl(
+    # customizeLayersControl(                      not yet in CRAN version
     #   view_settings = list(
     #     "Elevation" = list(
     #       coords = as.numeric(c(dem_bbox$ymin, dem_bbox$xmin, 
