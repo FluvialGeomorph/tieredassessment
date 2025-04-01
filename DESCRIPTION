@@ -42,7 +42,6 @@ RoxygenNote: 7.3.2
 Remotes:  
     r-arcgis/arcgis,
     FluvialGeomorph/fluvgeo
-    r-spatial/leafem
 Suggests: 
     pkgload,
     testthat (>= 3.0.0)
