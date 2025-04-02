@@ -1,10 +1,10 @@
-#' @title Fix Web CRS
+#' @title Fix SF CRS
 #'
 #' @description Fixes mis-specified coordinate reference system (CRS) with 
 #'              respect to the geospatial object's coordinate units. Ensures
 #'              that the CRS matches the feature geometry units. 
 #' 
-#' @param obj sf or terra object; The geospatial object to be corrected.
+#' @param obj sf object; The geospatial object to be corrected.
 #'
 #' @details Geospatial features generated using the GeoJSON format often 
 #' contain a CRS that does not match the feature geometry coordinate units. 
@@ -16,9 +16,9 @@
 #' 
 #' @importFrom sf st_bbox st_set_crs
 #' @importFrom assertthat assert_that
-fix_web_crs <- function(obj) {
-  assert_that(any(class(obj) %in% c("sf", "terra")), 
-              msg = "obj must be an sf or terra object")
+sf_fix_crs <- function(obj) {
+  assert_that(any(class(obj) %in% c("sf")), 
+              msg = "obj must be an sf object")
   assert_that(any(st_crs(obj)$epsg %in% c(3857, 4326)),
               msg = "obj must have a crs of either 3857 or 4326")
   
