@@ -18,7 +18,7 @@
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
 #' @noRd
 app_server <- function(input, output, session) {
-  # Create Reactives ##########################################################
+  # Define reactives ##########################################################
   # Define an empty cross section
   xs <- reactive({
     xs <- data.frame(Seq = integer()) %>%
@@ -26,8 +26,8 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
     return(xs)
   })
-  #makeReactiveBinding("xs")  # why not needed? 
-                              # already reactive from editMod in current scope?
+  #makeReactiveBinding("xs")  # not needed, 
+                              # already reactive from editMod in current scope
   # Define an empty flowline
   fl <- reactive({
     fl <- data.frame(ReachName = as.character()) %>%
@@ -52,6 +52,13 @@ app_server <- function(input, output, session) {
     return(raster)
   })
   makeReactiveBinding("dem")
+  
+  # Ensure results_map is available at app scope
+  results_map <- NULL
+  makeReactiveBinding("results_map")
+  # Ensure flowline mapedit module is available at app scope
+  fl_editor_ui <- NULL
+  makeReactiveBinding("fl_editor_ui")
 
   # Draw XS ###################################################################
   # Define the leaflet draw_xs_map
@@ -75,13 +82,6 @@ app_server <- function(input, output, session) {
                         ))
   
   # Get Terrain ###############################################################
-
-  # Ensure flowline mapedit module is available at app scope
-  terrain_map <- NULL
-  makeReactiveBinding("terrain_map")
-  fl_editor_ui <- NULL
-  makeReactiveBinding("fl_editor_ui")
-  
   observeEvent(input$get_terrain, {
     show_modal_spinner(spin = "circle", text = "Retrieving Terrain")
     # get finished xs
@@ -152,7 +152,7 @@ app_server <- function(input, output, session) {
     #                           "inst", "extdata", "fl_edited.shp"), 
     #              delete_dsn = TRUE)
 
-    # Flowline
+    # Process Flowline
     print(dem)
     fl <<- flowline(fl_3857, dem)
     print("flowline ---------------------------------------------------------")
@@ -160,6 +160,11 @@ app_server <- function(input, output, session) {
     fl_pts <<- flowline_points(fl, dem, station_distance = 100)
     print("flowline points---------------------------------------------------")
     print(fl_pts)
+    
+    # Process cross sections
+    
+    # Create results terrain
+    
   })
   
 
