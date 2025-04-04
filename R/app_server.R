@@ -54,8 +54,8 @@ app_server <- function(input, output, session) {
   makeReactiveBinding("dem")
   
   # Ensure results_map is available at app scope
-  results_map <- NULL
-  makeReactiveBinding("results_map")
+  #results_map <- NULL
+  #makeReactiveBinding("results_map")
   # Ensure flowline mapedit module is available at app scope
   fl_editor_ui <- NULL
   makeReactiveBinding("fl_editor_ui")
@@ -164,7 +164,9 @@ app_server <- function(input, output, session) {
     # Process cross sections
     
     # Create results terrain
-    
+    output$results_map <- renderLeaflet({
+      get_results_leaflet(fl, xs, dem)
+    })
   })
   
 

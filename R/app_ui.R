@@ -42,6 +42,7 @@ app_ui <- function(request) {
       nav_panel(title = "Calc XS",
         layout_sidebar(
           # map
+          leafletOutput("results_map"),
           sidebar = sidebar(title = "Calculate XS Instructions",
             position = "right", width = "25%",
             uiOutput("calc_xs_instructions")
