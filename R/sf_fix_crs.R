@@ -13,6 +13,7 @@
 #' 
 #' @returns the geospatial object with CRS correctly defined to match feature 
 #' coordinate geometry. 
+#' @export
 #' 
 #' @importFrom sf st_bbox st_set_crs
 #' @importFrom assertthat assert_that
