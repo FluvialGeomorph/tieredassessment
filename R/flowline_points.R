@@ -34,12 +34,12 @@ flowline_points <- function(flowline, dem, station_distance) {
   fl_xym <- fl_m %>%
     st_cast(to = "POINT", warn = FALSE) %>%
     st_sf(crs = 3857) %>%
-    mutate(x = as_tibble(st_coordinates(.))$X) %>%
-    mutate(y = as_tibble(st_coordinates(.))$Y) %>%
-    mutate(m = as_tibble(st_coordinates(.))$M) %>%
-    arrange(m) %>%
+    mutate(POINT_X = as_tibble(st_coordinates(.))$X) %>%
+    mutate(POINT_Y = as_tibble(st_coordinates(.))$Y) %>%
+    mutate(POINT_M = as_tibble(st_coordinates(.))$M) %>%
+    arrange(POINT_M) %>%
     mutate(ID = row(.)[,1]) %>%
-    select(ID, x, y, m) 
+    select(ID, POINT_X, POINT_Y, POINT_M) 
   
   # Extract dem z-values
   fl_z <- extract(x = dem, y = vect(fl_xym))
@@ -47,7 +47,7 @@ flowline_points <- function(flowline, dem, station_distance) {
   # Join xym to z
   fl_xyzm <- fl_xym %>%
     left_join(fl_z, by = "ID") %>%
-    rename(z = Band_1)
+    rename(Z = Band_1)
   
   #plot(dem)
   #lines(vect(fl_m), col = "blue")
