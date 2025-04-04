@@ -25,7 +25,6 @@ app_ui <- function(request) {
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
-            actionButton('get_terrain', 'Get Terrain'),
             uiOutput('draw_fl_button')
             ))),
       
@@ -36,18 +35,20 @@ app_ui <- function(request) {
           sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_fl_instructions"),
-            actionButton("calc_xs", "Calc XS")
+            #actionButton("view_results", "View Results")
+            uiOutput('view_results_button')
             ))),
       
-      nav_panel(title = "Calc XS",
+      nav_panel(title = "Results",
         layout_sidebar(
           # map
           leafletOutput("results_map"),
-          sidebar = sidebar(title = "Calculate XS Instructions",
-            position = "right", width = "25%",
-            uiOutput("calc_xs_instructions")
+          sidebar = sidebar(title = "Results",
+            position = "right", width = "50%",
             # Calc results
-            )))
+            plotOutput("long_profile")
+            ))),
+        
     )
   )
 }

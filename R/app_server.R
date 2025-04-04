@@ -16,6 +16,7 @@
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot crs
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
+#' @importFrom fluvgeo compare_long_profile
 #' @noRd
 app_server <- function(input, output, session) {
   # Define reactives ##########################################################
@@ -81,8 +82,15 @@ app_server <- function(input, output, session) {
                             position = "topright")
                         ))
   
-  # Get Terrain ###############################################################
-  observeEvent(input$get_terrain, {
+  observeEvent(xs_editor_ui()$finished, {
+    # Add view terrain button
+    output$draw_fl_button <- renderUI({
+        actionButton("draw_flowline", "Draw Flowline")
+    })
+  })
+  
+  # Draw Flowline ###############################################################
+  observeEvent(input$draw_flowline, {
     show_modal_spinner(spin = "circle", text = "Retrieving Terrain")
     # get finished xs
     xs_mapedit <- xs_editor_ui()$finished
@@ -125,19 +133,23 @@ app_server <- function(input, output, session) {
                                    cutPolygon = FALSE,
                                    position = "topright")
                                ))
-    # Add view terrain button
-    output$draw_fl_button <- renderUI({
-        actionButton("draw_flowline", "Draw Flowline")
-    })
-    remove_modal_spinner()
-  })
-  
-  # Draw Flowline ##############################################################
-  observeEvent(input$draw_flowline, {
+   
     nav_select(id = "main", selected = "Draw Flowline", session)
+    remove_modal_spinner()
+    
+    observeEvent(fl_editor_ui()$finished, {
+      # Add view terrain button
+      output$view_results_button <- renderUI({
+        actionButton("view_results", "View Results")
+      })
+    })
   })
   
-  observeEvent(input$calc_xs, {
+  
+  
+  # View Results ##############################################################
+  observeEvent(input$view_results, {
+    show_modal_spinner(spin = "circle", text = "Calculating Geometry")
     # get finished fl
     fl_mapedit <- fl_editor_ui()$finished
     print("mapedit fl -------------------------------------------------------")
@@ -151,7 +163,6 @@ app_server <- function(input, output, session) {
     # sf::st_write(fl_3857, file.path(golem::get_golem_wd(),
     #                           "inst", "extdata", "fl_edited.shp"), 
     #              delete_dsn = TRUE)
-
     # Process Flowline
     print(dem)
     fl <<- flowline(fl_3857, dem)
@@ -160,6 +171,8 @@ app_server <- function(input, output, session) {
     fl_pts <<- flowline_points(fl, dem, station_distance = 100)
     print("flowline points---------------------------------------------------")
     print(fl_pts)
+    # Add ReachName field
+    fl_pts <- fl_pts %>% mutate(ReachName = "current stream")
     
     # Process cross sections
     
@@ -167,6 +180,14 @@ app_server <- function(input, output, session) {
     output$results_map <- renderLeaflet({
       get_results_leaflet(fl, xs, dem)
     })
+    # Render the longitudinal profile plot
+    output$long_profile <- renderPlot({
+      fl_pts_list <- list("latest" = fl_pts)
+      compare_long_profile(stream = "current stream", fl_pts_list)
+    })
+    # Navigate to the Results nav_panel
+    nav_select(id = "main", selected = "Results", session)
+    remove_modal_spinner()
   })
   
 
@@ -189,16 +210,4 @@ app_server <- function(input, output, session) {
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
   })
-  
-  ## create calc xs page instructions
-  output$calc_xs_instructions <- renderUI({
-    steps <- c('Do this.', 
-               'Then do that.', 
-               'Then do this other important thing.',
-               'Finally all your dreams will come true..')
-    ul <- htmltools::tags$ul(
-      purrr::map(steps, function(.x) tags$li(.x)))
-  })
-  
-  
 } 
