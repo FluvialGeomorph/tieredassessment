@@ -26,7 +26,8 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
     return(xs)
   })
-  #makeReactiveBinding("xs")
+  #makeReactiveBinding("xs")  # why not needed? 
+                              # already reactive from editMod in current scope?
   # Define an empty flowline
   fl <- reactive({
     fl <- data.frame(ReachName = as.character()) %>%
@@ -90,26 +91,23 @@ app_server <- function(input, output, session) {
     xs_mapedit <- sf_fix_crs(xs_mapedit)
     print("tranform xs to 3857 ----------------------------------------------")
     xs_3857 <- sf::st_transform(xs_mapedit, crs = 3857) # Web Mercator
-    xs <- xs() %>%
-      bind_rows(., xs_3857) %>%
+    xs <<- xs_3857 %>%
       mutate(Seq = as.numeric(row.names(.))) %>%
       select(Seq, geometry)
     # save test data
     # sf::st_write(xs, file.path(golem::get_golem_wd(),
     #                           "inst", "extdata", "xs_edited.shp"), 
     #              delete_dsn = TRUE)
-    print("cross section transformed to 3857---------------------------------")
-    print(xs_3857)
-    check_crs_3857(xs_3857)
-    
+    check_crs_3857(xs)
+    print(xs)
     # Overwrite dem
-    dem <<- get_dem(xs_3857)
+    dem <<- get_dem(xs)
     print("Returned DEM -----------------------------------------------------")
     print(dem)
     check_crs_3857(dem)
     
     # Create the leaflet terrain_map
-    terrain_map <- get_terrain_leaflet(xs_3857, dem)
+    terrain_map <- get_terrain_leaflet(xs, dem)
     
     # Define the draw_fl mapedit module
     fl_editor_ui <<- callModule(editMod,
