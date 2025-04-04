@@ -26,7 +26,7 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
     return(xs)
   })
-  
+  #makeReactiveBinding("xs")
   # Define an empty flowline
   fl <- reactive({
     fl <- data.frame(ReachName = as.character()) %>%
@@ -34,6 +34,15 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
     return(fl)
   })
+  makeReactiveBinding("fl")
+  # Define an empty flowline
+  fl_pts <- reactive({
+    fl_pts <- data.frame(ReachName = as.character()) %>%
+      st_as_sf(geometry = st_sfc(),
+               crs = 3857)  # ensure Web Mercator
+    return(fl_pts)
+  })
+  makeReactiveBinding("fl_pts")
   # Define an empty dem
   dem <- reactive({
     raster <- matrix(1:25, nrow=5, ncol=5) %>%
@@ -41,6 +50,7 @@ app_server <- function(input, output, session) {
     terra::crs(raster) <- "EPSG:3857"
     return(raster)
   })
+  makeReactiveBinding("dem")
 
   # Draw XS ###################################################################
   # Define the leaflet draw_xs_map
@@ -77,7 +87,7 @@ app_server <- function(input, output, session) {
     xs_mapedit <- xs_editor_ui()$finished
     print("mapedit xs -------------------------------------------------------")
     print(xs_mapedit)
-    
+    xs_mapedit <- sf_fix_crs(xs_mapedit)
     print("tranform xs to 3857 ----------------------------------------------")
     xs_3857 <- sf::st_transform(xs_mapedit, crs = 3857) # Web Mercator
     xs <- xs() %>%
@@ -86,14 +96,14 @@ app_server <- function(input, output, session) {
       select(Seq, geometry)
     # save test data
     # sf::st_write(xs, file.path(golem::get_golem_wd(),
-    #                           "inst", "extdata", "xs_mapedit.shp"), 
+    #                           "inst", "extdata", "xs_edited.shp"), 
     #              delete_dsn = TRUE)
     print("cross section transformed to 3857---------------------------------")
     print(xs_3857)
     check_crs_3857(xs_3857)
     
     # Overwrite dem
-    dem <- get_dem(xs_3857)
+    dem <<- get_dem(xs_3857)
     print("Returned DEM -----------------------------------------------------")
     print(dem)
     check_crs_3857(dem)
@@ -131,16 +141,27 @@ app_server <- function(input, output, session) {
   
   observeEvent(input$calc_xs, {
     # get finished fl
-    edited_fl <- sf::st_transform(fl_editor_ui()$finished, 
-                                  crs = 3857) # Web Mercator
+    fl_mapedit <- fl_editor_ui()$finished
+    print("mapedit fl -------------------------------------------------------")
+    print(fl_mapedit)
+    fl_mapedit <- sf_fix_crs(fl_mapedit)
+    fl_3857 <- sf::st_transform(fl_mapedit, crs = 3857) # Web Mercator
     print("Digitized flowline -----------------------------------------------")
-    print(edited_fl)
-    check_crs_3857(edited_fl)
+    print(fl_3857)
+    check_crs_3857(fl_3857)
     # save test data
-    # sf::st_write(edited_fl, file.path(golem::get_golem_wd(),
-    #                           "inst", "extdata", "fl.shp"), delete_dsn = TRUE)
+    # sf::st_write(fl_3857, file.path(golem::get_golem_wd(),
+    #                           "inst", "extdata", "fl_edited.shp"), 
+    #              delete_dsn = TRUE)
 
-    # fl logic here
+    # Flowline
+    print(dem)
+    fl <<- flowline(fl_3857, dem)
+    print("flowline ---------------------------------------------------------")
+    print(fl)
+    fl_pts <<- flowline_points(fl, dem, station_distance = 100)
+    print("flowline points---------------------------------------------------")
+    print(fl_pts)
   })
   
 
