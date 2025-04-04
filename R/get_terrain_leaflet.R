@@ -14,7 +14,7 @@
 #' @importFrom leaflegend addLegendNumeric
 #' @importFrom fluvgeo map_extent
 #' @importFrom assertthat assert_that
-#' @importFrom sf st_as_sf st_as_sfc st_bbox st_centroid
+#' @importFrom sf st_as_sf st_as_sfc st_bbox st_centroid st_transform
 #' @importFrom terra crop minmax values
 #'
 get_terrain_leaflet <- function(xs, dem) {
@@ -62,12 +62,12 @@ get_terrain_leaflet <- function(xs, dem) {
       data = st_transform(xs, crs = 4326),
       color = "black",
       group = "Cross Sections") %>%
-    # addLabelOnlyMarkers(
-    #   data = st_centroid(st_transform(xs, crs = 4326)),
-    #   label = xs$Seq,
-    #   group = "Cross Sections",
-    #   labelOptions = labelOptions(noHide = TRUE, direction = 'top', 
-    #                               textsize = "12px", textOnly = TRUE)) %>%
+    addLabelOnlyMarkers(
+      data = st_centroid(st_transform(xs, crs = 4326)),
+      label = xs$Seq,
+      group = "Cross Sections",
+      labelOptions = labelOptions(noHide = TRUE, direction = 'top',
+                                  textsize = "14px", textOnly = TRUE)) %>%
     updateLayersControl(
       addOverlayGroups = c("Elevation", "Cross Sections"),
       position = "topleft")
