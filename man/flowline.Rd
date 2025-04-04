@@ -7,12 +7,12 @@
 flowline(flowline, dem)
 }
 \arguments{
-\item{flowline}{}
+\item{flowline}{sf object;}
 
-\item{dem}{}
+\item{dem}{terra SpatRast object;}
 }
 \value{
-a valid flowline
+a valid flowline sf object
 }
 \description{
 Takes a newly drawn flowline and uses the dem to ensure
