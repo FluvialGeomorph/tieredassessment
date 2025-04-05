@@ -15,7 +15,7 @@
 #' coordinate geometry. 
 #' @export
 #' 
-#' @importFrom sf st_bbox st_set_crs
+#' @importFrom sf st_crs st_bbox st_set_crs
 #' @importFrom assertthat assert_that
 sf_fix_crs <- function(obj) {
   assert_that(any(class(obj) %in% c("sf")), 
@@ -54,7 +54,7 @@ sf_fix_crs <- function(obj) {
     )
   } 
   # 3857
-  if(in_4326 == TRUE & out_4326 == TRUE) {
+  if(in_4326 == FALSE & out_4326 == TRUE) {
     suppressWarnings(
       obj <- st_set_crs(obj, 3857)
     )
