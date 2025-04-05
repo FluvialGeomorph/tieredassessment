@@ -5,6 +5,7 @@
 #'
 #' @import shiny
 #' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
+#'                   accordion accordion_panel
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
 #' 
@@ -20,35 +21,42 @@ app_ui <- function(request) {
       
       nav_panel(title = "Draw XS",
         layout_sidebar(
-          # display the xs editing module
+          # Display the xs editing module
           editModUI(id = "xs_editor_ui_id"), 
           sidebar = sidebar(title = "Draw XS Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_xs_instructions"),
             uiOutput('draw_fl_button')
-            ))),
+          ))),
       
       nav_panel(title = "Draw Flowline",
         layout_sidebar(
-          # display fl editing module
+          # Display fl editing module
           editModUI(id = "fl_editor_ui_id"),
           sidebar = sidebar(title = "Draw Flowline Instructions", 
             position = "right", width = "25%",
             uiOutput("draw_fl_instructions"),
             #actionButton("view_results", "View Results")
             uiOutput('view_results_button')
-            ))),
+          ))),
       
       nav_panel(title = "Results",
         layout_sidebar(
-          # map
+          # Display results_map
           leafletOutput("results_map"),
-          sidebar = sidebar(title = "Results",
+          sidebar = sidebar(
             position = "right", width = "50%",
-            # Calc results
-            plotOutput("long_profile")
-            ))),
-        
+            accordion(
+              id = "Results",
+              open = c("Longitudinal Profile"),
+              accordion_panel(
+                title = "Longitudinal Profile",
+                plotOutput("long_profile")),
+              accordion_panel(
+                title = "Cross Sections",
+                print("Cross Sections go here."))
+            )
+          ))),
     )
   )
 }

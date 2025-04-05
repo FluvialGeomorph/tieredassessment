@@ -70,7 +70,7 @@ app_server <- function(input, output, session) {
                         id = "xs_editor_ui_id",
                         leafmap = draw_xs_map,
                         targetLayerId = xs,
-                        crs = 4326,    # only suuports 4326, don't change
+                        crs = 4326,    # only supports 4326, don't change
                         editor = "leafpm",
                         editorOptions = list(
                           toolbarOptions = pmToolbarOptions(
@@ -122,7 +122,7 @@ app_server <- function(input, output, session) {
                                id = "fl_editor_ui_id",
                                leafmap = terrain_map,
                                targetLayerId = fl,
-                               crs = 4326,  # only suuports 4326, don't change
+                               crs = 4326,  # only supports 4326, don't change
                                editor = "leafpm",
                                editorOptions = list(
                                  toolbarOptions = pmToolbarOptions(
@@ -204,8 +204,8 @@ app_server <- function(input, output, session) {
   ## create draw flowline page instructions
   output$draw_fl_instructions <- renderUI({
     steps <- c('Use the "Draw Polyline" tool to draw the centerline of the stream in your AOI.', 
-               "Use the DEM's legend to trace the lowest elevation along the stream centerline.", 
-               'Click the "Calc XS" button to go to the next step.')
+               "Use the DEM's color ramp to trace the lowest elevation along the stream centerline.", 
+               'Click the "View Results" button to go to the next step.')
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
   })
