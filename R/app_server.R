@@ -27,8 +27,7 @@ app_server <- function(input, output, session) {
                crs = 3857)  # ensure Web Mercator
     return(xs)
   })
-  #makeReactiveBinding("xs")  # not needed, 
-                              # already reactive from editMod in current scope
+  #makeReactiveBinding("xs")       # no need, reactive created by xs_editor_ui
   # Define an empty flowline
   fl <- reactive({
     fl <- data.frame(ReachName = as.character()) %>%
@@ -54,10 +53,7 @@ app_server <- function(input, output, session) {
   })
   makeReactiveBinding("dem")
   
-  # Ensure results_map is available at app scope
-  #results_map <- NULL
-  #makeReactiveBinding("results_map")
-  # Ensure flowline mapedit module is available at app scope
+  # Ensure fl_editor_ui mapedit module available at app scope
   fl_editor_ui <- NULL
   makeReactiveBinding("fl_editor_ui")
 
@@ -95,6 +91,7 @@ app_server <- function(input, output, session) {
     # get finished xs
     xs_mapedit <- xs_editor_ui()$finished
     print("mapedit xs -------------------------------------------------------")
+    #save_test_data(xs_mapedit, "xs_mapedit")
     print(xs_mapedit)
     xs_mapedit <- sf_fix_crs(xs_mapedit)
     print("tranform xs to 3857 ----------------------------------------------")
@@ -102,21 +99,14 @@ app_server <- function(input, output, session) {
     xs <<- xs_3857 %>%
       mutate(Seq = as.numeric(row.names(.))) %>%
       select(Seq, geometry)
-    # save test data
-    # sf::st_write(xs, file.path(golem::get_golem_wd(),
-    #                           "inst", "extdata", "xs_edited.shp"), 
-    #              delete_dsn = TRUE)
-    check_crs_3857(xs)
+    #save_test_data(xs, "xs")
     print(xs)
     # Overwrite dem
     dem <<- get_dem(xs)
     print("Returned DEM -----------------------------------------------------")
     print(dem)
-    check_crs_3857(dem)
-    
     # Create the leaflet terrain_map
     terrain_map <- get_terrain_leaflet(xs, dem)
-    
     # Define the draw_fl mapedit module
     fl_editor_ui <<- callModule(editMod,
                                id = "fl_editor_ui_id",
@@ -133,7 +123,7 @@ app_server <- function(input, output, session) {
                                    cutPolygon = FALSE,
                                    position = "topright")
                                ))
-   
+    # Navigate to Draw Flowline page
     nav_select(id = "main", selected = "Draw Flowline", session)
     remove_modal_spinner()
     
@@ -151,26 +141,26 @@ app_server <- function(input, output, session) {
     # get finished fl
     fl_mapedit <- fl_editor_ui()$finished
     print("mapedit fl -------------------------------------------------------")
+    #save_test_data(fl_mapedit, "fl_mapedit")
     print(fl_mapedit)
     fl_mapedit <- sf_fix_crs(fl_mapedit)
     fl_3857 <- sf::st_transform(fl_mapedit, crs = 3857) # Web Mercator
     print("Digitized flowline -----------------------------------------------")
     # filter for the last digitized flowline (can only have one flowline)
     fl_3857_latest <- fl_3857 %>% filter(layerId == max(layerId))
+    #save_test_data(fl_3857_latest, "fl_edited")
     print(fl_3857_latest)
-    # save test data
-    # sf::st_write(fl_3857_latest, file.path(golem::get_golem_wd(),
-    #                           "inst", "extdata", "fl_edited.shp"), 
-    #              delete_dsn = TRUE)
     # Process Flowline
     print(dem)
     fl <<- flowline(fl_3857_latest, dem)
     print("flowline ---------------------------------------------------------")
+    #save_test_data(fl, "fl")
     print(fl)
     fl_pts <<- fl %>%
       flowline_points(dem, station_distance = 100) %>%
       mutate(ReachName = "current stream")
     print("flowline points---------------------------------------------------")
+    #save_test_data(fl_pts, "fl_pts")
     print(fl_pts)
 
     # Process cross sections
