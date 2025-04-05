@@ -18,9 +18,11 @@ flowline <- function(flowline, dem) {
   flowline <- sf_fix_crs(flowline)
   assert_that(st_crs(flowline) == st_crs(dem), 
               msg = "flowline and dem must be have the same crs")
-  assert_that(st_within(flowline, 
-                        st_sf(st_as_sfc(st_bbox(dem))), sparse = FALSE),
-              msg = "flowline must be within the dem")
+  assert_that(nrow(flowline) == 1,
+              msg = "flowline must have only one feature")
+  # assert_that(st_within(flowline, 
+  #                       st_sf(st_as_sfc(st_bbox(dem))), sparse = FALSE),
+  #             msg = "flowline must be within the dem")
   
   # Determine downstream end of flowline
   og_start_pt <- flowline %>%

@@ -8,7 +8,7 @@
 #' @importFrom purrr map
 #' @importFrom leaflet leaflet addProviderTiles setView addLayersControl 
 #'                     renderLeaflet leafletProxy leafletOptions leafletCRS
-#' @importFrom dplyr %>% bind_rows mutate select
+#' @importFrom dplyr %>% bind_rows mutate select filter
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom leaflet.extras addSearchOSM searchOptions
@@ -145,8 +145,6 @@ app_server <- function(input, output, session) {
     })
   })
   
-  
-  
   # View Results ##############################################################
   observeEvent(input$view_results, {
     show_modal_spinner(spin = "circle", text = "Calculating Geometry")
@@ -157,23 +155,24 @@ app_server <- function(input, output, session) {
     fl_mapedit <- sf_fix_crs(fl_mapedit)
     fl_3857 <- sf::st_transform(fl_mapedit, crs = 3857) # Web Mercator
     print("Digitized flowline -----------------------------------------------")
-    print(fl_3857)
-    check_crs_3857(fl_3857)
+    # filter for the last digitized flowline (can only have one flowline)
+    fl_3857_latest <- fl_3857 %>% filter(layerId == max(layerId))
+    print(fl_3857_latest)
     # save test data
-    # sf::st_write(fl_3857, file.path(golem::get_golem_wd(),
+    # sf::st_write(fl_3857_latest, file.path(golem::get_golem_wd(),
     #                           "inst", "extdata", "fl_edited.shp"), 
     #              delete_dsn = TRUE)
     # Process Flowline
     print(dem)
-    fl <<- flowline(fl_3857, dem)
+    fl <<- flowline(fl_3857_latest, dem)
     print("flowline ---------------------------------------------------------")
     print(fl)
-    fl_pts <<- flowline_points(fl, dem, station_distance = 100)
+    fl_pts <<- fl %>%
+      flowline_points(dem, station_distance = 100) %>%
+      mutate(ReachName = "current stream")
     print("flowline points---------------------------------------------------")
     print(fl_pts)
-    # Add ReachName field
-    fl_pts <- fl_pts %>% mutate(ReachName = "current stream")
-    
+
     # Process cross sections
     
     # Create results terrain
