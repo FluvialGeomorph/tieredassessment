@@ -13,8 +13,12 @@
 sf_get_z <- function(points, dem) {
   assert_that(st_crs(points) == st_crs(dem), 
               msg = "points and dem must be have the same crs")
-
-  pts_z <- extract(x = dem, y = vect(points), 
-                   xy = TRUE, layer = 1)
+  # Get the dem band names
+  dem_bands <- names(dem)
+  # Extract the dem values at points
+  pts_extract <- extract(x = dem, y = vect(points), xy = TRUE)
+  # Rename the z field
+  pts_z <- pts_extract %>% rename(z = all_of(dem_bands[1]))
+  
   return(pts_z)
 }
