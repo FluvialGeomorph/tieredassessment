@@ -17,7 +17,6 @@
 #' @importFrom terra extract vect
 #' 
 flowline_points <- function(flowline, dem, station_distance) {
-  flowline <- sf_fix_crs(flowline)
   assert_that(st_crs(flowline) == st_crs(dem), 
               msg = "flowline and dem must be have the same crs")
   assert_that(st_within(flowline, 
@@ -39,7 +38,7 @@ flowline_points <- function(flowline, dem, station_distance) {
     mutate(POINT_M = as_tibble(st_coordinates(.))$M) %>%
     arrange(POINT_M) %>%
     mutate(ID = row(.)[,1]) %>%
-    select(ID, POINT_X, POINT_Y, POINT_M) 
+    select(ID, ReachName, POINT_X, POINT_Y, POINT_M) 
   
   # Extract dem z-values
   fl_z <- extract(x = dem, y = vect(fl_xym))
@@ -48,10 +47,6 @@ flowline_points <- function(flowline, dem, station_distance) {
   fl_xyzm <- fl_xym %>%
     left_join(fl_z, by = "ID") %>%
     rename(Z = Band_1)
-  
-  #plot(dem)
-  #lines(vect(fl_m), col = "blue")
-  #points(fl_xyzm, col = "white")
   
   return(fl_xyzm)
 }

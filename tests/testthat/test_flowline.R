@@ -12,12 +12,13 @@ test_that("fl_mapedit digitized in the upstream direction", {
                                 package = "tieredassessment"), quiet = TRUE)
   fl_fix <- sf_fix_crs(fl_mapedit)
   flowline <- sf::st_transform(fl_fix, crs = 3857) # Web Mercator
+  reach_name <- "current stream" 
   dem <- get_dem(flowline)
-  fl <- flowline(flowline, dem)
+  fl <- flowline(flowline, reach_name, dem)
   #fl_dir_plot(flowline, fl, dem)
   start_z <- sf_get_z(sf_line_end_point(fl, "start"), dem)$z
   end_z   <- sf_get_z(sf_line_end_point(fl, "end"), dem)$z
-  expect_true("sf" %in% class(fl))
+  expect_true(fluvgeo::check_flowline(fl, step = "create_flowline"))
   expect_true(start_z <= end_z)
 })
 test_that("fl_mapedit digitized in the downstream direction", {
@@ -27,11 +28,12 @@ test_that("fl_mapedit digitized in the downstream direction", {
   fl_3857 <- sf::st_transform(fl_fix, crs = 3857) # Web Mercator
   # Purposely reverse a correctly digitized flowline to test function
   flowline <- sf_line_reverse(fl_3857)
+  reach_name <- "current stream"
   dem <- get_dem(flowline)
-  fl <- flowline(flowline, dem)
+  fl <- flowline(flowline, reach_name, dem)
   #fl_dir_plot(flowline, fl, dem)
   start_z <- sf_get_z(sf_line_end_point(fl, "start"), dem)$z
   end_z   <- sf_get_z(sf_line_end_point(fl, "end"), dem)$z
-  expect_true("sf" %in% class(fl))
+  expect_true(fluvgeo::check_flowline(fl, step = "create_flowline"))
   expect_true(start_z <= end_z)
 })
