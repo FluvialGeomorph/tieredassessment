@@ -6,7 +6,7 @@ fl_pts_plot <- function(fl, fl_pts, dem) {
   points(fl_pts, col = "white")
 }
 
-test_that("map is a tmap", {
+test_that("check for valid flowline points", {
   fl_mapedit <- sf::st_read(system.file("extdata", "fl_mapedit.shp", 
                                 package = "tieredassessment"), quiet = TRUE)
   fl_fix <- sf_fix_crs(fl_mapedit)
