@@ -185,7 +185,6 @@ app_server <- function(input, output, session) {
   output$draw_xs_instructions <- renderUI({
     steps <- c('Use the "Search" or "Zoom" tools to locate your desired area of interest (AOI).', 
                'Use the "Draw Polyline" tool to draw cross sections.', 
-               'Click the "Get Terrain" button below to retrieve the digital elevation model (DEM) for your AOI.',
                'Click the "Draw Flowline" button to go to the next step.')
     ul <- htmltools::tags$ul(
       purrr::map(steps, function(.x) tags$li(.x)))
