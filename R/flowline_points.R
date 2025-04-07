@@ -1,9 +1,10 @@
 #' @title Flowline Points
 #' @description Converts a stream flowline to a route using the km to mouth 
 #' parameter and creates an sf object stream profile points. 
-#' @param flowline         sf object;
-#' @param dem              terra SpatRast object;
-#' @param station_distance numeric; meters
+#' @param flowline         sf object; A flowline object.
+#' @param dem              terra SpatRast object; A DEM.
+#' @param station_distance numeric; Disired distance between the 
+#'                         flowline_points (units: meters)
 #'
 #' @returns an sf object of type point
 #' @export
