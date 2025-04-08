@@ -48,13 +48,14 @@ app_ui <- function(request) {
             position = "right", width = "50%",
             accordion(
               id = "Results",
-              open = c("Longitudinal Profile"),
+              open = c("Cross Sections"),
               accordion_panel(
                 title = "Longitudinal Profile",
                 plotOutput("long_profile")),
               accordion_panel(
                 title = "Cross Sections",
-                print("Cross Sections go here."))
+                selectInput("pick_xs", "Select a cross section", NULL),
+                plotOutput("xs_plot"))
             )
           ))),
     )

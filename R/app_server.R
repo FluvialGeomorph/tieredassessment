@@ -16,10 +16,14 @@
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot crs
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom fluvgeo compare_long_profile
+#' @importFrom fluvgeo compare_long_profile xs_compare_plot_L1
 #' @noRd
 app_server <- function(input, output, session) {
   # Define reactives ##########################################################
+  # Define reach name
+  reach_name <- reactiveVal({
+    reach_name <- NULL
+  })
   # Define an empty cross section
   xs <- reactive({
     xs <- data.frame(Seq = integer()) %>%
@@ -28,6 +32,14 @@ app_server <- function(input, output, session) {
     return(xs)
   })
   #makeReactiveBinding("xs")       # no need, reactive created by xs_editor_ui
+  # Define an empty cross section points
+  xs_pts <- reactive({
+    xs_pts <- data.frame(Seq = integer()) %>%
+      st_as_sf(geometry = st_sfc(), 
+               crs = 3857)  # ensure Web Mercator
+    return(xs_pts)
+  })
+  makeReactiveBinding("xs_pts")
   # Define an empty flowline
   fl <- reactive({
     fl <- data.frame(ReachName = as.character()) %>%
@@ -52,6 +64,14 @@ app_server <- function(input, output, session) {
     return(raster)
   })
   makeReactiveBinding("dem")
+  # Define an empty detrend
+  detrend <- reactive({
+    raster <- matrix(1:25, nrow=5, ncol=5) %>%
+      terra::rast()
+    terra::crs(raster) <- "EPSG:3857"
+    return(raster)
+  })
+  makeReactiveBinding("detrend")
   
   # Ensure fl_editor_ui mapedit module available at app scope
   fl_editor_ui <- NULL
@@ -151,28 +171,48 @@ app_server <- function(input, output, session) {
     #save_test_data(fl_3857_latest, "fl_edited")
     print(fl_3857_latest)
     # Process Flowline
-    print(dem)
-    fl <<- flowline(fl_3857_latest, dem)
     print("flowline ---------------------------------------------------------")
+    print(dem)
+    fl <<- flowline(fl_3857_latest, reach_name = "current stream", dem)
     #save_test_data(fl, "fl")
     print(fl)
-    fl_pts <<- fl %>%
-      flowline_points(dem, station_distance = 100) %>%
-      mutate(ReachName = "current stream")
+    # Process Flowline points
     print("flowline points---------------------------------------------------")
+    fl_pts <<- flowline_points(fl, dem, station_distance = 5)
     #save_test_data(fl_pts, "fl_pts")
     print(fl_pts)
-
+    # Calculate Detrend
+    print("detrend ----------------------------------------------------------")
+    detrend <- dem           # bogus move until I get detrend function working
     # Process cross sections
-    
-    # Create results terrain
+    print("cross section ----------------------------------------------------")
+    xs <<- cross_section(xs, fl_pts)
+    print(xs)
+    # Process Cross Section Points
+    print("cross section points ---------------------------------------------")
+    station_distance = 1
+    xs_pts <<- cross_section_points(xs, dem, detrend, station_distance)
+    print(xs_pts)
+    # Create results map
+    print("create results map -----------------------------------------------")
     output$results_map <- renderLeaflet({
       get_results_leaflet(fl, xs, dem)
     })
     # Render the longitudinal profile plot
+    print("longitudinal profile plot ----------------------------------------")
     output$long_profile <- renderPlot({
       fl_pts_list <- list("latest" = fl_pts)
       compare_long_profile(stream = "current stream", fl_pts_list)
+    })
+    # Render the cross section plot
+    print("cross section plot -----------------------------------------------")
+    updateSelectInput(session, "pick_xs",
+                      choices = seq(min(xs$Seq), max(xs$Seq))
+      )
+    output$xs_plot <- renderPlot({
+      xs_pts_list <- list("latest" = xs_pts)
+      xs_compare_plot_L1(stream = "current stream", xs_number = input$pick_xs, 
+                         xs_pts_list, extent = "all")
     })
     # Navigate to the Results nav_panel
     nav_select(id = "main", selected = "Results", session)
