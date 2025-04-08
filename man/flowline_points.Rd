@@ -7,11 +7,12 @@
 flowline_points(flowline, dem, station_distance)
 }
 \arguments{
-\item{flowline}{sf object;}
+\item{flowline}{sf object; A flowline object.}
 
-\item{dem}{terra SpatRast object;}
+\item{dem}{terra SpatRast object; A DEM.}
 
-\item{station_distance}{numeric; meters}
+\item{station_distance}{numeric; Disired distance between the 
+flowline_points (units: meters)}
 }
 \value{
 an sf object of type point

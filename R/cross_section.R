@@ -8,7 +8,13 @@
 #' @export
 #'
 #' @importFrom assertthat assert_that
-#' @importFrom sf st_crs st_nearest_points st_nearest_feature
+#' @importFrom sf st_crs st_zm st_drop_geometry st_coordinates
+#'             st_nearest_points st_nearest_feature
+#' @importFrom dplyr %>% select mutate left_join join_by arrange rename 
+#'             group_by filter
+#' @importFrom tibble as_tibble
+#' @importFrom rLFT addMValues
+#' @importFrom fluvgeo xs_upstream
 #' 
 cross_section <- function(xs, flowline_points) {
   assert_that("sf" %in% class(xs), 

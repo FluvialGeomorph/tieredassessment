@@ -4,12 +4,14 @@
 \alias{flowline}
 \title{Flowline}
 \usage{
-flowline(flowline, dem)
+flowline(flowline, reach_name, dem)
 }
 \arguments{
-\item{flowline}{sf object;}
+\item{flowline}{sf object; A newly digitized flowline.}
 
-\item{dem}{terra SpatRast object;}
+\item{reach_name}{character; The name of the stream reach.}
+
+\item{dem}{terra SpatRast object; A DEM for the stream reach.}
 }
 \value{
 a valid flowline sf object
