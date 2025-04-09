@@ -30,4 +30,5 @@ test_that("check for valid flowline points", {
                             xs_number = xs_number,
                             bf_estimate = bf_estimate,
                             regions = regions)
+  expect_true(is.data.frame(t1))
 })

@@ -14,7 +14,7 @@
 #'                      dimensions for. See the `RegionalCurve` package for
 #'                      a list of regions.
 #'
-#' @return a `gtable` object
+#' @return a `gt` object
 #'
 #' @importFrom dplyr filter .data distinct select mutate across recode arrange
 #' @importFrom gt gt cols_label_with

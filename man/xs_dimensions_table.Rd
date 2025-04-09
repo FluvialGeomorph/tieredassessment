@@ -20,7 +20,7 @@ dimensions for. See the `RegionalCurve` package for
 a list of regions.}
 }
 \value{
-a `gtable` object
+a `gt` object
 }
 \description{
 Creates a cross section dimensions table for the channel portion of the
