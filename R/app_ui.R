@@ -8,7 +8,8 @@
 #'                   accordion accordion_panel
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
-#' @importFrom shinyWidgets slimSelectInput noUiSliderInput
+#' @importFrom shinyWidgets slimSelectInput noUiSliderInput 
+#' prepare_slim_choices
 #' @importFrom gt gt_output
 #' 
 #' @noRd
@@ -55,13 +56,16 @@ app_ui <- function(request) {
                 plotOutput("long_profile", height = "250px")),
               accordion_panel(
                 title = "Cross Sections",
-                slimSelectInput(inputId = "pick_xs", 
-                                label = "Select a cross section:", 
-                                choices = prepare_slim_choices(
-                                  xs_pts,
-                                  label = Seq,
-                                  value = Seq
-                                )),
+                selectInput("pick_xs", 
+                            label = "Select a cross section:", 
+                            choices = c(1)),
+                # slimSelectInput(inputId = "pick_xs", 
+                #                 label = "Select a cross section:", 
+                #                 choices = prepare_slim_choices(
+                #                   xs_pts,
+                #                   label = Seq,
+                #                   value = Seq
+                #                 )),
                 numericInput("bankfull_elevation", "Select water level:",
                              value = NULL),
                 # noUiSliderInput(inputId = "bankfull_elevation",

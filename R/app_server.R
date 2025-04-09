@@ -205,9 +205,11 @@ app_server <- function(input, output, session) {
       compare_long_profile(stream = "current stream", fl_pts_list)
     })
     print("pick cross section -----------------------------------------------")
-    updateSlimSelect(inputId = "pick_xs", 
-      choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
-    )
+    updateSelectInput(session, "pick_xs",
+                      choices = seq(min(xs_pts$Seq), max(xs_pts$Seq)))
+    # updateSlimSelect(inputId = "pick_xs", 
+    #   choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
+    # )
     print(req(input$pick_xs))
     print("pick bankfull_elevation ------------------------------------------")
     updateNumericInput(session, inputId = "bankfull_elevation",
