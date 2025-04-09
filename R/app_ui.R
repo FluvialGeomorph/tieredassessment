@@ -59,13 +59,6 @@ app_ui <- function(request) {
                 selectInput("pick_xs", 
                             label = "Select a cross section:", 
                             choices = c(1)),
-                # slimSelectInput(inputId = "pick_xs", 
-                #                 label = "Select a cross section:", 
-                #                 choices = prepare_slim_choices(
-                #                   xs_pts,
-                #                   label = Seq,
-                #                   value = Seq
-                #                 )),
                 numericInput("bankfull_elevation", "Select water level:",
                              value = NULL),
                 # noUiSliderInput(inputId = "bankfull_elevation",

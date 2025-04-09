@@ -207,9 +207,6 @@ app_server <- function(input, output, session) {
     print("pick cross section -----------------------------------------------")
     updateSelectInput(session, "pick_xs",
                       choices = seq(min(xs_pts$Seq), max(xs_pts$Seq)))
-    # updateSlimSelect(inputId = "pick_xs", 
-    #   choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
-    # )
     print(req(input$pick_xs))
     print("pick bankfull_elevation ------------------------------------------")
     updateNumericInput(session, inputId = "bankfull_elevation",
