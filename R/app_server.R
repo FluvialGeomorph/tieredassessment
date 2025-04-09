@@ -16,7 +16,8 @@
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot crs
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom fluvgeo compare_long_profile xs_compare_plot_L1
+#' @importFrom fluvgeo compare_long_profile xs_compare_plot_L2
+#' @importFrom shinyWidgets updateSlimSelect updateNoUiSliderInput
 #' @noRd
 app_server <- function(input, output, session) {
   # Define reactives ##########################################################
@@ -158,9 +159,8 @@ app_server <- function(input, output, session) {
   # View Results ##############################################################
   observeEvent(input$view_results, {
     show_modal_spinner(spin = "circle", text = "Calculating Geometry")
-    # get finished fl
-    fl_mapedit <- fl_editor_ui()$finished
     print("mapedit fl -------------------------------------------------------")
+    fl_mapedit <- fl_editor_ui()$finished
     #save_test_data(fl_mapedit, "fl_mapedit")
     print(fl_mapedit)
     fl_mapedit <- sf_fix_crs(fl_mapedit)
@@ -170,57 +170,70 @@ app_server <- function(input, output, session) {
     fl_3857_latest <- fl_3857 %>% filter(layerId == max(layerId))
     #save_test_data(fl_3857_latest, "fl_edited")
     print(fl_3857_latest)
-    # Process Flowline
-    print("flowline ---------------------------------------------------------")
+    print("process flowline -------------------------------------------------")
     print(dem)
     fl <<- flowline(fl_3857_latest, reach_name = "current stream", dem)
     #save_test_data(fl, "fl")
     print(fl)
-    # Process Flowline points
-    print("flowline points---------------------------------------------------")
+    print("process flowline points ------------------------------------------")
     fl_pts <<- flowline_points(fl, dem, station_distance = 5)
     #save_test_data(fl_pts, "fl_pts")
     print(fl_pts)
-    # Calculate Detrend
-    print("detrend ----------------------------------------------------------")
+    print("calculate detrend ------------------------------------------------")
     detrend <- dem           # bogus move until I get detrend function working
-    # Process cross sections
-    print("cross section ----------------------------------------------------")
+    print(detrend)
+    print("process cross section --------------------------------------------")
     xs <<- cross_section(xs, fl_pts)
     print(xs)
-    # Process Cross Section Points
-    print("cross section points ---------------------------------------------")
+    print("process cross section points -------------------------------------")
     station_distance = 1
     xs_pts <<- cross_section_points(xs, dem, detrend, station_distance)
+    xs_pts_list <- list("latest" = xs_pts)
     print(xs_pts)
-    # Create results map
     print("create results map -----------------------------------------------")
     output$results_map <- renderLeaflet({
       get_results_leaflet(fl, xs, dem)
     })
-    # Render the longitudinal profile plot
     print("longitudinal profile plot ----------------------------------------")
     output$long_profile <- renderPlot({
       fl_pts_list <- list("latest" = fl_pts)
       compare_long_profile(stream = "current stream", fl_pts_list)
     })
-    # Render the cross section plot
+    print("pick cross section -----------------------------------------------")
+    updateSlimSelect(inputId = "pick_xs", 
+      choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
+    )
+    print(req(input$pick_xs))
+    print("pick bankfull_elevation ------------------------------------------")
+    updateNumericInput(session, inputId = "bankfull_elevation",
+      min = min(filter(xs_pts, Seq == req(input$pick_xs))$Detrend_DEM_Z),
+      max = max(filter(xs_pts, Seq == req(input$pick_xs))$Detrend_DEM_Z),
+      value = round(mean(filter(xs_pts, 
+                                Seq == req(input$pick_xs))$Detrend_DEM_Z)),
+      step = 1
+    )
+    # updateNoUiSliderInput(inputId = "bankfull_elevation",
+    #   range = c(min(filter(xs_pts, Seq == input$pick_xs)$Detrend_DEM_Z),
+    #             max(filter(xs_pts, Seq == input$pick_xs)$Detrend_DEM_Z)),
+    #   value = mean(filter(xs_pts, Seq == input$pick_xs)$Detrend_DEM_Z)
+    # )
+    print(input$bankfull_elevation)
     print("cross section plot -----------------------------------------------")
-    updateSelectInput(session, "pick_xs",
-                      choices = seq(min(xs$Seq), max(xs$Seq))
-      )
     output$xs_plot <- renderPlot({
-      xs_pts_list <- list("latest" = xs_pts)
-      xs_compare_plot_L1(stream = "current stream", xs_number = input$pick_xs, 
+      xs_compare_plot_L2(stream = "current stream", 
+                         xs_number = req(input$pick_xs), 
+                         bankfull_elevation = req(input$bankfull_elevation),
                          xs_pts_list, extent = "all")
     })
-    # Navigate to the Results nav_panel
+    print("calculate cross section dimensions -------------------------------")
+    #output$dimensions_table <- RenderTable({})
+    
     nav_select(id = "main", selected = "Results", session)
     remove_modal_spinner()
   })
   
 
-  # Instructions ###############################################################
+  # Instructions ##############################################################
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({
     steps <- c('Use the "Search" or "Zoom" tools to locate your desired area of interest (AOI).', 
