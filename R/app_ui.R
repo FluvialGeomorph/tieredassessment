@@ -11,7 +11,6 @@
 #' 
 #' @noRd
 app_ui <- function(request) {
-
   tagList(
     golem_add_external_resources(),
     
@@ -55,12 +54,15 @@ app_ui <- function(request) {
               accordion_panel(
                 title = "Cross Sections",
                 selectInput("pick_xs", "Select a cross section", NULL),
-                plotOutput("xs_plot"),
-                noUISliderInput("bankfull_elevation", 
-                                label = "Select water level:",
-                                min = NULL, max = NULL))
+                plotOutput("xs_plot")
+                # noUISliderInput("bankfull_elevation", 
+                #                 label = "Select water level:",
+                #                 min = NULL, max = NULL))
+              )
             )
-          ))),
+          )
+        ),
+      )
     )
   )
 }

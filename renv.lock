@@ -2034,13 +2034,13 @@
     },
     "fluvgeo": {
       "Package": "fluvgeo",
-      "Version": "0.1.53",
+      "Version": "0.1.54",
       "Source": "GitHub",
       "Title": "A Package for Fluvial Geomorphic Analysis",
       "Authors@R": "c( person(\"Michael\", \"Dougherty\",  email = \"Michael.P.Dougherty@usace.army.mil\",  role = c(\"aut\"), comment = c(ORCID = \"0000-0002-1465-5927\")), person(\"Christopher\", \"Haring\", email = \"Christopher.P.Haring@usace.army.mil\", role = c(\"aut\")), person(\"Barrie\",\"Chileen Martinez\", email = \"Barrie.V.Chileen@usace.army.mil\", role = c(\"aut\",\"cre\"), comment = c(ORCID = \"0000-0002-6960-8167\")), person(\"Thomas\", \"Darby\", role = c(\"ctb\")),  person(\"Davi\", \"Michl\", role = c(\"ctb\")) )",
       "Description": "This package contains a wide range of functions for performing fluvial geomorphic analysis. This package is designed for use with the  FluvialGeomorph Python package. The FluvialGeomorph package contains an  ArcGIS toolbox that can be used to extract spatial data from high- resolution terrain data. FluvialGeomorph uses functions in this package  to perform a wide range of fluvial geomorphic analysis (e.g., extract  stream channel dimensions, help choose bankfull elevation for ungaged  streams).",
       "License": "file LICENSE",
-      "URL": "https://github.com/FluvialGeomorph/fluvgeo",
+      "URL": "https://github.com/FluvialGeomorph/fluvgeo, https://fluvialgeomorph.github.io/fluvgeo/",
       "BugReports": "https://github.com/FluvialGeomorph/fluvgeo/issues",
       "Depends": [
         "R (>= 2.10)"
@@ -2089,8 +2089,8 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "fluvgeo",
       "RemoteUsername": "FluvialGeomorph",
-      "RemoteRef": "v0.1.53",
-      "RemoteSha": "82df23c9e8c260c16744a7ad6d5649ac6c44b4ca",
+      "RemoteRef": "v0.1.54",
+      "RemoteSha": "75387e8a2a123f5793b40a71a73681abb0ced073",
       "NeedsCompilation": "no",
       "Author": "Michael Dougherty [aut] (<https://orcid.org/0000-0002-1465-5927>), Christopher Haring [aut], Barrie Chileen Martinez [aut, cre] (<https://orcid.org/0000-0002-6960-8167>), Thomas Darby [ctb], Davi Michl [ctb]",
       "Maintainer": "Barrie Chileen Martinez <Barrie.V.Chileen@usace.army.mil>"
@@ -7127,6 +7127,7 @@
         "leaflegend",
         "leaflet (>= 2.0.2)",
         "leafsync",
+        "maptiles",
         "methods",
         "rlang",
         "sf (>= 0.9-3)",
@@ -7143,7 +7144,6 @@
         "ggplot2",
         "gifski",
         "knitr",
-        "maptiles",
         "png",
         "shiny",
         "terra",
@@ -7165,7 +7165,7 @@
       "RemoteRepo": "tmap",
       "RemoteUsername": "r-tmap",
       "RemoteRef": "HEAD",
-      "RemoteSha": "df47d8a69a6e32e427df233ea9e4afcd9f5f976e",
+      "RemoteSha": "6802c56fe5ffe907de3243bc411e709395d32bae",
       "NeedsCompilation": "no",
       "Author": "Martijn Tennekes [aut, cre], Jakub Nowosad [ctb], Joel Gombin [ctb], Sebastian Jeworutzki [ctb], Kent Russell [ctb], Richard Zijdeman [ctb], John Clouse [ctb], Robin Lovelace [ctb], Jannes Muenchow [ctb], Olivier Roy [ctb], Edzer Pebesma [ctb], Hugh Graham [ctb], Michael D. Sumner [ctb], Tim Appelhans [ctb], Nick Bearman [ctb]",
       "Maintainer": "Martijn Tennekes <mtennekes@gmail.com>"

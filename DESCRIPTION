@@ -1,6 +1,6 @@
 Package: tieredassessment
 Title: Fluvial Geomorphic Tiered Assessment App
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: c(
     person("Michael", "Dougherty", 
            email = "Michael.P.Dougherty@usace.army.mil", 
