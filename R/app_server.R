@@ -16,8 +16,9 @@
 #' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot crs
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom fluvgeo compare_long_profile xs_compare_plot_L2
+#' @importFrom fluvgeo compare_long_profile xs_compare_plot_L2 
 #' @importFrom shinyWidgets updateSlimSelect updateNoUiSliderInput
+#' @importFrom gt render_gt
 #' @noRd
 app_server <- function(input, output, session) {
   # Define reactives ##########################################################
@@ -188,6 +189,10 @@ app_server <- function(input, output, session) {
     print("process cross section points -------------------------------------")
     station_distance = 1
     xs_pts <<- cross_section_points(xs, dem, detrend, station_distance)
+    xs_pts <<- xs_pts %>%
+      mutate(POINT_M_units = "m") %>%
+      mutate(channel = 1) %>%
+      mutate(dem_units = "ft")
     xs_pts_list <- list("latest" = xs_pts)
     print(xs_pts)
     print("create results map -----------------------------------------------")
@@ -208,8 +213,8 @@ app_server <- function(input, output, session) {
     updateNumericInput(session, inputId = "bankfull_elevation",
       min = min(filter(xs_pts, Seq == req(input$pick_xs))$Detrend_DEM_Z),
       max = max(filter(xs_pts, Seq == req(input$pick_xs))$Detrend_DEM_Z),
-      value = round(mean(filter(xs_pts, 
-                                Seq == req(input$pick_xs))$Detrend_DEM_Z)),
+      value = as.integer(mean(filter(xs_pts, 
+                              Seq == req(input$pick_xs))$Detrend_DEM_Z)),
       step = 1
     )
     # updateNoUiSliderInput(inputId = "bankfull_elevation",
@@ -223,10 +228,16 @@ app_server <- function(input, output, session) {
       xs_compare_plot_L2(stream = "current stream", 
                          xs_number = req(input$pick_xs), 
                          bankfull_elevation = req(input$bankfull_elevation),
-                         xs_pts_list, extent = "all")
+                         xs_pts_list, extent = "all",
+                         aspect_ratio = NULL)
     })
     print("calculate cross section dimensions -------------------------------")
-    #output$dimensions_table <- RenderTable({})
+    output$dimensions_table <- render_gt(
+      xs_dimensions_table(xs_pts = xs_pts,
+                          xs_number = req(input$pick_xs),
+                          bf_estimate = req(input$bankfull_elevation),
+                          regions = c("USA", "Eastern United States"))
+    )
     
     nav_select(id = "main", selected = "Results", session)
     remove_modal_spinner()

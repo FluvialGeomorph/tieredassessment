@@ -9,6 +9,7 @@
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
 #' @importFrom shinyWidgets slimSelectInput noUiSliderInput
+#' @importFrom gt gt_output
 #' 
 #' @noRd
 app_ui <- function(request) {
@@ -51,7 +52,7 @@ app_ui <- function(request) {
               open = c("Cross Sections"),
               accordion_panel(
                 title = "Longitudinal Profile",
-                plotOutput("long_profile")),
+                plotOutput("long_profile", height = "250px")),
               accordion_panel(
                 title = "Cross Sections",
                 slimSelectInput(inputId = "pick_xs", 
@@ -67,8 +68,8 @@ app_ui <- function(request) {
                 #                 label = "Select water level:",
                 #                 min = NULL, max = NULL,
                 #                 value = NULL),
-                plotOutput("xs_plot")
-                # table of dimensions
+                plotOutput("xs_plot", height = "250px"),
+                gt_output("dimensions_table")
               )
             )
           )
