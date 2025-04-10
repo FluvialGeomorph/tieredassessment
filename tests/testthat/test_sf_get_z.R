@@ -1,4 +1,4 @@
-test_that("map is a tmap", {
+test_that("test sf_get_z function", {
   fl_pts <- sf::st_read(system.file("extdata", "fl_pts.shp", 
                                 package = "tieredassessment"), quiet = TRUE)
   points <- fl_pts %>% select(ID)

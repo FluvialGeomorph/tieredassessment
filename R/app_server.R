@@ -13,7 +13,6 @@
 #' @importFrom leafpm addPmToolbar pmToolbarOptions
 #' @importFrom leaflet.extras addSearchOSM searchOptions
 #' @importFrom sf st_as_sf st_sfc
-#' @importFrom tmap qtm tm_basemap tmap_leaflet
 #' @importFrom terra plot crs
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
 #' @importFrom fluvgeo compare_long_profile xs_compare_plot_L2 

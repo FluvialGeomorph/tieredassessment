@@ -37,7 +37,6 @@ Imports:
     shinybusy,
     shinyWidgets,
     smoothr,
-    tmap,
     terra
 Encoding: UTF-8
 LazyData: true
