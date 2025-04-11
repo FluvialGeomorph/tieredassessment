@@ -149,7 +149,6 @@ app_server <- function(input, output, session) {
     remove_modal_spinner()
     
     observeEvent(fl_editor_ui()$finished, {
-      # Add view terrain button
       output$view_results_button <- renderUI({
         actionButton("view_results", "View Results")
       })

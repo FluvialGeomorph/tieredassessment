@@ -22,7 +22,7 @@ cross_section <- function(xs, flowline_points) {
   assert_that("sf" %in% class(flowline_points), 
               msg = "flowline_points must be sf object")
   assert_that(st_crs(xs) == st_crs(flowline_points), 
-              msg = "xs and flowline_points must be have the same crs")
+              msg = "xs and flowline_points must have the same crs")
   
   # Set river position (check step: river_position)
   ## add fields POINT_X, POINT_Y, POINT_M, Z, km_to_mouth 

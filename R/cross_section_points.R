@@ -26,7 +26,7 @@ cross_section_points <- function(cross_section, dem, detrend,
   assert_that("SpatRaster" %in% class(detrend), 
               msg = "detrend must be a SpatRaster object")
   assert_that(st_crs(cross_section) == st_crs(dem), 
-              msg = "cross_section and dem must be have the same crs")
+              msg = "cross_section and dem must have the same crs")
   
   # Remove unneeded fields
   xs_line <- cross_section %>%

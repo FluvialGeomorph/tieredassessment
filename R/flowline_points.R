@@ -19,7 +19,7 @@
 #' 
 flowline_points <- function(flowline, dem, station_distance) {
   assert_that(st_crs(flowline) == st_crs(dem), 
-              msg = "flowline and dem must be have the same crs")
+              msg = "flowline and dem must have the same crs")
   assert_that(st_within(flowline, 
                         st_sf(st_as_sfc(st_bbox(dem))), sparse = FALSE),
               msg = "flowline must be within the dem")

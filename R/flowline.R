@@ -18,7 +18,7 @@
 flowline <- function(flowline, reach_name, dem) {
   flowline <- sf_fix_crs(flowline)
   assert_that(st_crs(flowline) == st_crs(dem), 
-              msg = "flowline and dem must be have the same crs")
+              msg = "flowline and dem must have the same crs")
   assert_that(nchar(reach_name) > 0,
               msg = "reach_name must be a non-empty string")
   assert_that(nrow(flowline) == 1,
