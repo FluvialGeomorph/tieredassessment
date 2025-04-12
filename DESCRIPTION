@@ -20,7 +20,7 @@ Imports:
     bslib,
     config,
     dplyr,
-    fluvgeo (>= 0.1.53),
+    fluvgeo (>= 0.1.54),
     golem,
     htmltools,
     httr2,
