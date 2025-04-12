@@ -2,15 +2,11 @@ Package: tieredassessment
 Title: Fluvial Geomorphic Tiered Assessment App
 Version: 0.0.6
 Authors@R: c(
-    person("Michael", "Dougherty", 
-           email = "Michael.P.Dougherty@usace.army.mil", 
-           role = c("aut", "cre"),
+    person("Michael", "Dougherty", , "Michael.P.Dougherty@usace.army.mil", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1465-5927")),
-    person("Christopher", "Haring",
-           email = "Christopher.P.Haring@usace.army.mil",
-           role = c("aut"))
-    )
-Description: Calculates fluvial geomorphic metrics. 
+    person("Christopher", "Haring", , "Christopher.P.Haring@usace.army.mil", role = "aut")
+  )
+Description: Calculates fluvial geomorphic metrics.
 License: file LICENSE
 URL: https://github.com/FluvialGeomorph/tiered-assessment
 Imports: 
@@ -22,14 +18,15 @@ Imports:
     dplyr,
     fluvgeo (>= 0.1.54),
     golem,
+    gt,
+    here,
     htmltools,
-    httr2,
     leafem,
+    leaflegend,
     leaflet,
     leaflet.extras,
     leafpm,
     mapedit,
-    maptiles,
     purrr,
     rLFT,
     sf,
@@ -37,14 +34,15 @@ Imports:
     shinybusy,
     shinyWidgets,
     smoothr,
-    terra
+    terra,
+    tibble,
+    tools
+Suggests: 
+    httr2,
+    testthat (>= 3.0.0)
+Remotes: 
+    FluvialGeomorph/fluvgeo
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
-Remotes:  
-    r-arcgis/arcgis,
-    FluvialGeomorph/fluvgeo
-Suggests: 
-    pkgload,
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
