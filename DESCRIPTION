@@ -1,7 +1,8 @@
-Package: ohwm
+Package: ohwm2
 Title: Identify Ordinary High Water Marks
-Description: An R Shiny app for remotely identifying stream Ordinary High Water Marks (OHWM) using publicly available terrain data for small sites.
-Version: 2025.07.03
+Description: An R Shiny app for remotely identifying stream Ordinary High Water
+  Marks (OHWM) using publicly available terrain data for small sites.
+Version: 2025.07.08
 Authors@R: c(
     person("Michael", "Dougherty", 
            email = "Michael.P.Dougherty@usace.army.mil", 
@@ -15,8 +16,8 @@ Authors@R: c(
            role = c("rev"))
     )
 License: file LICENSE
-URL: https://github.com/FluvialGeomorph/ohwm
-BugReports: https://github.com/FluvialGeomorph/ohwm/issues
+URL: https://github.com/FluvialGeomorph/ohwm2
+BugReports: https://github.com/FluvialGeomorph/ohwm2/issues
 Imports: 
     assertthat,
     bsicons,

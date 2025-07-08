@@ -1,6 +1,6 @@
 default:
-  golem_name: ohwm
-  golem_version: 2025.05.17
+  golem_name: ohwm2
+  golem_version: 0.5.1
   app_prod: no
 production:
   app_prod: yes

@@ -23,7 +23,7 @@ devtools::check()
 ## use remotes::install_github to indicate to install source to renv
 remotes::install_github("FluvialGeomorph/fluvgeo@*release")
 remotes::install_github("FluvialGeomorph/RegionalCurve@*release")
-remotes::install_github("FluvialGeomorph/ohwm@*release")
+remotes::install_github("FluvialGeomorph/ohwm2@*release")
 
 ## update renv
 renv::snapshot()
@@ -51,7 +51,7 @@ shinyValidator::audit_app()
 ## Posit ----
 ## If you want to deploy on Posit related platforms
 #golem::add_positconnect_file()
-golem::add_shinyappsio_file()
+#golem::add_shinyappsio_file()
 #golem::add_shinyserver_file()
 
 ## Deploy to Posit Connect or ShinyApps.io ----

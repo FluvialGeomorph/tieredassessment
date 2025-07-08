@@ -68,7 +68,7 @@ run_app()
 # Documentation
 
 ## Vignette ----
-#usethis::use_vignette("ohwm")
+#usethis::use_vignette("ohwm2")
 #devtools::build_vignettes()
 
 ## Code Coverage----

@@ -19,7 +19,7 @@
 ## to change the name in the app_sys() function in app_config.R /!\
 ##
 golem::fill_desc(
-  pkg_name = "ohwm", # The name of the golem package containing the app (typically lowercase, no underscore or periods)
+  pkg_name = "ohwm2", # The name of the golem package containing the app (typically lowercase, no underscore or periods)
   pkg_title = "Identify Ordinary High Water Marks", # What the Package Does (One Line, Title Case, No Period)
   pkg_description = "An R Shiny app for remotely identifying stream Ordinary High Water Marks (OHWM) using publicly available terrain data for small sites.", # What the package does (one paragraph).
   authors = person(
@@ -28,7 +28,7 @@ golem::fill_desc(
     email = "AUTHOR@MAIL.COM", # Your email
     role = c("aut", "cre") # Your role (here author/creator)
   ),
-  repo_url = "https://github.com/FluvialGeomorph/ohwm", # The URL of the GitHub repo (optional),
+  repo_url = "https://github.com/FluvialGeomorph/ohwm2", # The URL of the GitHub repo (optional),
   pkg_version = "2025.04.12", # The version of the package containing the app
   set_options = TRUE # Set the global golem options
 )

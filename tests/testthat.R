@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(ohwm)
+library(ohwm2)
 
-test_check("ohwm")
+test_check("ohwm2")

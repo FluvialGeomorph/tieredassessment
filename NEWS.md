@@ -1,3 +1,3 @@
-# ohwm 2025.04.12
+# ohwm2 2025.07.08
 
-* Initial CRAN submission.
+* Initial creation.

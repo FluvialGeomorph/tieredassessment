@@ -1,7 +1,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- rmarkdown::render(input="README.Rmd", output_file = "README.md", output_format = "md_document") -->
 
-# ohwm
+# ohwm2
 
 An R Shiny app for remotely identifying stream Ordinary High Water Marks
 (OHWM) using publicly available terrain data for small sites.
@@ -12,8 +12,8 @@ An R Shiny app for remotely identifying stream Ordinary High Water Marks
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![packageversion](https://img.shields.io/badge/Package%20version-2025.07.03-orange.svg?style=flat-square)](commits/main)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2025--07--03-yellowgreen.svg)](/commits/main)
+[![packageversion](https://img.shields.io/badge/Package%20version-2025.07.08-orange.svg?style=flat-square)](commits/main)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2025--07--08-yellowgreen.svg)](/commits/main)
 [![Licence](https://img.shields.io/badge/licence-CC0-blue.svg)](http://choosealicense.com/licenses/cc0-1.0/)
 <!-- badges: end -->
 
@@ -74,5 +74,5 @@ Check out the [NEWS](NEWS.md) for details on the latest updates.
 
 ## Bug Reports
 
-If you find any bugs using `ohwm`, please open an
-[issue](https://github.com/FluvialGeomorph/ohwm/issues).
+If you find any bugs using `ohwm2`, please open an
+[issue](https://github.com/FluvialGeomorph/ohwm2/issues).
