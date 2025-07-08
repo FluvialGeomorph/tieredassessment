@@ -30,26 +30,23 @@ app_ui <- function(request) {
   
   tagList(
     tags$head(
-      tags$style(
-        "
+      tags$style("
         .scrollable-accordion .accordion-body {
           max-height: 300px; overflow-y: scroll; resize: vertical;
           display: flex; flex-direction: column-reverse;
-        }
-      "
+        }"
       )
     ),
     golem_add_external_resources(),
     page_navbar(
-      title = "Floodplain Connectivity",
+      title = "Ordinary High Water Marks",
       id = "main",
-      theme = bs_theme(bootswatch = "cerulean", version = 5),
-      footer = accordion(
-        id = "logs",
-        open = FALSE,
-        class = "scrollable-accordion",
-        accordion_panel(title = "Console", htmlOutput("console"))
-      ),
+      # footer = accordion(
+      #   id = "logs",
+      #   open = FALSE,
+      #   class = "scrollable-accordion",
+      #   accordion_panel(title = "Console", htmlOutput("console")),
+      theme = bs_theme(bootswatch = "sandstone", version = 5),
       
       nav_panel(title = "Draw XS", layout_sidebar(
         # Display the xs editing module
