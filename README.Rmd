@@ -12,7 +12,7 @@ An R Shiny app for remotely identifying stream Ordinary High Water Marks (OHWM) 
 ## Package Status
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![packageversion](https://img.shields.io/badge/Package%20version-2025.07.08-orange.svg?style=flat-square)](commits/main)
+[![packageversion](https://img.shields.io/badge/Package%20version-2025.07.09-orange.svg?style=flat-square)](commits/main)
 [![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-yellowgreen.svg)](/commits/main)
 [![Licence](https://img.shields.io/badge/licence-CC0-blue.svg)](http://choosealicense.com/licenses/cc0-1.0/)
 <!-- badges: end -->
