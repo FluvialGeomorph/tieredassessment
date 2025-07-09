@@ -9,7 +9,6 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
-#' @importFrom shinyWidgets autonumericInput noUiSliderInput wNumbFormat
 #' @importFrom gt gt_output
 #' @noRd
 app_ui <- function(request) {
@@ -99,14 +98,10 @@ app_ui <- function(request) {
                       channel_rem_info
                     )
                   ),
-                  noUiSliderInput(
-                    inputId = "channel_elevation",
-                    min = 100,
-                    max = 130,
-                    value = 103,
-                    format = wNumbFormat(decimals = 1),
-                    orientation = "horizontal",
-                    update_on = "end"
+                  sliderInput(
+                    inputId = "channel_elevation", label = NULL,
+                    min = 100, max = 130, value = 103, 
+                    round = -1, step = 0.1
                   )
                 ),
                 card(
@@ -118,14 +113,10 @@ app_ui <- function(request) {
                       floodplain_rem_info
                     )
                   ),
-                  noUiSliderInput(
-                    inputId = "floodplain_elevation",
-                    min = 100,
-                    max = 130,
-                    value = 112,
-                    format = wNumbFormat(decimals = 1),
-                    orientation = "horizontal",
-                    update_on = "end"
+                  sliderInput(
+                    inputId = "floodplain_elevation", label = NULL,
+                    min = 100, max = 130, value = 112, 
+                    round = -1, step = 0.1
                   )
                 )
               ),
@@ -141,7 +132,7 @@ app_ui <- function(request) {
               layout_columns(
                 withMathJax("$$Q = \\frac{1.486}{n} A R ^\\frac{2}{3} S^\\frac{1}{2}$$"),
                 tooltip(bs_icon("info-circle"), 
-                        discharge_info, placement = "right")
+                        discharge_info, placement = "auto")
               ),
               layout_columns(
                 card(
