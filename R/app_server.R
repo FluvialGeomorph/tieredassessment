@@ -404,17 +404,28 @@ app_server <- function(input, output, session) {
         log_message(
           "about to navigate to Results --------------------------------"
         )
-        nav_select(id = "main", selected = "Results", session)
+        try(
+          nav_select(id = "main", selected = "Results", session),
+          silent = FALSE
+        )
+        log_message(
+          "completed nav_select -----------------------------------------"
+        )
         log_message(
           "about to set results_loaded(TRUE) --------------------------"
         )
         results_loaded(TRUE)
+        log_message(
+          "completed results_loaded(TRUE) -----------------------------"
+        )
         log_message(
           "about to remove modal spinner -----------------------------"
         )
       },
       error = function(e) {
         log_message(paste("ERROR in view_results:", conditionMessage(e)))
+        log_message(paste("ERROR call:", deparse(conditionCall(e))))
+        log_message(paste(capture.output(str(e)), collapse = "\n"))
         stop(e)
       }
     )
