@@ -278,10 +278,15 @@ app_server <- function(input, output, session) {
 
     log_message("create cross section plots -------------------------------")
     output$xs_plot_floodplain <- renderPlot({
+      req(results_loaded())
+      req(is.numeric(input$channel_elevation))
+      req(length(input$channel_elevation) > 0)
+      req(!is.na(input$channel_elevation))
+
       xs_compare_plot_L2(
         stream = "current stream",
         xs_number = input$pick_xs,
-        bankfull_elevation = isolate(input$channel_elevation),
+        bankfull_elevation = input$channel_elevation,
         xs_pts_list,
         extent = "floodplain",
         aspect_ratio = NULL
@@ -289,10 +294,15 @@ app_server <- function(input, output, session) {
     })
 
     output$xs_plot_channel <- renderPlot({
+      req(results_loaded())
+      req(is.numeric(input$channel_elevation))
+      req(length(input$channel_elevation) > 0)
+      req(!is.na(input$channel_elevation))
+
       xs_compare_plot_L2(
         stream = "current stream",
         xs_number = input$pick_xs,
-        bankfull_elevation = isolate(input$channel_elevation),
+        bankfull_elevation = input$channel_elevation,
         xs_pts_list,
         extent = "channel",
         aspect_ratio = NULL
@@ -305,23 +315,33 @@ app_server <- function(input, output, session) {
     )
 
     log_message("calculate discharge --------------------------------------")
-    output$channel_discharge <- render_gt(
+    output$channel_discharge <- render_gt({
+      req(results_loaded())
+      req(is.numeric(input$channel_elevation))
+      req(length(input$channel_elevation) > 0)
+      req(!is.na(input$channel_elevation))
+
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
-        bf_estimate = isolate(input$channel_elevation),
+        bf_estimate = input$channel_elevation,
         mannings_n = as.numeric(input$channel_mannings)
       )
-    )
+    })
 
-    output$floodplain_discharge <- render_gt(
+    output$floodplain_discharge <- render_gt({
+      req(results_loaded())
+      req(is.numeric(input$floodplain_elevation))
+      req(length(input$floodplain_elevation) > 0)
+      req(!is.na(input$floodplain_elevation))
+
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
-        bf_estimate = isolate(input$floodplain_elevation),
+        bf_estimate = input$floodplain_elevation,
         mannings_n = as.numeric(input$floodplain_mannings)
       )
-    )
+    })
 
     log_message("pick cross section -------------------------------------")
     updateSelectInput(
