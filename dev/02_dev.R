@@ -100,6 +100,9 @@ fluvgeo::arcgis_auth()
 golem::document_and_reload()
 run_app()
 
+## Update Chat History
+reproducibleai::extract_copilot_chat(file.path(Sys.getenv("USERPROFILE"), "Downloads", "copilot_export.zip"))
+
 ## Tests ----
 ## Add one line by test you want to create
 #usethis::use_test("app")
