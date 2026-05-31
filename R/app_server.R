@@ -335,22 +335,33 @@ app_server <- function(input, output, session) {
         log_message(
           "calculate discharge --------------------------------------"
         )
-        output$channel_discharge <- render_gt(
+        output$channel_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$channel_elevation))
+          req(length(input$channel_elevation) > 0)
+          req(!is.na(input$channel_elevation))
+
           xs_discharge_table(
             xs_pts = xs_pts,
             xs_number = input$pick_xs,
             bf_estimate = input$channel_elevation,
             mannings_n = as.numeric(input$channel_mannings)
           )
-        )
-        output$floodplain_discharge <- render_gt(
+        })
+
+        output$floodplain_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$floodplain_elevation))
+          req(length(input$floodplain_elevation) > 0)
+          req(!is.na(input$floodplain_elevation))
+
           xs_discharge_table(
             xs_pts = xs_pts,
             xs_number = input$pick_xs,
             bf_estimate = input$floodplain_elevation,
             mannings_n = as.numeric(input$floodplain_mannings)
           )
-        )
+        })
 
         # Update selectors ######################################################
         log_message("pick cross section -------------------------------------")
@@ -433,6 +444,9 @@ app_server <- function(input, output, session) {
 
   observeEvent(input$channel_elevation, {
     req(results_loaded())
+    req(is.numeric(input$channel_elevation))
+    req(length(input$channel_elevation) > 0)
+    req(!is.na(input$channel_elevation))
     log_message(paste("Channel elevation value:", input$channel_elevation))
     log_message("update channel_elevation -------------------------------")
     channel_poly <<- water_surface_poly(
@@ -513,6 +527,9 @@ app_server <- function(input, output, session) {
 
   observeEvent(input$floodplain_elevation, {
     req(results_loaded())
+    req(is.numeric(input$floodplain_elevation))
+    req(length(input$floodplain_elevation) > 0)
+    req(!is.na(input$floodplain_elevation))
     log_message(paste(
       "Floodplain elevation value:",
       input$floodplain_elevation
