@@ -57,6 +57,15 @@ usethis::use_package("tidyterra")
 ## If you have data in your package
 #usethis::use_data_raw(name = "my_dataset", open = FALSE)
 
+reproducibleai::use_instructions(c(
+  "chat-manual",
+  "goals",
+  "development-governance",
+  "r-package",
+  "shiny-golem",
+  "parameterized-help"  
+))
+
 ## Run application locally
 golem::document_and_reload()
 run_app()
