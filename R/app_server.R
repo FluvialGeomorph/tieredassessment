@@ -407,16 +407,23 @@ app_server <- function(input, output, session) {
 
         req(input$channel_elevation)
         req(input$floodplain_elevation)
-        channel_elevation_value <- input$channel_elevation
-        floodplain_elevation_value <- input$floodplain_elevation
+
+        workflow_state <- prepare_results_workflow_state(
+          xs_pts = xs_pts,
+          pick_xs = input$pick_xs,
+          channel_elevation = input$channel_elevation,
+          floodplain_elevation = input$floodplain_elevation
+        )
+
+        slider_state <- workflow_state$slider_state
 
         freezeReactiveValue(input, "channel_elevation")
         updateSliderInput(
           session,
           "channel_elevation",
-          value = channel_elevation_value,
-          min = rem_min,
-          max = rem_max,
+          value = slider_state$channel_elevation_value,
+          min = slider_state$rem_min,
+          max = slider_state$rem_max,
           step = 0.1
         )
 
@@ -424,12 +431,13 @@ app_server <- function(input, output, session) {
         updateSliderInput(
           session,
           "floodplain_elevation",
-          value = floodplain_elevation_value,
-          min = rem_min,
-          max = rem_max,
+          value = slider_state$floodplain_elevation_value,
+          min = slider_state$rem_min,
+          max = slider_state$rem_max,
           step = 0.1
         )
-        results_loaded(TRUE)
+
+        results_loaded(workflow_state$results_loaded)
         nav_select(id = "main", selected = "Results", session)
         remove_modal_spinner()
       },
