@@ -393,6 +393,11 @@ app_server <- function(input, output, session) {
         ) -
           1
         log_message(paste0("range = ", rem_min, " - ", rem_max))
+
+        results_loaded(TRUE)
+        log_message(
+          "results_loaded(TRUE) -----------------------------"
+        )
         freezeReactiveValue(input, "channel_elevation")
         updateSliderInput(
           session,
@@ -411,7 +416,8 @@ app_server <- function(input, output, session) {
           max = rem_max,
           step = 0.1
         )
-
+        remove_modal_spinner()
+        log_message("removed modal spinner ---------------------------------")
         log_message(
           "about to navigate to Results --------------------------------"
         )
@@ -421,16 +427,6 @@ app_server <- function(input, output, session) {
         )
         log_message(
           "completed nav_select -----------------------------------------"
-        )
-        log_message(
-          "about to set results_loaded(TRUE) --------------------------"
-        )
-        results_loaded(TRUE)
-        log_message(
-          "completed results_loaded(TRUE) -----------------------------"
-        )
-        log_message(
-          "about to remove modal spinner -----------------------------"
         )
       },
       error = function(e) {
