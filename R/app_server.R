@@ -427,6 +427,60 @@ app_server <- function(input, output, session) {
 
         remove_modal_spinner()
         log_message("removed modal spinner ---------------------------------")
+
+        # Force initial plot render with the initialized slider values
+        log_message(
+          "forcing initial cross section plot render ------------------"
+        )
+        output$xs_plot_floodplain <- renderPlot({
+          xs_compare_plot_L2(
+            stream = "current stream",
+            xs_number = input$pick_xs,
+            bankfull_elevation = input$channel_elevation,
+            xs_pts_list,
+            extent = "floodplain",
+            aspect_ratio = NULL
+          )
+        })
+
+        output$xs_plot_channel <- renderPlot({
+          xs_compare_plot_L2(
+            stream = "current stream",
+            xs_number = input$pick_xs,
+            bankfull_elevation = input$channel_elevation,
+            xs_pts_list,
+            extent = "channel",
+            aspect_ratio = NULL
+          )
+        })
+
+        output$channel_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$channel_elevation))
+          req(length(input$channel_elevation) > 0)
+          req(!is.na(input$channel_elevation))
+
+          xs_discharge_table(
+            xs_pts = xs_pts,
+            xs_number = input$pick_xs,
+            bf_estimate = input$channel_elevation,
+            mannings_n = as.numeric(input$channel_mannings)
+          )
+        })
+
+        output$floodplain_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$floodplain_elevation))
+          req(length(input$floodplain_elevation) > 0)
+          req(!is.na(input$floodplain_elevation))
+
+          xs_discharge_table(
+            xs_pts = xs_pts,
+            xs_number = input$pick_xs,
+            bf_estimate = input$floodplain_elevation,
+            mannings_n = as.numeric(input$floodplain_mannings)
+          )
+        })
       },
       error = function(e) {
         log_message(paste("ERROR in view_results:", conditionMessage(e)))
