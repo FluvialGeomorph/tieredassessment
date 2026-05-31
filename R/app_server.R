@@ -405,11 +405,16 @@ app_server <- function(input, output, session) {
           1
         log_message(paste0("range = ", rem_min, " - ", rem_max))
 
+        req(input$channel_elevation)
+        req(input$floodplain_elevation)
+        channel_elevation_value <- input$channel_elevation
+        floodplain_elevation_value <- input$floodplain_elevation
+
         freezeReactiveValue(input, "channel_elevation")
         updateSliderInput(
           session,
           "channel_elevation",
-          value = isolate(input$channel_elevation),
+          value = channel_elevation_value,
           min = rem_min,
           max = rem_max,
           step = 0.1
@@ -419,12 +424,11 @@ app_server <- function(input, output, session) {
         updateSliderInput(
           session,
           "floodplain_elevation",
-          value = isolate(input$floodplain_elevation),
+          value = floodplain_elevation_value,
           min = rem_min,
           max = rem_max,
           step = 0.1
         )
-
         results_loaded(TRUE)
         nav_select(id = "main", selected = "Results", session)
         remove_modal_spinner()
