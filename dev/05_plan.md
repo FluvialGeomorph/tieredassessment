@@ -1,5 +1,14 @@
 # 05 Plan
 
+## Testing progress checkpoint
+
+The initial Results workflow testing scaffold is in place and passing:
+- server startup gating is covered
+- slider state preparation is covered
+- workflow readiness preparation is covered
+
+The next step is to add the smallest possible server-level regression test for the Results transition, while keeping the suite behavior-oriented and avoiding brittle source/UI inspection.
+
 ## Current focus
 
 Stabilize the Results workflow, preserve the working reactive fix, and build a testing framework that prevents the repeated reactive regressions that have been occurring in the app.

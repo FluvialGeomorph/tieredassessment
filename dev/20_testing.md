@@ -1,5 +1,9 @@
 # 20 Testing
 
+## Current progress
+
+The initial Results workflow helper-based regression tests are in place and passing; the next step is to add the smallest possible server-level transition test without relying on brittle source/UI inspection.
+
 ## Purpose
 
 This document defines the testing strategy for the app’s Shiny workflow behavior, with special focus on preventing the reactive regressions that have caused repeated failures in the Results workflow.
