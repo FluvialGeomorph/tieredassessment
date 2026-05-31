@@ -183,7 +183,6 @@ app_server <- function(input, output, session) {
 
   observeEvent(input$view_results, {
     show_modal_spinner(spin = "circle", text = "Calculating Geometry")
-
     on.exit(
       {
         try(remove_modal_spinner(), silent = TRUE)
@@ -191,204 +190,252 @@ app_server <- function(input, output, session) {
       add = TRUE
     )
 
-    log_message("mapedit fl -----------------------------------------------")
-    fl_mapedit <- fl_editor_ui()$finished
-    log_message(fl_mapedit)
-    fl_mapedit <- sf_fix_crs(fl_mapedit)
-    fl_3857 <- sf::st_transform(fl_mapedit, crs = 3857)
+    tryCatch(
+      {
+        log_message(
+          "mapedit fl -----------------------------------------------"
+        )
+        fl_mapedit <- fl_editor_ui()$finished
+        log_message(fl_mapedit)
+        fl_mapedit <- sf_fix_crs(fl_mapedit)
+        fl_3857 <- sf::st_transform(fl_mapedit, crs = 3857) # Web Mercator
 
-    log_message("Digitized flowline ---------------------------------------")
-    fl_3857_latest <- fl_3857 %>% filter(layerId == max(layerId))
-    log_message(fl_3857_latest)
+        log_message(
+          "Digitized flowline ---------------------------------------"
+        )
+        fl_3857_latest <- fl_3857 %>% filter(layerId == max(layerId))
+        log_message(fl_3857_latest)
 
-    log_message("process flowline -----------------------------------------")
-    log_message(dem)
-    fl <<- flowline(fl_3857_latest, reach_name = "current stream", dem)
-    log_message(fl)
+        log_message(
+          "process flowline -----------------------------------------"
+        )
+        log_message(dem)
+        fl <<- flowline(fl_3857_latest, reach_name = "current stream", dem)
+        log_message(fl)
 
-    log_message("process flowline points -----_----------------------------")
-    fl_pts <<- flowline_points(fl, dem, station_distance = 5)
-    log_message(fl_pts)
+        log_message(
+          "process flowline points -----_----------------------------"
+        )
+        fl_pts <<- flowline_points(fl, dem, station_distance = 5)
+        log_message(fl_pts)
 
-    log_message("calculate REM --------------------------------------------")
-    detrend <- detrend(dem, fl, fl_pts, buffer_distance = 1000)
-    rem <<- detrend$rem
-    trend <<- detrend$trend
-    log_message(rem)
+        log_message(
+          "calculate REM --------------------------------------------"
+        )
+        detrend <- detrend(dem, fl, fl_pts, buffer_distance = 1000)
+        rem <<- detrend$rem
+        trend <<- detrend$trend
+        log_message(rem)
 
-    log_message("create channel and floodplain polys ----------------------")
-    channel_poly <<- water_surface_poly(
-      rem = rem,
-      water_surface_elevation = as.numeric(isolate(input$channel_elevation)),
-      flowline = fl
+        log_message(
+          "create channel and floodplain polys ----------------------"
+        )
+        channel_poly <<- water_surface_poly(
+          rem = rem,
+          water_surface_elevation = as.numeric(isolate(
+            input$channel_elevation
+          )),
+          flowline = fl
+        )
+        floodplain_poly <<- water_surface_poly(
+          rem = rem,
+          water_surface_elevation = as.numeric(isolate(
+            input$floodplain_elevation
+          )),
+          flowline = fl
+        )
+        log_message(channel_poly)
+        log_message(floodplain_poly)
+
+        log_message(
+          "process cross section ------------------------------------"
+        )
+        xs <<- cross_section(xs, fl_pts)
+        log_message(xs)
+
+        log_message(
+          "process cross section points -----------------------------"
+        )
+        station_distance <- 1
+        xs_pts <<- cross_section_points(xs, dem, rem, station_distance)
+        xs_pts <<- xs_pts %>%
+          mutate(POINT_M_units = "m") %>%
+          mutate(dem_units = "ft") %>%
+          xs_pts_classify(., channel_poly, floodplain_poly, buffer_distance = 2)
+        xs_pts_list <- list("latest" = xs_pts)
+        log_message(xs_pts)
+
+        log_message(
+          "create channel water surface -----------------------------"
+        )
+        channel_ws <<- trend +
+          (as.numeric(isolate(input$channel_elevation)) - 100)
+        log_message(channel_ws)
+
+        log_message(
+          "create floodplain water surface --------------------------"
+        )
+        floodplain_ws <<- trend +
+          (as.numeric(isolate(input$floodplain_elevation)) - 100)
+        log_message(floodplain_ws)
+
+        log_message(
+          "calculate floodplain volumes -----------------------------"
+        )
+        channel_vol <<- floodplain_volume(dem = dem, watersurface = channel_ws)
+        floodplain_vol <<- floodplain_volume(
+          dem = dem,
+          watersurface = floodplain_ws
+        )
+
+        log_message(paste(
+          "channel vol: ",
+          base::round(channel_vol, 2),
+          "floodplain vol: ",
+          base::round(floodplain_vol, 2)
+        ))
+
+        log_message(
+          "create results map ---------------------------------------"
+        )
+        output$results_map <- renderLeaflet({
+          get_results_leaflet(fl, xs, dem, channel_poly, floodplain_poly)
+        })
+
+        log_message(
+          "longitudinal profile plot --------------------------------"
+        )
+        output$long_profile <- renderPlot({
+          fl_pts_list <- list("latest" = fl_pts)
+          compare_long_profile(stream = "current stream", fl_pts_list)
+        })
+
+        log_message(
+          "create cross section plots -------------------------------"
+        )
+        output$xs_plot_floodplain <- renderPlot({
+          req(results_loaded())
+          req(is.numeric(input$channel_elevation))
+          req(length(input$channel_elevation) > 0)
+          req(!is.na(input$channel_elevation))
+
+          xs_compare_plot_L2(
+            stream = "current stream",
+            xs_number = input$pick_xs,
+            bankfull_elevation = input$channel_elevation,
+            xs_pts_list,
+            extent = "floodplain",
+            aspect_ratio = NULL
+          )
+        })
+
+        output$xs_plot_channel <- renderPlot({
+          req(results_loaded())
+          req(is.numeric(input$channel_elevation))
+          req(length(input$channel_elevation) > 0)
+          req(!is.na(input$channel_elevation))
+
+          xs_compare_plot_L2(
+            stream = "current stream",
+            xs_number = input$pick_xs,
+            bankfull_elevation = input$channel_elevation,
+            xs_pts_list,
+            extent = "channel",
+            aspect_ratio = NULL
+          )
+        })
+
+        log_message(
+          "calculate volumes ----------------------------------------"
+        )
+        output$floodplain_volumes <- render_gt(
+          floodplain_vol_table(channel_vol, floodplain_vol)
+        )
+
+        log_message(
+          "calculate discharge --------------------------------------"
+        )
+        output$channel_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$channel_elevation))
+          req(length(input$channel_elevation) > 0)
+          req(!is.na(input$channel_elevation))
+
+          xs_discharge_table(
+            xs_pts = xs_pts,
+            xs_number = input$pick_xs,
+            bf_estimate = input$channel_elevation,
+            mannings_n = as.numeric(input$channel_mannings)
+          )
+        })
+
+        output$floodplain_discharge <- render_gt({
+          req(results_loaded())
+          req(is.numeric(input$floodplain_elevation))
+          req(length(input$floodplain_elevation) > 0)
+          req(!is.na(input$floodplain_elevation))
+
+          xs_discharge_table(
+            xs_pts = xs_pts,
+            xs_number = input$pick_xs,
+            bf_estimate = input$floodplain_elevation,
+            mannings_n = as.numeric(input$floodplain_mannings)
+          )
+        })
+
+        log_message("pick cross section -------------------------------------")
+        updateSelectInput(
+          session,
+          "pick_xs",
+          choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
+        )
+        log_message(input$pick_xs)
+
+        rem_min <- round(
+          min(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
+          1
+        ) +
+          0.1
+        rem_min <- ifelse(rem_min > 100, rem_min, 100)
+
+        rem_max <- round(
+          max(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
+          0
+        ) -
+          1
+        log_message(paste0("range = ", rem_min, " - ", rem_max))
+
+        freezeReactiveValue(input, "channel_elevation")
+        updateSliderInput(
+          session,
+          "channel_elevation",
+          value = isolate(input$channel_elevation),
+          min = rem_min,
+          max = rem_max,
+          step = 0.1
+        )
+
+        freezeReactiveValue(input, "floodplain_elevation")
+        updateSliderInput(
+          session,
+          "floodplain_elevation",
+          value = isolate(input$floodplain_elevation),
+          min = rem_min,
+          max = rem_max,
+          step = 0.1
+        )
+
+        results_loaded(TRUE)
+        nav_select(id = "main", selected = "Results", session)
+        remove_modal_spinner()
+      },
+      error = function(e) {
+        log_message(paste("ERROR in view_results:", conditionMessage(e)))
+        log_message(paste("ERROR call:", deparse(conditionCall(e))))
+        log_message(paste(capture.output(str(e)), collapse = "\n"))
+        stop(e)
+      }
     )
-    floodplain_poly <<- water_surface_poly(
-      rem = rem,
-      water_surface_elevation = as.numeric(isolate(input$floodplain_elevation)),
-      flowline = fl
-    )
-
-    log_message("process cross section ------------------------------------")
-    xs <<- cross_section(xs, fl_pts)
-    log_message(xs)
-
-    log_message("process cross section points -----------------------------")
-    station_distance <- 1
-    xs_pts <<- cross_section_points(xs, dem, rem, station_distance)
-    xs_pts <<- xs_pts %>%
-      mutate(POINT_M_units = "m") %>%
-      mutate(dem_units = "ft") %>%
-      xs_pts_classify(., channel_poly, floodplain_poly, buffer_distance = 2)
-    xs_pts_list <- list("latest" = xs_pts)
-    log_message(xs_pts)
-
-    log_message("create channel water surface -----------------------------")
-    channel_ws <<- trend + (as.numeric(isolate(input$channel_elevation)) - 100)
-    log_message(channel_ws)
-
-    log_message("create floodplain water surface --------------------------")
-    floodplain_ws <<- trend +
-      (as.numeric(isolate(input$floodplain_elevation)) - 100)
-    log_message(floodplain_ws)
-
-    log_message("calculate floodplain volumes -----------------------------")
-    channel_vol <<- floodplain_volume(dem = dem, watersurface = channel_ws)
-    floodplain_vol <<- floodplain_volume(
-      dem = dem,
-      watersurface = floodplain_ws
-    )
-
-    log_message(paste(
-      "channel vol: ",
-      base::round(channel_vol, 2),
-      "floodplain vol: ",
-      base::round(floodplain_vol, 2)
-    ))
-
-    log_message("create results map ---------------------------------------")
-    output$results_map <- renderLeaflet({
-      get_results_leaflet(fl, xs, dem, channel_poly, floodplain_poly)
-    })
-
-    log_message("longitudinal profile plot --------------------------------")
-    output$long_profile <- renderPlot({
-      fl_pts_list <- list("latest" = fl_pts)
-      compare_long_profile(stream = "current stream", fl_pts_list)
-    })
-
-    log_message("create cross section plots -------------------------------")
-    output$xs_plot_floodplain <- renderPlot({
-      req(results_loaded())
-      req(is.numeric(input$channel_elevation))
-      req(length(input$channel_elevation) > 0)
-      req(!is.na(input$channel_elevation))
-
-      xs_compare_plot_L2(
-        stream = "current stream",
-        xs_number = input$pick_xs,
-        bankfull_elevation = input$channel_elevation,
-        xs_pts_list,
-        extent = "floodplain",
-        aspect_ratio = NULL
-      )
-    })
-
-    output$xs_plot_channel <- renderPlot({
-      req(results_loaded())
-      req(is.numeric(input$channel_elevation))
-      req(length(input$channel_elevation) > 0)
-      req(!is.na(input$channel_elevation))
-
-      xs_compare_plot_L2(
-        stream = "current stream",
-        xs_number = input$pick_xs,
-        bankfull_elevation = input$channel_elevation,
-        xs_pts_list,
-        extent = "channel",
-        aspect_ratio = NULL
-      )
-    })
-
-    log_message("calculate volumes ----------------------------------------")
-    output$floodplain_volumes <- render_gt(
-      floodplain_vol_table(channel_vol, floodplain_vol)
-    )
-
-    log_message("calculate discharge --------------------------------------")
-    output$channel_discharge <- render_gt({
-      req(results_loaded())
-      req(is.numeric(input$channel_elevation))
-      req(length(input$channel_elevation) > 0)
-      req(!is.na(input$channel_elevation))
-
-      xs_discharge_table(
-        xs_pts = xs_pts,
-        xs_number = input$pick_xs,
-        bf_estimate = input$channel_elevation,
-        mannings_n = as.numeric(input$channel_mannings)
-      )
-    })
-
-    output$floodplain_discharge <- render_gt({
-      req(results_loaded())
-      req(is.numeric(input$floodplain_elevation))
-      req(length(input$floodplain_elevation) > 0)
-      req(!is.na(input$floodplain_elevation))
-
-      xs_discharge_table(
-        xs_pts = xs_pts,
-        xs_number = input$pick_xs,
-        bf_estimate = input$floodplain_elevation,
-        mannings_n = as.numeric(input$floodplain_mannings)
-      )
-    })
-
-    log_message("pick cross section -------------------------------------")
-    updateSelectInput(
-      session,
-      "pick_xs",
-      choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
-    )
-    log_message(input$pick_xs)
-
-    rem_min <- round(
-      min(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
-      1
-    ) +
-      0.1
-    rem_min <- ifelse(rem_min > 100, rem_min, 100)
-
-    rem_max <- round(
-      max(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
-      0
-    ) -
-      1
-
-    log_message(paste0("range = ", rem_min, " - ", rem_max))
-
-    freezeReactiveValue(input, "channel_elevation")
-    updateSliderInput(
-      session,
-      "channel_elevation",
-      value = isolate(input$channel_elevation),
-      min = rem_min,
-      max = rem_max,
-      step = 0.1
-    )
-
-    freezeReactiveValue(input, "floodplain_elevation")
-    updateSliderInput(
-      session,
-      "floodplain_elevation",
-      value = isolate(input$floodplain_elevation),
-      min = rem_min,
-      max = rem_max,
-      step = 0.1
-    )
-
-    nav_select(id = "main", selected = "Results", session)
-    results_loaded(TRUE)
-    remove_modal_spinner()
   }) ## End View Results #################################
 
   observeEvent(input$channel_elevation, {
