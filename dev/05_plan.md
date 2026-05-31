@@ -4,14 +4,14 @@ _Last updated: 2026-05-31_
 
 ## Current milestone: Stabilize ohwm2 for production
 
-### Completed this session
+### Completed last session
 - [x] Diagnosed root cause of #1 reported bug: first-run Results page hang
   - Cause: `updateSliderInput` firing slider observers before `results_loaded` guard was set, triggering full recomputation with no spinner
-  - Fix: `freezeReactiveValue()` before each `updateSliderInput`; `isolate()` on slider input reads in initial computation; move `remove_modal_spinner()` to after `results_loaded(TRUE)`
+  - [x] Fix: `freezeReactiveValue()` before each `updateSliderInput`; `isolate()` on slider input reads in initial computation; move `remove_modal_spinner()` to after `results_loaded(TRUE)`
   - Location: `R/app_server.R` lines ~213–329
 
 ### Pending — immediate (stability)
-- [ ] Apply and verify Option 3 fix in `app_server.R` (see session notes)
+- [ ] Apply and verify Option 3 fix in `app_server.R` (see session notes: `dev/sessions/2026_05_031-arch-review.md`)
 - [ ] Confirm first-run hang is resolved on Posit Connect Cloud deployment
 - [ ] Confirm slider observers still fire correctly on user interaction after fix
 
@@ -52,4 +52,3 @@ After `ohwm2` is stable:
   in `~/.Renviron` (user-level, never committed)
 - USACE VPN SSL inspection breaks `download.file` to `elevation.arcgis.com` —
   disconnect from VPN to develop locally
-  
