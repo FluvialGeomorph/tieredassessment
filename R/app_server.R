@@ -394,10 +394,17 @@ app_server <- function(input, output, session) {
           1
         log_message(paste0("range = ", rem_min, " - ", rem_max))
 
-        results_loaded(TRUE)
         log_message(
-          "results_loaded(TRUE) -----------------------------"
+          "about to navigate to Results --------------------------------"
         )
+        nav_select(id = "main", selected = "Results", session)
+        log_message(
+          "completed nav_select -----------------------------------------"
+        )
+
+        results_loaded(TRUE)
+        log_message("results_loaded(TRUE) -----------------------------")
+
         freezeReactiveValue(input, "channel_elevation")
         updateSliderInput(
           session,
@@ -407,6 +414,7 @@ app_server <- function(input, output, session) {
           max = rem_max,
           step = 0.1
         )
+
         freezeReactiveValue(input, "floodplain_elevation")
         updateSliderInput(
           session,
@@ -416,18 +424,9 @@ app_server <- function(input, output, session) {
           max = rem_max,
           step = 0.1
         )
+
         remove_modal_spinner()
         log_message("removed modal spinner ---------------------------------")
-        log_message(
-          "about to navigate to Results --------------------------------"
-        )
-        try(
-          nav_select(id = "main", selected = "Results", session),
-          silent = FALSE
-        )
-        log_message(
-          "completed nav_select -----------------------------------------"
-        )
       },
       error = function(e) {
         log_message(paste("ERROR in view_results:", conditionMessage(e)))
