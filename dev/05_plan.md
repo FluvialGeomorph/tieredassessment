@@ -11,7 +11,7 @@ _Last updated: 2026-05-31_
   - Location: `R/app_server.R` lines ~213–329
 
 ### Pending — immediate (stability)
-- [ ] Apply and verify Option 3 fix in `app_server.R` (see session notes: `dev/sessions/2026_05_031-arch-review.md`)
+- [ ] Apply and verify Option 3 fix in `app_server.R` (see session notes: `dev/sessions/2026_05_31-arch-review.md`)
 - [ ] Confirm first-run hang is resolved on Posit Connect Cloud deployment
 - [ ] Confirm slider observers still fire correctly on user interaction after fix
 
