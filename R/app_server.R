@@ -31,6 +31,8 @@ app_server <- function(input, output, session) {
   reach_name <- reactiveVal({
     reach_name <- NULL
   })
+  channel_elevation_init <- reactiveVal(NULL)
+  floodplain_elevation_init <- reactiveVal(NULL)
   xs <- reactive({
     empty_sf()
   })
@@ -310,7 +312,7 @@ app_server <- function(input, output, session) {
           xs_compare_plot_L2(
             stream = "current stream",
             xs_number = input$pick_xs,
-            bankfull_elevation = input$channel_elevation,
+            bankfull_elevation = channel_elevation_init(),
             xs_pts_list,
             extent = "floodplain",
             aspect_ratio = NULL
@@ -320,7 +322,7 @@ app_server <- function(input, output, session) {
           xs_compare_plot_L2(
             stream = "current stream",
             xs_number = input$pick_xs,
-            bankfull_elevation = input$channel_elevation,
+            bankfull_elevation = channel_elevation_init(),
             xs_pts_list,
             extent = "channel",
             aspect_ratio = NULL
@@ -424,6 +426,8 @@ app_server <- function(input, output, session) {
           max = rem_max,
           step = 0.1
         )
+        channel_elevation_init(isolate(input$channel_elevation))
+        floodplain_elevation_init(isolate(input$floodplain_elevation))
 
         remove_modal_spinner()
         log_message("removed modal spinner ---------------------------------")
