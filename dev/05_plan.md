@@ -4,51 +4,51 @@ _Last updated: 2026-05-31_
 
 ## Current milestone: Stabilize ohwm2 for production
 
-### Completed last session
-- [x] Diagnosed root cause of #1 reported bug: first-run Results page hang
-  - Cause: `updateSliderInput` firing slider observers before `results_loaded` guard was set, triggering full recomputation with no spinner
-  - [x] Fix: `freezeReactiveValue()` before each `updateSliderInput`; `isolate()` on slider input reads in initial computation; move `remove_modal_spinner()` to after `results_loaded(TRUE)`
-  - Location: `R/app_server.R` lines ~213–329
+## Current focus
 
-### Pending — immediate (stability)
-- [ ] Apply and verify Option 3 fix in `app_server.R` (see session notes: `dev/sessions/2026_05_31-arch-review.md`)
-- [ ] Confirm first-run hang is resolved on Posit Connect Cloud deployment
-- [ ] Confirm slider observers still fire correctly on user interaction after fix
+Stabilize the Results workflow, preserve the working reactive fix, and begin a phased refactor toward a modular architecture.
 
-### Pending — near-term (robustness / Option 4 refactor)
-Full server architecture refactor. The current server has several structural problems
-identified during the 2026-05-31 session that make it fragile and hard to maintain:
+## What was accomplished
 
-- [ ] Replace imperative `observeEvent(input$view_results)` block with
-      `eventReactive(input$view_results, {...})` returning a named results list
-- [ ] Eliminate all `<<-` global assignment; use proper reactive values
-- [ ] Restructure slider and Manning's n observers as top-level observers
-      (not nested inside `view_results`); add `ignoreInit = TRUE`
-- [ ] Add `validate()`/`need()` guards before all expensive computation steps
-- [ ] Restore `show_modal_spinner` / `remove_modal_spinner` to slider observers
-      (present in `ohwm`, removed in `ohwm2`)
-- [ ] Evaluate restoring console log footer (present in `ohwm`, removed in `ohwm2`)
-- [ ] Evaluate `noUiSliderInput` vs `sliderInput` — was the switch intentional?
+- Resolved the silent reactive failure in `view_results`.
+- Confirmed the root cause was reactive timing around programmatic slider updates.
+- Fixed the issue by capturing slider values into local variables before calling `updateSliderInput()`.
+- Restored reliable automatic navigation to the Results tab.
+- Confirmed that plots and discharge tables now render successfully when the Results workflow completes.
 
-### Pending — backport to `ohwm` template
-After `ohwm2` is stable:
-- [ ] Apply all `ohwm2` improvements to `ohwm`
-- [ ] Add full `dev/` governance structure to `ohwm`
-- [ ] Update `ohwm` `fluvgeo` pin to `>= 2025.5.3` and `@*release` remote
-- [ ] Confirm `ohwm` is a clean starting point for new app development
+## Immediate next steps
 
-### Pending — `tieredassessment` replacement
-- [ ] Build replacement app from stabilized `ohwm` template
-- [ ] Archive / deprecate `tieredassessment`
+1. Keep the current working fix as the baseline.
+2. Avoid reintroducing direct `isolate(input$...)` calls inside `updateSliderInput()` when the same observer also depends on those inputs.
+3. Begin decomposing `app_server.R` into smaller units.
+4. Identify Shiny modules for major workflow boundaries:
+   - Draw XS workflow
+   - Draw Flowline workflow
+   - Results workflow
+   - plots and tables
+5. Move toward stable top-level renderers and clearer state boundaries.
+6. Reduce the amount of hidden reactive coupling in the server logic.
 
-### Deferred
-- VPN/SSL cert fix for USACE development machines (`CURL_CA_BUNDLE` → DoD CA chain)
-  — workaround: develop off VPN
-- Option C CI drift detection workflow — revisit after backport complete
-- Option B + D shared package / parameterized app — medium/long-term architecture goal
+## Architectural guidance
 
-## Known environment issues
-- New computer setup requires `ARCGIS_CLIENTID`, `ARCGIS_CLIENTSECRET`, `ARCGIS_HOST`
-  in `~/.Renviron` (user-level, never committed)
-- USACE VPN SSL inspection breaks `download.file` to `elevation.arcgis.com` —
-  disconnect from VPN to develop locally
+The current server structure has outgrown what is practical to maintain as a monolithic reactive file. The architectural decision and rationale are recorded in the applicable ADR in `dev/decisions/`.
+
+Future work should follow that ADR and prioritize:
+- modular boundaries
+- explicit workflow state
+- less shared mutable reactive state
+- clearer separation of orchestration, computation, and rendering
+
+## Near-term work items
+
+- Review `app_server.R` for high-complexity observers.
+- Identify the smallest safe extraction candidates for modules.
+- Preserve current behavior while refactoring.
+- Update the plan as the refactor is broken into concrete tasks.
+
+## Definition of done for this phase
+
+This phase is complete when:
+- the current Results behavior remains stable,
+- the app’s major workflows are decomposed into clearer units,
+- and the reactive architecture is significantly easier to understand and maintain.

@@ -1,4 +1,4 @@
-# ADR: Repository Lineage, Architecture Assessment, and Alignment Strategy
+# ADR 0001: Repository Lineage, Architecture Assessment, and Alignment Strategy
 
 **Date:** 2026-05-31  
 **Status:** Accepted  
