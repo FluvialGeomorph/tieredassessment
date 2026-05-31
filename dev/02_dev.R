@@ -57,6 +57,7 @@ usethis::use_package("tidyterra")
 ## If you have data in your package
 #usethis::use_data_raw(name = "my_dataset", open = FALSE)
 
+# Chat instructions
 reproducibleai::use_instructions(c(
   "chat-manual",
   "goals",
@@ -65,6 +66,35 @@ reproducibleai::use_instructions(c(
   "shiny-golem",
   "parameterized-help"  
 ))
+
+Target repo: FluvialGeomorph/ohwm2  
+Read: `dev/instructions/CHAT_INSTRUCTIONS.md` and follow the instruction 
+modules listed under **Selected instruction modules (read in order)**.
+
+# Configure Environment Variables
+# This app uses the credentials of this app to connect to ESRI web services
+# https://usace-mvr.maps.arcgis.com/home/item.html?id=b5e3ddc1fbb444cda8d5837693e45739
+# On the service's page, go to the settings page, and scroll to the credentials section. 
+# There you will find the Client ID and Client Secret
+
+## Open the `.Renviron` file for your system
+usethis::edit_r_environ()
+
+## Add these environment variables
+ARCGIS_CLIENTID="your-client-id-here"
+ARCGIS_CLIENTSECRET="your-client-secret-here"
+ARCGIS_HOST="https://usace-mvr.maps.arcgis.com/"
+
+# Restart R Session and Test variables
+## should match .Renviron values
+Sys.getenv("ARCGIS_CLIENTID")
+Sys.getenv("ARCGIS_CLIENTSECRET")
+Sys.getenv("ARCGIS_HOST")
+
+# Test fluvgeo::arcgis_auth()
+## should return a httr2 token
+fluvgeo::arcgis_auth()
+
 
 ## Run application locally
 golem::document_and_reload()
