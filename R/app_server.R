@@ -212,14 +212,14 @@ app_server <- function(input, output, session) {
       log_message(input$channel_elevation)
       channel_poly <<- water_surface_poly(
         rem = rem,
-        water_surface_elevation = as.numeric(input$channel_elevation),
+        water_surface_elevation = as.numeric(isolate(input$channel_elevation)),
         flowline = fl
       )
       log_message(channel_poly)
-      log_message(input$floodplain_elevation)
+      log_message(isolate(input$floodplain_elevation))
       floodplain_poly <<- water_surface_poly(
         rem = rem,
-        water_surface_elevation = as.numeric(input$floodplain_elevation),
+        water_surface_elevation = as.numeric(isolate(input$floodplain_elevation)),
         flowline = fl
       )
       log_message(floodplain_poly)
@@ -238,11 +238,11 @@ app_server <- function(input, output, session) {
       log_message(xs_pts)
       log_message("create channel water surface -----------------------------")
       log_message(input$channel_elevation)
-      channel_ws <<- trend + (as.numeric(input$channel_elevation) - 100)
+      channel_ws <<- trend + (as.numeric(isolate(input$channel_elevation)) - 100)
       log_message(channel_ws)
       log_message("create floodplain water surface --------------------------")
       log_message(input$floodplain_elevation)
-      floodplain_ws <<- trend + (as.numeric(input$floodplain_elevation) - 100)
+      floodplain_ws <<- trend + (as.numeric(isolate(input$floodplain_elevation)) - 100)
       log_message(floodplain_ws)
       log_message("calculate floodplain volumes -----------------------------")
       channel_vol <<- floodplain_volume(dem = dem, 
@@ -318,16 +318,18 @@ app_server <- function(input, output, session) {
       rem_max <- round(max(filter(
         xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z), 0) - 1
       log_message(paste0("range = ", rem_min, " - ", rem_max))
-      updateSliderInput(session, "channel_elevation", 
-                        value = input$channel_elevation,
+      freezeReactiveValue(input, "channel_elevation")
+      updateSliderInput(session, "channel_elevation",
+                        value = isolate(input$channel_elevation),
                         min = rem_min, max = rem_max, step = 0.1)
-      updateSliderInput(session, "floodplain_elevation", 
-                        value = input$floodplain_elevation,
+      freezeReactiveValue(input, "floodplain_elevation")
+      updateSliderInput(session, "floodplain_elevation",
+                        value = isolate(input$floodplain_elevation),
                         min = rem_min, max = rem_max, step = 0.1)
-      remove_modal_spinner()
       nav_select(id = "main", selected = "Results", session)
       results_loaded(TRUE)
-    }) ## End View Results #################################
+      remove_modal_spinner()
+  }) ## End View Results #################################
   
   observeEvent(input$channel_elevation, {
       req(results_loaded())
