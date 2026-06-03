@@ -101,11 +101,11 @@ run_results_workflow_transition <- function(
   updateSelectInput(
     session,
     "pick_xs",
-    choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
+    choices = seq(min(xs_pts_value$Seq), max(xs_pts_value$Seq))
   )
 
   workflow_state <- prepare_results_workflow_state(
-    xs_pts = xs_pts,
+    xs_pts = xs_pts_value,
     pick_xs = input$pick_xs,
     channel_elevation = input$channel_elevation,
     floodplain_elevation = input$floodplain_elevation

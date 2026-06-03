@@ -386,10 +386,12 @@ app_server <- function(input, output, session) {
         log_message("pick cross section -------------------------------------")
         log_message(input$pick_xs)
 
+        xs_pts_value <- xs_pts()
+
         transition_state <- run_results_workflow_transition(
           session = session,
           input = input,
-          xs_pts = xs_pts,
+          xs_pts = xs_pts_value,
           results_loaded = results_loaded
         )
 
