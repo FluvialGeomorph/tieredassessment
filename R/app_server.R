@@ -384,60 +384,20 @@ app_server <- function(input, output, session) {
         })
 
         log_message("pick cross section -------------------------------------")
-        updateSelectInput(
-          session,
-          "pick_xs",
-          choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
-        )
         log_message(input$pick_xs)
 
-        rem_min <- round(
-          min(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
-          1
-        ) +
-          0.1
-        rem_min <- ifelse(rem_min > 100, rem_min, 100)
-
-        rem_max <- round(
-          max(filter(xs_pts, Seq == as.numeric(input$pick_xs))$Detrend_DEM_Z),
-          0
-        ) -
-          1
-        log_message(paste0("range = ", rem_min, " - ", rem_max))
-
-        req(input$channel_elevation)
-        req(input$floodplain_elevation)
-
-        workflow_state <- prepare_results_workflow_state(
+        transition_state <- run_results_workflow_transition(
+          session = session,
+          input = input,
           xs_pts = xs_pts,
-          pick_xs = input$pick_xs,
-          channel_elevation = input$channel_elevation,
-          floodplain_elevation = input$floodplain_elevation
+          results_loaded = results_loaded
         )
 
-        slider_state <- workflow_state$slider_state
+        log_message(paste0(
+          "transition complete; pick_xs = ",
+          transition_state$pick_xs
+        ))
 
-        freezeReactiveValue(input, "channel_elevation")
-        updateSliderInput(
-          session,
-          "channel_elevation",
-          value = slider_state$channel_elevation_value,
-          min = slider_state$rem_min,
-          max = slider_state$rem_max,
-          step = 0.1
-        )
-
-        freezeReactiveValue(input, "floodplain_elevation")
-        updateSliderInput(
-          session,
-          "floodplain_elevation",
-          value = slider_state$floodplain_elevation_value,
-          min = slider_state$rem_min,
-          max = slider_state$rem_max,
-          step = 0.1
-        )
-
-        results_loaded(workflow_state$results_loaded)
         nav_select(id = "main", selected = "Results", session)
         remove_modal_spinner()
       },
