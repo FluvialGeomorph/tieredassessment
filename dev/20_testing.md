@@ -114,6 +114,8 @@ These tests should encode the following rules as durable expectations:
 
 ## Recommended test layers in this repository
 
+The Results transition is now tested through a small helper-backed server seam that normalizes the workflow state before marking `results_loaded`. This keeps the workflow test behavior-oriented while avoiding brittle UI/source inspection.
+
 ### Layer A: server workflow tests
 Use these to validate the Results workflow and other major reactive transitions.
 

@@ -31,6 +31,8 @@ The goal of this test effort is to lock in the reactive best practices identifie
 
 Detailed testing strategy, reactive workflow conventions, and regression cases are documented in `dev/20_testing.md`. The plan tracks the implementation order and near-term test tasks; the testing doc defines the durable testing rules and priorities.
 
+The Results transition has been refactored into a small helper-backed server seam so the workflow state can be tested directly. The next coverage targets are first-run stability, repeat-run stability, and output-gating behavior.
+
 ## Testing goals
 
 The test framework should enforce the following behaviors:

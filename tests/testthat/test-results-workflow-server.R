@@ -101,3 +101,59 @@ test_that("run_results_workflow_transition marks Results ready", {
     )
   })
 })
+
+test_that("first Results run reaches the ready state", {
+  skip_if_not_installed("shiny")
+
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  shiny::testServer(app_server, {
+    expect_false(results_loaded())
+
+    session$setInputs(
+      channel_elevation = 110.5,
+      floodplain_elevation = 111.5,
+      channel_mannings = 0.05,
+      floodplain_mannings = 0.07,
+      pick_xs = 2
+    )
+
+    xs_pts <<- xs_pts_value
+    fl_editor_ui <<- function() list(finished = xs_pts_value)
+
+    warn_msg <- NULL
+    transition_state <- withCallingHandlers(
+      run_results_workflow_transition(
+        session = session,
+        input = input,
+        xs_pts = xs_pts_value,
+        results_loaded = results_loaded
+      ),
+      warning = function(w) {
+        warn_msg <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+
+    expect_true(results_loaded())
+    expect_equal(input$pick_xs, 2)
+    expect_true(is.list(transition_state$workflow_state))
+    expect_true(transition_state$workflow_state$results_loaded)
+    expect_null(warn_msg)
+
+    slider_state <- prepare_results_slider_state(
+      xs_pts = xs_pts_value,
+      pick_xs = 2,
+      channel_elevation = 110.5,
+      floodplain_elevation = 111.5
+    )
+
+    expect_equal(slider_state$rem_min, 110.2)
+    expect_equal(slider_state$rem_max, 112.0)
+    expect_true(slider_state$channel_elevation_value <= slider_state$rem_max)
+    expect_true(slider_state$floodplain_elevation_value <= slider_state$rem_max)
+  })
+})
