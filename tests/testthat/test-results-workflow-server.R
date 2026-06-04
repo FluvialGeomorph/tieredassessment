@@ -157,3 +157,64 @@ test_that("first Results run reaches the ready state", {
     expect_true(slider_state$floodplain_elevation_value <= slider_state$rem_max)
   })
 })
+
+test_that("repeat Results runs stay stable across fresh sessions", {
+  skip_if_not_installed("shiny")
+
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  run_once <- function() {
+    shiny::testServer(app_server, {
+      session$setInputs(
+        channel_elevation = 110.5,
+        floodplain_elevation = 111.5,
+        channel_mannings = 0.05,
+        floodplain_mannings = 0.07,
+        pick_xs = 2
+      )
+
+      xs_pts <<- xs_pts_value
+      fl_editor_ui <<- function() list(finished = xs_pts_value)
+
+      transition_state <- run_results_workflow_transition(
+        session = session,
+        input = input,
+        xs_pts = xs_pts_value,
+        results_loaded = results_loaded
+      )
+
+      expect_true(results_loaded())
+      expect_true(transition_state$workflow_state$results_loaded)
+      expect_equal(transition_state$pick_xs, 2)
+      expect_equal(
+        transition_state$workflow_state$slider_state$channel_elevation_value,
+        110.5
+      )
+      expect_equal(
+        transition_state$workflow_state$slider_state$floodplain_elevation_value,
+        111.5
+      )
+    })
+  }
+
+  msgs <- character()
+  warns <- character()
+
+  withCallingHandlers(
+    run_once(),
+    message = function(m) {
+      msgs <<- c(msgs, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    },
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_length(warns, 0)
+  expect_length(msgs, 0)
+})
