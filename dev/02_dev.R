@@ -72,7 +72,7 @@ reproducibleai::use_instructions(c(
 This session is based on FluvialGeomorph/ohwm2 on main.
 
 First read:
-1. @dev/instructions/CHAT_INSTRUCTIONS.md
+1. @dev/instructions/CHAT_INSTRUCTIONS.md and follow these instructions for this session
 2. @dev/10_design.md for guidance on design goals
 3. @dev/05_plan.md for implementing the improved testing approach
 4. @dev/20_testing.md the testing architecture proposal
@@ -117,7 +117,8 @@ golem::document_and_reload()
 run_app()
 
 ## Update Chat History
-reproducibleai::extract_copilot_chat(file.path(Sys.getenv("USERPROFILE"), "Downloads", "copilot_export.zip"))
+reproducibleai::extract_copilot_chat(file.path(Sys.getenv("USERPROFILE"), 
+  "Downloads", "copilot_export.zip"))
 
 ## Tests ----
 ## Add one line by test you want to create
