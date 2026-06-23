@@ -414,11 +414,21 @@ app_server <- function(input, output, session) {
 
   observeEvent(input$channel_elevation, {
     req(results_loaded())
+    req(is.numeric(input$channel_mannings))
     log_message(paste("Channel elevation value:", input$channel_elevation))
+    
+    # Validate state capture via helper
+    update_state <- prepare_channel_elevation_update(
+      channel_elevation = input$channel_elevation,
+      pick_xs = input$pick_xs,
+      xs_pts = isolate(xs_pts),
+      mannings_n = input$channel_mannings
+    )
+    
     log_message("update channel_elevation -------------------------------")
     channel_poly <<- water_surface_poly(
       rem = rem,
-      water_surface_elevation = as.numeric(input$channel_elevation),
+      water_surface_elevation = as.numeric(update_state$channel_elevation_value),
       flowline = fl
     )
     log_message(channel_poly)
@@ -431,8 +441,8 @@ app_server <- function(input, output, session) {
     )
     xs_pts_list <- list("latest" = xs_pts)
     log_message("create channel water surface ---------------------------")
-    log_message(input$channel_elevation)
-    channel_ws <<- trend + (as.numeric(input$channel_elevation) - 100)
+    log_message(update_state$channel_elevation_value)
+    channel_ws <<- trend + (as.numeric(update_state$channel_elevation_value) - 100)
     log_message(channel_ws)
     log_message("calculate floodplain volumes ---------------------------")
     channel_vol <<- floodplain_volume(dem = dem, watersurface = channel_ws)
@@ -462,7 +472,7 @@ app_server <- function(input, output, session) {
       xs_compare_plot_L2(
         stream = "current stream",
         xs_number = input$pick_xs,
-        bankfull_elevation = input$channel_elevation,
+        bankfull_elevation = update_state$channel_elevation_value,
         xs_pts_list,
         extent = "floodplain",
         aspect_ratio = NULL
@@ -472,7 +482,7 @@ app_server <- function(input, output, session) {
       xs_compare_plot_L2(
         stream = "current stream",
         xs_number = input$pick_xs,
-        bankfull_elevation = input$channel_elevation,
+        bankfull_elevation = update_state$channel_elevation_value,
         xs_pts_list,
         extent = "channel",
         aspect_ratio = NULL
@@ -483,8 +493,8 @@ app_server <- function(input, output, session) {
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
-        bf_estimate = input$channel_elevation,
-        mannings_n = as.numeric(input$channel_mannings)
+        bf_estimate = update_state$channel_elevation_value,
+        mannings_n = as.numeric(update_state$mannings_n)
       )
     )
     output$floodplain_volumes <- render_gt(
@@ -494,14 +504,24 @@ app_server <- function(input, output, session) {
 
   observeEvent(input$floodplain_elevation, {
     req(results_loaded())
+    req(is.numeric(input$floodplain_mannings))
     log_message(paste(
       "Floodplain elevation value:",
       input$floodplain_elevation
     ))
+    
+    # Validate state capture via helper
+    update_state <- prepare_floodplain_elevation_update(
+      floodplain_elevation = input$floodplain_elevation,
+      pick_xs = input$pick_xs,
+      xs_pts = isolate(xs_pts),
+      mannings_n = input$floodplain_mannings
+    )
+    
     log_message("update floodplain_elevation ----------------------------")
     floodplain_poly <<- water_surface_poly(
       rem = rem,
-      water_surface_elevation = as.numeric(input$floodplain_elevation),
+      water_surface_elevation = as.numeric(update_state$floodplain_elevation_value),
       flowline = fl
     )
     log_message(floodplain_poly)
@@ -513,8 +533,8 @@ app_server <- function(input, output, session) {
     )
     xs_pts_list <- list("latest" = xs_pts)
     log_message("create floodplain water surface ------------------------")
-    log_message(input$floodplain_elevation)
-    floodplain_ws <<- trend + (as.numeric(input$floodplain_elevation) - 100)
+    log_message(update_state$floodplain_elevation_value)
+    floodplain_ws <<- trend + (as.numeric(update_state$floodplain_elevation_value) - 100)
     log_message(floodplain_ws)
     log_message("calculate floodplain volumes ---------------------------")
     floodplain_vol <<- floodplain_volume(
@@ -568,8 +588,8 @@ app_server <- function(input, output, session) {
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
-        bf_estimate = input$floodplain_elevation,
-        mannings_n = as.numeric(input$floodplain_mannings)
+        bf_estimate = update_state$floodplain_elevation_value,
+        mannings_n = as.numeric(update_state$mannings_n)
       )
     )
     output$floodplain_volumes <- render_gt(
@@ -577,28 +597,48 @@ app_server <- function(input, output, session) {
     )
   }) ## End Floodplain Slider Observer ###################
 
-  observeEvent(input$channel_mannings, {
+observeEvent(input$channel_mannings, {
     req(results_loaded())
+    req(is.numeric(input$channel_mannings))
     log_message("update discharge ---------------------------------------")
+    
+    # Validate state capture via helper
+    update_state <- prepare_channel_mannings_update(
+      channel_elevation = input$channel_elevation,
+      channel_mannings = input$channel_mannings,
+      pick_xs = input$pick_xs,
+      xs_pts = isolate(xs_pts)
+    )
+    
     output$channel_discharge <- render_gt(
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = input$channel_elevation,
-        mannings_n = as.numeric(input$channel_mannings)
+        mannings_n = as.numeric(update_state$channel_mannings_value)
       )
     )
   }) ## End Channel Manning's n update ###################
 
   observeEvent(input$floodplain_mannings, {
     req(results_loaded())
+    req(is.numeric(input$floodplain_mannings))
     log_message("update discharge ---------------------------------------")
+    
+    # Validate state capture via helper
+    update_state <- prepare_floodplain_mannings_update(
+      floodplain_elevation = input$floodplain_elevation,
+      floodplain_mannings = input$floodplain_mannings,
+      pick_xs = input$pick_xs,
+      xs_pts = isolate(xs_pts)
+    )
+    
     output$floodplain_discharge <- render_gt(
       xs_discharge_table(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = input$floodplain_elevation,
-        mannings_n = as.numeric(input$floodplain_mannings)
+        mannings_n = as.numeric(update_state$floodplain_mannings_value)
       )
     )
   }) ## End Floodplain Manning's n update ################
