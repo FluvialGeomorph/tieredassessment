@@ -2,12 +2,19 @@
 
 ## Testing progress checkpoint
 
-The initial Results workflow testing scaffold is in place and passing:
-- server startup gating is covered
-- slider state preparation is covered
-- workflow readiness preparation is covered
+The first Results workflow integration test suite is now in place and passing:
+- server startup gating is covered (existing tests)
+- slider state preparation is covered (existing tests)
+- workflow readiness preparation is covered (existing tests)
+- **Results transition workflow state tests are now covered (NEW)**
+  - workflow completes without error
+  - slider bounds computed correctly for selected cross-section
+  - slider values captured and preserved
+  - slider values remain valid within bounds (safety check for programmatic updates)
+  - cross-section selection works across different cross-sections
+  - results_loaded flag set correctly after state preparation
 
-The next step is to add the smallest possible server-level regression test for the Results transition, while keeping the suite behavior-oriented and avoiding brittle source/UI inspection.
+The next step is to expand coverage to the server-level event observers that respond to slider changes after Results initialization.
 
 ## Current focus
 
@@ -26,6 +33,10 @@ The goal of this test effort is to lock in the reactive best practices identifie
 - Fixed the issue by capturing slider values into local variables before calling `updateSliderInput()`.
 - Restored reliable automatic navigation to the Results tab.
 - Confirmed that plots and discharge tables now render successfully when the Results workflow completes.
+- **Added 6 integration tests for Results workflow state preparation** (NEW)
+  - Tests validate slider bound computation, cross-section selection, and workflow readiness
+  - Tests confirm the reactive safety pattern (captured values, not live reactive reads)
+  - All tests passing; regression protection in place
 
 ## Testing reference
 
