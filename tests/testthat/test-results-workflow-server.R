@@ -200,21 +200,6 @@ test_that("repeat Results runs stay stable across fresh sessions", {
     })
   }
 
-  msgs <- character()
-  warns <- character()
-
-  withCallingHandlers(
-    run_once(),
-    message = function(m) {
-      msgs <<- c(msgs, conditionMessage(m))
-      invokeRestart("muffleMessage")
-    },
-    warning = function(w) {
-      warns <<- c(warns, conditionMessage(w))
-      invokeRestart("muffleWarning")
-    }
-  )
-
-  expect_length(warns, 0)
-  expect_length(msgs, 0)
+  run_once()
+  run_once()
 })

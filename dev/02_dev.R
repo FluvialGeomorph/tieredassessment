@@ -67,9 +67,25 @@ reproducibleai::use_instructions(c(
   "parameterized-help"  
 ))
 
-Target repo: FluvialGeomorph/ohwm2  
-Read: `dev/instructions/CHAT_INSTRUCTIONS.md` and follow the instruction 
-modules listed under **Selected instruction modules (read in order)**.
+## Start new chat prompt text:
+"
+This session is based on FluvialGeomorph/ohwm2 on main.
+
+First read:
+1. @dev/instructions/CHAT_INSTRUCTIONS.md
+2. @dev/10_design.md for guidance on design goals
+3. @dev/05_plan.md for implementing the improved testing approach
+4. @dev/20_testing.md the testing architecture proposal
+5. @dev/decisions/adr-0002-needs-modular-refactor.md for the proposed architectural decision
+
+After reading, briefly summarize:
+- the goals of improving app stability and reliability via testing
+- the current state of app testability,
+- the current priorities,
+- and the next smallest useful step to maintain momentum.
+
+Only then propose concrete edits or code changes.
+"
 
 # Configure Environment Variables
 # This app uses the credentials of this app to connect to ESRI web services

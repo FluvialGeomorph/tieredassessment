@@ -5,11 +5,6 @@ This file is the entrypoint for **instruction modules** that govern a reproducib
 ## How to start a new chat session
 In your first message, specify the target GitHub repository and direct the assistant to follow these instructions.
 
-Suggested prompt template:
-
-> Target repo: FluvialGeomorph/ohwm2  
-> Read `dev/instructions/CHAT_INSTRUCTIONS.md` and follow the instruction modules listed under **Selected instruction modules (read in order)**.
-
 ## Instruction model used here (base + overlays)
 We use a composable instruction system:
 
