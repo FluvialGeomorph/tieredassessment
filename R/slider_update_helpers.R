@@ -104,3 +104,101 @@ is_elevation_value_valid <- function(elevation_value, xs_pts, pick_xs) {
   # Value should be within computed bounds
   elevation_value >= rem_min && elevation_value <= rem_max
 }
+
+#' Prepare channel Manning's n slider update
+#'
+#' Captures and validates the state needed when channel_mannings slider is moved.
+#' This helper exists so the server observer logic can be tested directly without
+#' reactive machinery.
+#'
+#' @param channel_elevation Current channel elevation slider value.
+#' @param channel_mannings Numeric value from the channel_mannings dropdown.
+#' @param pick_xs Selected cross-section identifier.
+#' @param xs_pts Cross-section points data frame (with required columns: Seq).
+#'
+#' @return A list containing:
+#'   - `channel_elevation_value`: captured channel elevation
+#'   - `channel_mannings_value`: captured Manning's n value
+#'   - `pick_xs`: selected cross-section
+#' @noRd
+prepare_channel_mannings_update <- function(
+  channel_elevation,
+  channel_mannings,
+  pick_xs,
+  xs_pts
+) {
+  stopifnot(is.numeric(channel_elevation))
+  stopifnot(is.numeric(channel_mannings))
+  stopifnot(!is.null(xs_pts))
+  stopifnot("Seq" %in% names(xs_pts))
+
+  # Validate that the cross-section exists in xs_pts
+  valid_xs <- unique(xs_pts$Seq)
+  stopifnot(pick_xs %in% valid_xs)
+
+  # Return captured values for observer to use
+  list(
+    channel_elevation_value = as.numeric(channel_elevation),
+    channel_mannings_value = as.numeric(channel_mannings),
+    pick_xs = pick_xs
+  )
+}
+
+#' Prepare floodplain Manning's n slider update
+#'
+#' Captures and validates the state needed when floodplain_mannings slider is moved.
+#' This helper exists so the server observer logic can be tested directly without
+#' reactive machinery.
+#'
+#' @param floodplain_elevation Current floodplain elevation slider value.
+#' @param floodplain_mannings Numeric value from the floodplain_mannings dropdown.
+#' @param pick_xs Selected cross-section identifier.
+#' @param xs_pts Cross-section points data frame (with required columns: Seq).
+#'
+#' @return A list containing:
+#'   - `floodplain_elevation_value`: captured floodplain elevation
+#'   - `floodplain_mannings_value`: captured Manning's n value
+#'   - `pick_xs`: selected cross-section
+#' @noRd
+prepare_floodplain_mannings_update <- function(
+  floodplain_elevation,
+  floodplain_mannings,
+  pick_xs,
+  xs_pts
+) {
+  stopifnot(is.numeric(floodplain_elevation))
+  stopifnot(is.numeric(floodplain_mannings))
+  stopifnot(!is.null(xs_pts))
+  stopifnot("Seq" %in% names(xs_pts))
+
+  # Validate that the cross-section exists in xs_pts
+  valid_xs <- unique(xs_pts$Seq)
+  stopifnot(pick_xs %in% valid_xs)
+
+  # Return captured values for observer to use
+  list(
+    floodplain_elevation_value = as.numeric(floodplain_elevation),
+    floodplain_mannings_value = as.numeric(floodplain_mannings),
+    pick_xs = pick_xs
+  )
+}
+
+#' Validate Manning's n value
+#'
+#' Checks that Manning's n value is within acceptable bounds for discharge
+#' calculations. This helps catch cases where a Manning's n update might
+#' produce invalid state.
+#'
+#' @param mannings_n Numeric Manning's n coefficient.
+#'
+#' @return Logical: TRUE if the value is valid, FALSE otherwise.
+#' @noRd
+is_mannings_n_valid <- function(mannings_n) {
+  if (!is.numeric(mannings_n)) return(FALSE)
+  if (is.null(mannings_n)) return(FALSE)
+  if (length(mannings_n) != 1) return(FALSE)  # Must be single value, not vector
+
+  # Manning's n is typically between 0.02 and 0.1 for natural channels
+  # Allow range: 0.01 to 0.15 for generality
+  mannings_n >= 0.01 && mannings_n <= 0.15
+}

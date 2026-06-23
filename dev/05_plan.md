@@ -2,19 +2,26 @@
 
 ## Testing progress checkpoint
 
-The first Results workflow integration test suite is now in place and passing:
-- server startup gating is covered (existing tests)
-- slider state preparation is covered (existing tests)
-- workflow readiness preparation is covered (existing tests)
-- **Results transition workflow state tests are now covered (NEW)**
-  - workflow completes without error
-  - slider bounds computed correctly for selected cross-section
-  - slider values captured and preserved
-  - slider values remain valid within bounds (safety check for programmatic updates)
-  - cross-section selection works across different cross-sections
-  - results_loaded flag set correctly after state preparation
+The Results workflow transition and slider update helper test suites are now in place and passing:
 
-The next step is to expand coverage to the server-level event observers that respond to slider changes after Results initialization.
+**Results workflow integration tests (6 tests):**
+- workflow completes without error
+- slider bounds computed correctly for selected cross-section
+- slider values captured and preserved
+- slider values remain valid within bounds (safety check for programmatic updates)
+- cross-section selection works across different cross-sections
+- results_loaded flag set correctly after state preparation
+
+**Slider update helper tests (7 tests):**
+- channel elevation update captures slider values correctly
+- floodplain elevation update captures slider values correctly
+- elevation value validation works for valid values
+- elevation value validation rejects out-of-bounds values
+- elevation validation rejects invalid cross-section
+- channel elevation update rejects missing required data
+- floodplain elevation update rejects missing required data
+
+The next step is to extend slider update helpers for the Manning's n slider observers and add corresponding tests, then optionally refactor observers to use helpers (Option A3 phase 2).
 
 ## Current focus
 
