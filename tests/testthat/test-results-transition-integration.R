@@ -124,3 +124,40 @@ test_that("Results loaded flag is set correctly after workflow state preparation
 
   expect_true(workflow_state$results_loaded)
 })
+
+test_that("Results workflow state preparation remains stable across repeated runs", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  # First run
+  first <- prepare_results_workflow_state(
+    xs_pts = xs_pts_value,
+    pick_xs = 2,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  # Second run with the same inputs
+  second <- prepare_results_workflow_state(
+    xs_pts = xs_pts_value,
+    pick_xs = 2,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  # Workflow readiness remains true
+  expect_true(first$results_loaded)
+  expect_true(second$results_loaded)
+
+  # Core slider-state invariants remain identical and valid
+  expect_equal(second$slider_state$rem_min, first$slider_state$rem_min)
+  expect_equal(second$slider_state$rem_max, first$slider_state$rem_max)
+  expect_equal(second$slider_state$channel_elevation_value, first$slider_state$channel_elevation_value)
+  expect_equal(second$slider_state$floodplain_elevation_value, first$slider_state$floodplain_elevation_value)
+
+  # Safety bounds still hold after repeat execution
+  expect_gte(second$slider_state$channel_elevation_value, second$slider_state$rem_min)
+  expect_lte(second$slider_state$channel_elevation_value, second$slider_state$rem_max)
+})

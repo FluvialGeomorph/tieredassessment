@@ -48,24 +48,6 @@ test_that("app server starts with Results gating disabled", {
   })
 })
 
-test_that("Results workflow state helper marks the workflow ready", {
-  xs_pts <- data.frame(
-    Seq = c(1, 1, 1, 2, 2, 2),
-    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
-  )
-
-  workflow_state <- prepare_results_workflow_state(
-    xs_pts = xs_pts,
-    pick_xs = 2,
-    channel_elevation = 108.5,
-    floodplain_elevation = 115.25
-  )
-
-  expect_true(is.list(workflow_state))
-  expect_true(is.list(workflow_state$slider_state))
-  expect_true(workflow_state$results_loaded)
-})
-
 test_that("run_results_workflow_transition marks Results ready", {
   skip_if_not_installed("shiny")
 
