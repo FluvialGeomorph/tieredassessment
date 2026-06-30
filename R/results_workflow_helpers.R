@@ -79,31 +79,29 @@ prepare_results_workflow_state <- function(
 
 #' Run the Results workflow transition
 #'
-#' Performs the small, testable transition work that prepares Results state.
-#' This helper exists so the server observer can stay thin and the transition
-#' logic can be tested directly.
+#' Prepares workflow state for Results, updates relevant slider inputs, and marks
+#' Results readiness.
 #'
 #' @param session Shiny session object.
 #' @param input Shiny input object.
-#' @param xs_pts Current cross-section points data.
-#' @param results_loaded Reactive value used to mark the Results workflow ready.
+#' @param xs_pts Data frame of cross-section points used to compute slider bounds.
+#' @param set_results_loaded Optional function used to set the Results gate state.
+#'   - When `NULL` (default), the function uses the internal `results_loaded`
+#'     setter in the existing server flow.
+#'   - When supplied, it must be a function accepting one logical argument and is
+#'     used as an injectable seam for testing.
 #'
-#' @return A list containing:
-#'   - `workflow_state`
-#'   - `pick_xs`
-#' @noRd
-run_results_workflow_transition <- function(
-  session,
-  input,
-  xs_pts,
-  results_loaded
-) {
-  updateSelectInput(
-    session,
-    "pick_xs",
-    choices = seq(min(xs_pts$Seq), max(xs_pts$Seq))
-  )
-
+#' @return A workflow state list with:
+#' \describe{
+#'   \item{slider_state}{List containing captured slider values and computed bounds.}
+#'   \item{results_loaded}{Logical readiness flag for Results workflow completion.}
+#' }
+#'
+#' @keywords internal
+run_results_workflow_transition <- function(session,
+                                            input,
+                                            xs_pts,
+                                            set_results_loaded = NULL) {
   workflow_state <- prepare_results_workflow_state(
     xs_pts = xs_pts,
     pick_xs = input$pick_xs,
@@ -113,30 +111,30 @@ run_results_workflow_transition <- function(
 
   slider_state <- workflow_state$slider_state
 
-  freezeReactiveValue(input, "channel_elevation")
+  # Keep existing slider update behavior
   updateSliderInput(
-    session,
-    "channel_elevation",
+    session = session,
+    inputId = "channel_elevation",
     value = slider_state$channel_elevation_value,
     min = slider_state$rem_min,
-    max = slider_state$rem_max,
-    step = 0.1
+    max = slider_state$rem_max
   )
 
-  freezeReactiveValue(input, "floodplain_elevation")
   updateSliderInput(
-    session,
-    "floodplain_elevation",
+    session = session,
+    inputId = "floodplain_elevation",
     value = slider_state$floodplain_elevation_value,
     min = slider_state$rem_min,
-    max = slider_state$rem_max,
-    step = 0.1
+    max = slider_state$rem_max
   )
 
-  results_loaded(workflow_state$results_loaded)
+  # Injectable seam for gate-setting (testability)
+  if (is.function(set_results_loaded)) {
+    set_results_loaded(workflow_state$results_loaded)
+  } else {
+    # Existing server behavior fallback
+    results_loaded(workflow_state$results_loaded)
+  }
 
-  list(
-    workflow_state = workflow_state,
-    pick_xs = input$pick_xs
-  )
+  workflow_state
 }

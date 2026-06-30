@@ -206,3 +206,36 @@ test_that("Workflow transition contract returns ready state and valid slider bou
   expect_gte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_min)
   expect_lte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_max)
 })
+
+test_that("run_results_workflow_transition calls injected gate setter with readiness", {
+  skip_if_not_installed("shiny")
+
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  shiny::testServer(app_server, {
+    session$setInputs(
+      channel_elevation = 110.5,
+      floodplain_elevation = 111.5,
+      pick_xs = 2
+    )
+
+    gate_calls <- list()
+    capture_gate <- function(value) {
+      gate_calls[[length(gate_calls) + 1]] <<- value
+    }
+
+    transition_state <- run_results_workflow_transition(
+      session = session,
+      input = input,
+      xs_pts = xs_pts_value,
+      set_results_loaded = capture_gate
+    )
+
+    expect_true(transition_state$results_loaded)
+    expect_length(gate_calls, 1)
+    expect_identical(gate_calls[[1]], TRUE)
+  })
+})
