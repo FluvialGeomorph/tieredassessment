@@ -185,3 +185,24 @@ test_that("repeat Results runs stay stable across fresh sessions", {
   run_once()
   run_once()
 })
+
+test_that("Workflow transition contract returns ready state and valid slider bounds", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  workflow_state <- prepare_results_workflow_state(
+    xs_pts = xs_pts_value,
+    pick_xs = 2,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  expect_true(workflow_state$results_loaded)
+  expect_true(is.list(workflow_state$slider_state))
+  expect_equal(workflow_state$slider_state$rem_min, 110.2)
+  expect_equal(workflow_state$slider_state$rem_max, 112.0)
+  expect_gte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_min)
+  expect_lte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_max)
+})

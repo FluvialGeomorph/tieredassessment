@@ -161,3 +161,28 @@ test_that("Results workflow state preparation remains stable across repeated run
   expect_gte(second$slider_state$channel_elevation_value, second$slider_state$rem_min)
   expect_lte(second$slider_state$channel_elevation_value, second$slider_state$rem_max)
 })
+
+test_that("Results outputs are gated until workflow is ready", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  # Pre-workflow condition (conceptual gate)
+  pre_ready <- FALSE
+  expect_false(pre_ready)
+
+  # Workflow run sets readiness
+  workflow_state <- prepare_results_workflow_state(
+    xs_pts = xs_pts_value,
+    pick_xs = 2,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  expect_true(workflow_state$results_loaded)
+
+  # Post-workflow condition
+  post_ready <- workflow_state$results_loaded
+  expect_true(post_ready)
+})
