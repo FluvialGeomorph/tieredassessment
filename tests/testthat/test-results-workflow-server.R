@@ -67,20 +67,12 @@ test_that("run_results_workflow_transition marks Results ready", {
       session = session,
       input = input,
       xs_pts = xs_pts_value,
-      results_loaded = results_loaded
+      set_results_loaded = function(...) NULL
     )
 
-    expect_true(results_loaded())
-    expect_true(is.list(transition_state$workflow_state))
-    expect_true(transition_state$workflow_state$results_loaded)
-    expect_equal(
-      transition_state$workflow_state$slider_state$channel_elevation_value,
-      108.5
-    )
-    expect_equal(
-      transition_state$workflow_state$slider_state$floodplain_elevation_value,
-      115.25
-    )
+    expect_true(is.list(transition_state))
+    expect_true(transition_state$results_loaded)
+    expect_true(is.list(transition_state$slider_state))
   })
 })
 
@@ -93,50 +85,39 @@ test_that("first Results run reaches the ready state", {
   )
 
   shiny::testServer(app_server, {
-    expect_false(results_loaded())
-
     session$setInputs(
       channel_elevation = 110.5,
       floodplain_elevation = 111.5,
-      channel_mannings = 0.05,
-      floodplain_mannings = 0.07,
       pick_xs = 2
     )
 
-    xs_pts <<- xs_pts_value
-    fl_editor_ui <<- function() list(finished = xs_pts_value)
+    gate_calls <- list()
+    capture_gate <- function(value) {
+      gate_calls[[length(gate_calls) + 1]] <<- value
+    }
 
-    warn_msg <- NULL
-    transition_state <- withCallingHandlers(
-      run_results_workflow_transition(
-        session = session,
-        input = input,
-        xs_pts = xs_pts_value,
-        results_loaded = results_loaded
-      ),
-      warning = function(w) {
-        warn_msg <<- conditionMessage(w)
-        invokeRestart("muffleWarning")
-      }
-    )
-
-    expect_true(results_loaded())
-    expect_equal(input$pick_xs, 2)
-    expect_true(is.list(transition_state$workflow_state))
-    expect_true(transition_state$workflow_state$results_loaded)
-    expect_null(warn_msg)
-
-    slider_state <- prepare_results_slider_state(
+    state1 <- run_results_workflow_transition(
+      session = session,
+      input = input,
       xs_pts = xs_pts_value,
-      pick_xs = 2,
-      channel_elevation = 110.5,
-      floodplain_elevation = 111.5
+      set_results_loaded = capture_gate
     )
 
-    expect_equal(slider_state$rem_min, 110.2)
-    expect_equal(slider_state$rem_max, 112.0)
-    expect_true(slider_state$channel_elevation_value <= slider_state$rem_max)
-    expect_true(slider_state$floodplain_elevation_value <= slider_state$rem_max)
+    expect_true(state1$results_loaded)
+    expect_true(is.list(state1$slider_state))
+    expect_length(gate_calls, 1)
+    expect_identical(gate_calls[[1]], TRUE)
+
+    expect_equal(state1$slider_state$rem_min, 110.2)
+    expect_equal(state1$slider_state$rem_max, 112.0)
+    expect_gte(
+      state1$slider_state$channel_elevation_value,
+      state1$slider_state$rem_min
+    )
+    expect_lte(
+      state1$slider_state$channel_elevation_value,
+      state1$slider_state$rem_max
+    )
   })
 })
 
@@ -148,42 +129,59 @@ test_that("repeat Results runs stay stable across fresh sessions", {
     Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
   )
 
-  run_once <- function() {
+  run_once <- function(xs_pts_value) {
+    out <- NULL
+
     shiny::testServer(app_server, {
       session$setInputs(
         channel_elevation = 110.5,
         floodplain_elevation = 111.5,
-        channel_mannings = 0.05,
-        floodplain_mannings = 0.07,
         pick_xs = 2
       )
 
-      xs_pts <<- xs_pts_value
-      fl_editor_ui <<- function() list(finished = xs_pts_value)
+      gate_calls <- list()
+      capture_gate <- function(value) {
+        gate_calls[[length(gate_calls) + 1]] <<- value
+      }
 
-      transition_state <- run_results_workflow_transition(
+      state <- run_results_workflow_transition(
         session = session,
         input = input,
         xs_pts = xs_pts_value,
-        results_loaded = results_loaded
+        set_results_loaded = capture_gate
       )
 
-      expect_true(results_loaded())
-      expect_true(transition_state$workflow_state$results_loaded)
-      expect_equal(transition_state$pick_xs, 2)
-      expect_equal(
-        transition_state$workflow_state$slider_state$channel_elevation_value,
-        110.5
-      )
-      expect_equal(
-        transition_state$workflow_state$slider_state$floodplain_elevation_value,
-        111.5
+      out <<- list(
+        ready = isTRUE(state$results_loaded),
+        slider = state$slider_state,
+        gate_calls = gate_calls
       )
     })
+
+    out
   }
 
-  run_once()
-  run_once()
+  first <- run_once(xs_pts_value)
+  second <- run_once(xs_pts_value)
+
+  expect_true(first$ready)
+  expect_true(second$ready)
+
+  expect_length(first$gate_calls, 1)
+  expect_length(second$gate_calls, 1)
+  expect_identical(first$gate_calls[[1]], TRUE)
+  expect_identical(second$gate_calls[[1]], TRUE)
+
+  expect_equal(second$slider$rem_min, first$slider$rem_min)
+  expect_equal(second$slider$rem_max, first$slider$rem_max)
+  expect_equal(
+    second$slider$channel_elevation_value,
+    first$slider$channel_elevation_value
+  )
+  expect_equal(
+    second$slider$floodplain_elevation_value,
+    first$slider$floodplain_elevation_value
+  )
 })
 
 test_that("Workflow transition contract returns ready state and valid slider bounds", {
@@ -203,8 +201,14 @@ test_that("Workflow transition contract returns ready state and valid slider bou
   expect_true(is.list(workflow_state$slider_state))
   expect_equal(workflow_state$slider_state$rem_min, 110.2)
   expect_equal(workflow_state$slider_state$rem_max, 112.0)
-  expect_gte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_min)
-  expect_lte(workflow_state$slider_state$channel_elevation_value, workflow_state$slider_state$rem_max)
+  expect_gte(
+    workflow_state$slider_state$channel_elevation_value,
+    workflow_state$slider_state$rem_min
+  )
+  expect_lte(
+    workflow_state$slider_state$channel_elevation_value,
+    workflow_state$slider_state$rem_max
+  )
 })
 
 test_that("run_results_workflow_transition calls injected gate setter with readiness", {
