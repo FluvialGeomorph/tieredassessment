@@ -214,6 +214,33 @@ Verify that:
 - outputs are not available before the workflow is ready
 - outputs are available after initialization completes
 
+### P1: Draw XS happy path transition
+Verify that:
+- Draw XS transition entrypoint executes without error
+- required transition state is prepared
+- readiness state is reached when prerequisites are satisfied
+
+### P1: Draw XS transition seam gate-setting
+Verify that:
+- Draw XS transition function supports an injectable gate-setter seam
+- injected setter receives expected readiness value on successful transition
+- default behavior remains unchanged when seam is omitted
+
+### P1: Draw XS first-run stability
+Verify that:
+- the first Draw XS run succeeds in a fresh server session
+- no hidden priming state is required
+
+### P2: Draw XS repeat-run/session stability
+Verify that:
+- repeated Draw XS runs stay behaviorally consistent
+- no state leakage occurs across fresh sessions (where applicable)
+
+### P2: Draw XS output/readiness gating
+Verify that:
+- Draw XS-dependent outputs stay gated until transition readiness
+- outputs become available only after successful transition
+
 ## Testing workflow guidance
 
 When adding tests:

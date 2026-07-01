@@ -126,4 +126,46 @@ With this reliability layer in place, proceed in small increments:
 3. **Incremental modular refactor support**
    - continue extracting orchestration seams from `app_server.R`
    - keep each seam covered by behavior-oriented tests before broader modularization
-   
+
+## Next execution slice: Draw XS workflow hardening (seam-first)
+
+Apply the same robustness pattern used for Results to the Draw XS transition boundary, in small test-backed increments.
+
+### Scope (this slice only)
+- Focus exclusively on Draw XS transition behavior.
+- Do not begin broad module decomposition in this slice.
+- Do not combine Draw XS and Draw Flowline in one change set.
+
+### Planned sequence
+
+1. **Transition boundary identification**
+   - confirm Draw XS entrypoint/observer path in `app_server.R`
+   - identify readiness/output gate(s) and transition side effects
+
+2. **Helper contract preparation**
+   - add or confirm a helper that returns explicit Draw XS transition state
+   - include any computed bounds/selected state needed for deterministic assertions
+
+3. **Injectable seam addition**
+   - add a narrow optional gate-setter argument to Draw XS transition function
+   - preserve current behavior when seam is not provided (default path unchanged)
+
+4. **Tests before broader changes**
+   - add helper contract tests for Draw XS state preparation
+   - add transition integration tests
+   - add server seam test asserting gate setter is called with expected readiness value
+
+5. **Stability follow-through**
+   - add first-run stability test
+   - add repeat-run stability test (fresh sessions where applicable)
+
+6. **Minimal app wiring update**
+   - update `app_server.R` call site(s) to new seam argument name
+   - avoid unrelated refactors in the same commit series
+
+### Exit criteria for this slice
+- Draw XS first-run transition passes reliably
+- repeat/fresh-session behavior is stable
+- gating behavior is test-covered
+- all tests green
+- docs updated with completed coverage and any new seam decision

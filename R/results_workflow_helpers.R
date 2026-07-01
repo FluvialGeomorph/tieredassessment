@@ -138,3 +138,60 @@ run_results_workflow_transition <- function(session,
 
   workflow_state
 }
+
+#' Prepare Draw XS workflow state
+#'
+#' Creates an explicit readiness contract for Draw XS transition logic.
+#'
+#' @param xs_pts Data frame of cross-section points.
+#' @param pick_xs Selected cross-section index/value.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{draw_xs_loaded}{Logical readiness flag for Draw XS workflow.}
+#'   \item{pick_xs}{Normalized selected cross-section value.}
+#' }
+#' @keywords internal
+prepare_draw_xs_workflow_state <- function(xs_pts, pick_xs) {
+  ready <- !is.null(xs_pts) &&
+    is.data.frame(xs_pts) &&
+    nrow(xs_pts) > 0 &&
+    !is.null(pick_xs) &&
+    length(pick_xs) == 1 &&
+    !is.na(pick_xs)
+
+  list(
+    draw_xs_loaded = isTRUE(ready),
+    pick_xs = pick_xs
+  )
+}
+
+#' Run Draw XS workflow transition
+#'
+#' Computes Draw XS workflow readiness and optionally propagates readiness
+#' via an injectable gate setter for deterministic testing.
+#'
+#' @param session Shiny session object.
+#' @param input Shiny input object.
+#' @param xs_pts Data frame of cross-section points.
+#' @param set_draw_xs_loaded Optional function accepting one logical argument.
+#'   When NULL, default behavior is no-op unless app server wiring provides
+#'   gate handling externally.
+#'
+#' @return A workflow state list with Draw XS readiness contract.
+#' @keywords internal
+run_draw_xs_workflow_transition <- function(session,
+                                            input,
+                                            xs_pts,
+                                            set_draw_xs_loaded = NULL) {
+  workflow_state <- prepare_draw_xs_workflow_state(
+    xs_pts = xs_pts,
+    pick_xs = input$pick_xs
+  )
+
+  if (is.function(set_draw_xs_loaded)) {
+    set_draw_xs_loaded(workflow_state$draw_xs_loaded)
+  }
+
+  workflow_state
+}
