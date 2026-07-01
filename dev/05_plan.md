@@ -36,75 +36,94 @@
 - Tests act as regression guard rail for future reactive changes
 - Reactive safety patterns (captured values, explicit state) are now enforced structurally
 
+---
+
+## New progress update (post-checkpoint)
+
+**Results workflow reliability expanded with additional transition + session-stability coverage:**
+
+- Added repeat-run regression coverage for Results workflow state preparation:
+  - repeated Results workflow execution preserves readiness and slider-state invariants
+  - repeat execution remains stable without hidden priming assumptions
+
+- Added output/readiness gating coverage:
+  - explicit test verifies readiness gate behavior before/after workflow preparation
+  - confirms Results availability is tied to workflow-ready state
+
+- Introduced and validated a small server transition seam for testability:
+  - `run_results_workflow_transition()` now supports injectable `set_results_loaded`
+  - enables deterministic server-level testing of gate-setting behavior without brittle reactive coupling
+  - avoids prior missing-argument failures tied to implicit gate setter wiring
+
+- Added server-level transition stability tests across fresh sessions:
+  - first Results run reaches ready state
+  - repeated runs in fresh server sessions stay stable
+  - injected gate setter receives expected ready-state signal (`TRUE`)
+
+- All tests currently passing after seam update and test adjustments.
+
 ## Current focus
 
-Stability is achieved. The Results workflow is protected by 6 regression tests covering initialization, state preparation, and workflow readiness. All slider observers are protected by 15 validation tests and now use helper functions that enforce safe reactive patterns.
+Stability is achieved and reinforced. The Results workflow is now protected at multiple layers:
+- helper contracts,
+- workflow transition integration,
+- server transition seam behavior across fresh sessions.
 
-## Why testing is a priority now
+This expands protection for the highest-risk regression classes (silent transition failure, first-run instability, repeat-run/session instability) while preserving a small, maintainable test surface.
 
-The core engineering calculations are already covered in `fluvgeo`. The remaining risk is not the math; it is the Shiny reactive workflow and the orchestration around it.
+## Why testing remains the priority
 
-This test effort has locked in the reactive best practices identified during troubleshooting so that the same class of mistakes does not recur.
+The core engineering calculations are already covered in `fluvgeo`. The remaining risk is Shiny orchestration and reactive sequencing.  
+Recent work further converts fragile reactive behavior into explicit, testable contracts and keeps changes reviewable.
 
 ## Immediate accomplished work to preserve
 
 - Resolved the silent reactive failure in `view_results`.
-- Confirmed the root cause was reactive timing around programmatic slider updates.
-- Fixed the issue by capturing slider values into local variables before calling `updateSliderInput()`.
-- Restored reliable automatic navigation to the Results tab.
-- Confirmed that plots and discharge tables now render successfully when the Results workflow completes.
-- **Added 6 integration tests for Results workflow state preparation**
-  - Tests validate slider bound computation, cross-section selection, and workflow readiness
-  - Tests confirm the reactive safety pattern (captured values, not live reactive reads)
-  - All tests passing; regression protection in place
-- **Added 15 slider update helper tests covering all four elevation and Manning's n observers**
-  - Tests validate input capture and state validation
-  - Tests confirm bounds checking and range validation
-  - All tests passing; regression protection in place
-- **Refactored all four slider observers to use helper validation**
-  - Observers now gate helper calls with early `req()` checks
-  - Reactive safety patterns are now structural requirements, not just conventions
-  - App continues to function correctly; all tests passing
+- Confirmed reactive timing around programmatic slider updates as root cause.
+- Fixed workflow reliability by captured-value update pattern before `updateSliderInput()`.
+- Restored automatic navigation and successful Results rendering.
+- Added and maintained regression tests around Results transition and slider safety behavior.
+- Added repeat-run/session-stability tests and injectable gate-setter seam for server transition testing.
+- Confirmed full test suite passes after seam and test updates.
 
 ## Testing reference
 
-Detailed testing strategy, reactive workflow conventions, and regression cases are documented in `dev/20_testing.md`.
+Detailed testing strategy and regression classes remain in `dev/20_testing.md`.
 
-The Results transition has been extracted into a small helper-backed server seam so the workflow state can be tested directly. Slider observers now use validation helpers that can be tested independently.
+The Results transition now has:
+- helper-backed state preparation tests,
+- integration-level transition tests,
+- server-level seam tests validating gate-setting behavior in controlled sessions.
 
-## Testing goals
+## Test suite status (updated)
 
-The test framework enforces the following behaviors:
-
-1. The Results workflow completes reliably.
-2. Programmatic input updates capture values into local variables before use.
-3. Slider observers validate state before acting on input changes.
-4. First-run initialization succeeds.
-5. Repeated workflow execution does not break the app.
-6. Results outputs are only available after the workflow is properly initialized.
-7. The reactive patterns validated during troubleshooting remain the required behavior going forward.
-
-## Test suite status
-
-- **Total tests written:** 21 (all passing)
-- **Helper functions created:** 6 (all tested)
-- **Observers refactored:** 4 (all working with test guard rails)
-- **Regression classes protected:** Silent reactive failures, unsafe input coupling, first-run instability, slider bounds violations
+- **Total tests written:** expanded beyond initial 21 (all currently passing)
+- **Helper functions created:** 6+ (including workflow transition seam support)
+- **Observers refactored:** 4 (all working with validation guard rails)
+- **Regression classes protected:** silent reactive failures, unsafe input coupling, first-run instability, repeat-run/session instability, slider bounds violations, readiness gating behavior
 
 ## Definition of done for this testing phase
 
-✅ This phase is complete:
-- the recent Results regression is covered by tests (6 integration tests)
-- the repeated reactive mistakes are prevented by tests (15 validation tests)
-- the app has a meaningful Shiny workflow test suite guarding the most fragile behavior
-- all slider observers have been refactored to use validated helper functions
-- reactive safety patterns are now structural requirements enforced by tests
-- future reactive changes can be made with confidence that tests will catch regressions
+✅ This phase is complete and reinforced:
+- recent Results regressions are covered by tests
+- repeated reactive mistakes are prevented by tests
+- repeat-run/session stability now has explicit regression protection
+- readiness gating behavior is covered
+- server transition behavior is testable through an injectable seam
+- future reactive changes can be made with stronger confidence
 
 ## Next steps
 
-The testing framework is mature enough for safe refactoring. Future work can include:
-- Observer simplification: thin additional observers to reduce imperative logic
-- Modular refactor: split `app_server.R` into feature modules with test support
-- Additional workflow coverage: add tests for Draw XS and Draw Flowline workflows
-- Output gating tests: verify rendering guards prevent premature output generation
+With this reliability layer in place, proceed in small increments:
+
+1. **Test hygiene pass**
+   - remove duplicate/overlapping test cases
+   - keep clear boundaries between helper, integration, and server-seam tests
+
+2. **Additional workflow coverage**
+   - extend equivalent transition/regression tests to Draw XS and Draw Flowline workflows
+
+3. **Incremental modular refactor support**
+   - continue extracting orchestration seams from `app_server.R`
+   - keep each seam covered by behavior-oriented tests before broader modularization
+   

@@ -1,83 +1,119 @@
 # 10 Design
 
-## Current application design
+## Overview
 
-The application is a Shiny-based geospatial workflow app for drawing cross sections and flowlines, computing terrain-derived results, and presenting those results on a dedicated Results tab.
+This app’s core engineering computations are provided by `fluvgeo`.  
+The primary design challenge in this repository is Shiny orchestration: reactive workflow transitions, initialization order, and output readiness gating.
 
-The current server implementation still works, but it has reached a complexity level where the reactive flow is no longer easy to reason about mentally. The app currently depends on a mixture of:
-- large imperative observers
-- programmatic input updates
-- shared reactive state
-- navigation side effects
-- output registration during workflow execution
+Recent reliability work focused on the Results workflow boundary, where reactive sequencing had produced silent failures and inconsistent run behavior.
 
-This design is functional, but it is not yet the maintainable target architecture.
+The current design direction is:
 
-## Current state of the Results workflow
+1. preserve working behavior,
+2. improve robustness at critical transition boundaries,
+3. expose narrow orchestration seams for deterministic testing,
+4. continue incremental modularization with regression protection in place.
 
-The Results workflow currently follows this pattern:
+## Current architecture (practical view)
 
-1. The flowline geometry is collected.
-2. DEM-based derivatives are computed.
-3. Cross-section and water-surface outputs are derived.
-4. Slider ranges are updated programmatically.
-5. Results state is marked ready.
-6. The app navigates to the Results tab.
-7. Outputs render using the stabilized state.
+The app remains server-centric, with workflow behavior coordinated through `app_server` and helper functions.  
+Instead of large structural rewrites, the architecture now emphasizes **small, explicit contracts** at fragile workflow boundaries.
 
-A key implementation lesson from this workflow is:
+For the Results path, this means:
 
-- When updating a reactive input inside the same observer that reads it, capture the current value into a local variable first.
-- Do not rely on direct `isolate(input$...)` inside `updateSliderInput()` when the observer is still in a reactive transition.
+- helper-driven state preparation for transition inputs and bounds,
+- explicit readiness state produced by workflow helpers,
+- a transition function that applies side effects (slider updates + readiness gate),
+- a small injectable seam to control gate setting during tests.
 
-That pattern prevented a silent Shiny failure in the Results workflow.
+## Key Results workflow design updates
 
-## Known limitations
+### 1) Helper-backed transition state contract
 
-The current structure has the following limitations:
+Results transition logic depends on helper functions that return explicit workflow state, including:
 
-- `app_server.R` is still too large and stateful to be easy to hold in memory.
-- Several concerns are still coupled together:
-  - computation
-  - navigation
-  - reactive state updates
-  - output rendering
-  - initialization
-- The current workflow depends on implicit ordering that is fragile under Shiny reactivity.
-- The server file contains more orchestration than is comfortable for long-term maintenance.
+- slider update values/bounds
+- readiness flag (`results_loaded`)
 
-## Architectural direction
+This reduces hidden coupling and keeps transition behavior inspectable and testable outside of deep reactive internals.
 
-The intended direction is a phased refactor toward a modular architecture that makes the reactive flow more explicit and easier to maintain.
+### 2) Injectable gate-setter seam (architectural robustness change)
 
-Future-state goals:
+`run_results_workflow_transition()` now supports:
 
-- Use Shiny modules for major workflow boundaries.
-- Separate orchestration from computation and rendering.
-- Reduce hidden reactive coupling.
-- Keep stable renderers defined outside large event observers where possible.
-- Make initialization state explicit rather than implicit.
-- Minimize the need for programmatic updates to inputs that are also consumed in the same reactive path.
+- `set_results_loaded = NULL` (default)
 
-## Preferred design principles
+Behavior:
 
-### Prefer
-- small observers with one responsibility
-- explicit workflow state
-- module boundaries for major features
-- stable top-level render functions
-- local variables for transient values used in input updates
-- clear separation between setup and rendering
+- When `set_results_loaded` is provided (function), transition readiness is propagated via the injected function.
+- When omitted, existing internal behavior is preserved.
 
-### Avoid
-- monolithic observers that perform many unrelated actions
-- reading and writing the same reactive input in the same control path
-- hidden sequencing assumptions
-- using reactive workarounds as permanent architecture
-- overloading one server file with all workflow logic
+This seam is a deliberate design choice to make critical gate-setting behavior testable and deterministic while keeping runtime behavior unchanged by default.
 
-## Design truth to carry forward
+See decision record: `dev/decisions/ADR-0003-results-workflow-gate-setter-seam.md`.
 
-The application is valuable and functional, but the current architecture is beyond what is reasonable to maintain mentally as a monolithic reactive implementation.
+### 3) Transition boundary clarity
 
-The next phase of development should preserve current behavior while deliberately moving the app toward a modular, explicit, and more human-maintainable design.
+The Results transition boundary now cleanly separates:
+
+- **state computation** (what readiness and slider state should be),
+- **side effects** (updating inputs and setting readiness gate).
+
+This improves maintainability and supports safer future extraction into modules/services.
+
+## Design principles reinforced
+
+### Explicit over implicit
+Critical workflow state should be computed explicitly and propagated through clear contracts, not inferred from timing-sensitive reactive side effects.
+
+### Narrow seams over broad rewrites
+At fragile boundaries, introduce minimal seams that solve concrete reliability/testing problems without forcing a large refactor.
+
+### Behavior-preserving evolution
+Default production paths should remain stable while seams enable deterministic tests and confidence-building change.
+
+### Test-guided hardening
+If a workflow edge is difficult to test reliably, treat that as a design signal and add a small contract/seam rather than relying on brittle introspection.
+
+## Known constraints
+
+- The app is still monolithic in places; seams are incremental rather than complete modularization.
+- Some reactive internals remain difficult to assert directly without introducing unnecessary coupling.
+- Design changes should continue to prioritize low-risk, test-backed increments.
+
+## Implications for future refactor work
+
+The Results seam pattern should guide subsequent workflow hardening:
+
+1. identify fragile transition boundaries,
+2. extract/clarify state contracts,
+3. isolate side effects,
+4. add narrow injectable seams only where needed for deterministic testing,
+5. back each change with focused regression tests.
+
+Likely next targets:
+- Draw XS transition orchestration
+- Draw Flowline transition orchestration
+- gradual movement from server-wide shared state toward clearer workflow-scoped contracts
+
+## Relationship to testing strategy
+
+This design aligns directly with `dev/20_testing.md`:
+
+- helper contract tests protect state computation
+- transition integration tests protect workflow behavior
+- server seam tests protect readiness propagation and session stability
+
+The objective is not maximal abstraction; it is **robust behavior at high-risk boundaries with minimal change surface**.
+
+## Status summary
+
+The Results workflow design is now stronger than the prior baseline:
+
+- transition state is explicit,
+- readiness propagation is contract-based,
+- gate-setting is testable via seam injection,
+- repeat-run and fresh-session stability are regression-protected,
+- production behavior remains intact under default path.
+
+This is considered a meaningful architectural robustness improvement and is recorded in ADR-0003.

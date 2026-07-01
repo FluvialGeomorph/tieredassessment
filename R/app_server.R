@@ -392,7 +392,7 @@ app_server <- function(input, output, session) {
           session = session,
           input = input,
           xs_pts = xs_pts_value,
-          results_loaded = results_loaded
+          set_results_loaded = results_loaded
         )
 
         log_message(paste0(
