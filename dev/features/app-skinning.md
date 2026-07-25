@@ -33,6 +33,10 @@ The current skin surface includes:
 - next-step button labels;
 - long-running transition messages.
 
+Downstream repositories can run
+`ohwm2::validate_app_skin_file("inst/app/skin.yml")` as a preflight check
+without launching Shiny.
+
 ## Compatibility behavior
 
 With no override, the rendered app retains the existing OHWM presentation.

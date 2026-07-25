@@ -60,6 +60,25 @@ test_that("environment variable can select a downstream skin override", {
   expect_equal(skin$identity$app_title, "Environment Selected Skin")
 })
 
+test_that("exported skin preflight uses the application startup path", {
+  override_file <- tempfile(fileext = ".yml")
+  withr::defer(unlink(override_file))
+  writeLines(
+    c(
+      "default:",
+      "  identity:",
+      "    app_title: Preflight Skin",
+      "    browser_title: Preflight Skin"
+    ),
+    override_file
+  )
+
+  skin <- validate_app_skin_file(override_file)
+
+  expect_equal(skin$identity$app_title, "Preflight Skin")
+  expect_equal(skin$workflow$results$nav_label, "Results")
+})
+
 test_that("skin validation rejects unknown fields", {
   override_file <- tempfile(fileext = ".yml")
   withr::defer(unlink(override_file))
@@ -108,6 +127,7 @@ test_that("skin validation rejects missing packaged assets", {
 })
 
 test_that("app UI uses visible skin labels and stable navigation values", {
+  withr::local_options(list(sass.cache = FALSE))
   skin <- read_app_skin_file(app_sys("app/skin-default.yml"))
   skin <- normalize_app_skin(skin)
   skin$identity$app_title <- "Tiered Assessment"

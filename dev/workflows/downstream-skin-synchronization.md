@@ -23,8 +23,9 @@ branding or guidance.
 1. Add `ohwm2` as an upstream Git remote.
 2. Create `inst/app/skin.yml` with only values that differ from the defaults.
 3. Add referenced favicon or future branding assets below `inst/app/www/`.
-4. Run the skin tests and launch the application locally.
-5. Record any functional differences separately; do not encode them as
+4. Run `ohwm2::validate_app_skin_file("inst/app/skin.yml")`.
+5. Run the skin tests and launch the application locally.
+6. Record any functional differences separately; do not encode them as
    undocumented skin fields.
 
 ## Periodic synchronization
@@ -36,8 +37,8 @@ branding or guidance.
 4. Resolve conflicts while preserving the downstream-owned `skin.yml` and
    customer assets.
 5. Review changes to `skin-default.yml` and `dev/schemas/app-skin.md`.
-6. Run focused skin tests, the full package tests, and the normal Shiny smoke
-   test.
+6. Run `ohwm2::validate_app_skin_file("inst/app/skin.yml")`, focused skin
+   tests, the full package tests, and the normal Shiny smoke test.
 7. Verify the customer title, navigation labels, instructions, assets, and
    complete workflow before deployment.
 

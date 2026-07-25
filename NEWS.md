@@ -3,6 +3,7 @@
 * Added a validated application skin layer for task-specific identity, theme,
   navigation labels, guidance, progress messages, and favicon assets while
   preserving shared workflow behavior.
+* Added `validate_app_skin_file()` for downstream and CI skin preflight checks.
 
 # ohwm2 2025.07.08
 
