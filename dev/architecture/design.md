@@ -98,7 +98,8 @@ Likely next targets:
 
 ## Relationship to testing strategy
 
-This design aligns directly with `dev/20_testing.md`:
+This design aligns directly with
+`dev/workflows/shiny-workflow-testing.md`:
 
 - helper contract tests protect state computation
 - transition integration tests protect workflow behavior

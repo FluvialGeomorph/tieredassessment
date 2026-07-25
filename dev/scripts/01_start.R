@@ -72,5 +72,5 @@ golem::use_utils_server(with_test = TRUE)
 golem::set_golem_options()
 golem::use_recommended_deps()
 
-# go to dev/02_dev.R
-rstudioapi::navigateToFile("dev/02_dev.R")
+# go to dev/scripts/02_dev.R
+rstudioapi::navigateToFile("dev/scripts/02_dev.R")
