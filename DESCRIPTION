@@ -24,7 +24,7 @@ Imports:
     bslib,
     config,
     dplyr,
-    fluvgeo (>= 2025.5.3),
+    fluvgeo (>= 2026.07.25.9000),
     golem,
     gt,
     htmltools,

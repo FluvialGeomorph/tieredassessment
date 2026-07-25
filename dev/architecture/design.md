@@ -34,6 +34,22 @@ rules.
 See ADR 0004, `dev/features/app-skinning.md`, and
 `dev/schemas/app-skin.md`.
 
+## Optional watershed enrichment boundary
+
+The OHWM Results workflow uses
+`fluvgeo::cross_section(..., watershed = "skip")`. Watershed delineation is a
+remote enrichment and is not required for the app's DEM-derived cross-section
+geometry, water-surface volumes, plots, or Manning discharge calculation.
+
+The cross-section contract still carries numeric
+`Watershed_Area_SqMile`; its value is `NA_real_` in this workflow. Results table
+helpers use `fluvgeo::xs_geometry()` directly and omit the Drainage Area row
+when no scientifically valid value is available. The app does not fabricate a
+replacement drainage area.
+
+This requires `fluvgeo >= 2026.07.25.9000`. Release and deploy the backend
+change before deploying this client change.
+
 ## Current architecture (practical view)
 
 The app remains server-centric, with workflow behavior coordinated through `app_server` and helper functions.  

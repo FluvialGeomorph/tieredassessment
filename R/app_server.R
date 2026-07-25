@@ -255,7 +255,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
         log_message(
           "process cross section ------------------------------------"
         )
-        xs <<- cross_section(xs, fl_pts)
+        xs <<- cross_section(xs, fl_pts, watershed = "skip")
         log_message(xs)
 
         log_message(

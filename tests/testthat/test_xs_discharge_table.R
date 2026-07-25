@@ -16,7 +16,7 @@ test_that("check for discharge table", {
   detrend <- detrend(dem, flowline, flowline_points, buffer_distance)
   rem <- detrend$rem
   trend <- detrend$trend
-  cross_section <- cross_section(xs, flowline_points)
+  cross_section <- cross_section(xs, flowline_points, watershed = "skip")
   station_distance = 5
   xs_pts <- cross_section_points(cross_section, dem, rem, station_distance)
   channel_wse <- 103
@@ -39,4 +39,27 @@ test_that("check for discharge table", {
   )
   t1
   expect_true("gt_tbl" %in% class(t1))
+})
+
+test_that("DEM-derived discharge values tolerate missing drainage area", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  xs_pts$channel <- 1
+  xs_pts$Watershed_Area_SqMile <- NA_real_
+
+  values <- prepare_xs_discharge_values(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    bf_estimate = 103.5,
+    mannings_n = 0.035,
+    nhd_slope = 0.002
+  )
+
+  expect_false("Drainage Area" %in% values$label)
+  expect_true(all(c(
+    "XS Area (A)",
+    "XS Width",
+    "XS Mean Depth",
+    "Channel Flow (Q)"
+  ) %in% values$label))
+  expect_true(all(is.finite(values$value)))
 })

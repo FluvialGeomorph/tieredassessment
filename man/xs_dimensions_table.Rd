@@ -15,9 +15,8 @@ requested cross section.}
 \item{bf_estimate}{numeric; Detrended bankfull estimate (units:
 detrended feet).}
 
-\item{regions}{character vector; Regions to calculate hydraulic
-dimensions for. See the `RegionalCurve` package for
-a list of regions.}
+\item{regions}{Deprecated compatibility parameter. Regional-curve
+dimensions are not needed for this DEM-derived table.}
 }
 \value{
 a `gt` object
