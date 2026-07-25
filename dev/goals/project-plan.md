@@ -88,7 +88,8 @@ Recent work further converts fragile reactive behavior into explicit, testable c
 
 ## Testing reference
 
-Detailed testing strategy and regression classes remain in `dev/20_testing.md`.
+Detailed testing strategy and regression classes remain in
+`dev/workflows/shiny-workflow-testing.md`.
 
 The Results transition now has:
 - helper-backed state preparation tests,

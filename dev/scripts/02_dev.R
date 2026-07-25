@@ -57,35 +57,20 @@ usethis::use_package("tidyterra")
 ## If you have data in your package
 #usethis::use_data_raw(name = "my_dataset", open = FALSE)
 
-# Chat instructions
-reproducibleai::use_instructions(c(
-  "chat-manual",
-  "goals",
-  "development-governance",
-  "r-package",
-  "shiny-golem",
-  "parameterized-help"  
-))
+# Agentic context
+# Scaffold only when initializing a repository. Existing repository-owned
+# customizations are intentionally not overwritten.
+if (!file.exists("AGENTS.md")) {
+  reproducibleai::use_agentic_context(
+    path = ".",
+    profiles = c("base", "r-package")
+  )
+}
 
-## Start new chat prompt text:
-"
-This session is based on FluvialGeomorph/ohwm2 on main.
-
-First read:
-1. @dev/instructions/CHAT_INSTRUCTIONS.md and follow these instructions for this session
-2. @dev/10_design.md for guidance on design goals
-3. @dev/05_plan.md for implementing the improved testing approach
-4. @dev/20_testing.md the testing architecture proposal
-5. @dev/decisions/adr-0002-needs-modular-refactor.md for the proposed architectural decision
-
-After reading, briefly summarize:
-- the goals of improving app stability and reliability via testing
-- the current state of app testability,
-- the current priorities,
-- and the next smallest useful step to maintain momentum.
-
-Only then propose concrete edits or code changes.
-"
+# AGENTS.md routes Codex to the maintained goals, architecture, decisions, and
+# workflows required for each task. A separate bootstrap prompt and transcript
+# export are no longer part of the development process.
+reproducibleai::validate_agentic_context(path = ".", strict = TRUE)
 
 # Configure Environment Variables
 # This app uses the credentials of this app to connect to ESRI web services
@@ -96,29 +81,24 @@ Only then propose concrete edits or code changes.
 ## Open the `.Renviron` file for your system
 usethis::edit_r_environ()
 
-## Add these environment variables
-ARCGIS_CLIENTID="your-client-id-here"
-ARCGIS_CLIENTSECRET="your-client-secret-here"
-ARCGIS_HOST="https://usace-mvr.maps.arcgis.com/"
+## Add ARCGIS_CLIENTID, ARCGIS_CLIENTSECRET, and ARCGIS_HOST to `.Renviron`.
+## Do not place credential values in this script or another committed file.
 
-# Restart R Session and Test variables
-## should match .Renviron values
-Sys.getenv("ARCGIS_CLIENTID")
-Sys.getenv("ARCGIS_CLIENTSECRET")
-Sys.getenv("ARCGIS_HOST")
+# Restart R, then verify names are configured without printing secret values.
+required_arcgis_vars <- c(
+  "ARCGIS_CLIENTID",
+  "ARCGIS_CLIENTSECRET",
+  "ARCGIS_HOST"
+)
+stopifnot(all(nzchar(Sys.getenv(required_arcgis_vars))))
 
-# Test fluvgeo::arcgis_auth()
-## should return a httr2 token
-fluvgeo::arcgis_auth()
+# Test authentication interactively when required:
+# fluvgeo::arcgis_auth()
 
 
 ## Run application locally
 golem::document_and_reload()
 run_app()
-
-## Update Chat History
-reproducibleai::extract_copilot_chat(file.path(Sys.getenv("USERPROFILE"), 
-  "Downloads", "copilot_export.zip"))
 
 ## Tests ----
 ## Add one line by test you want to create
@@ -165,5 +145,5 @@ reproducibleai::extract_copilot_chat(file.path(Sys.getenv("USERPROFILE"),
 #usethis::use_gitlab_ci()
 
 # You're now set! ----
-# go to dev/03_deploy.R
-rstudioapi::navigateToFile("dev/03_deploy.R")
+# go to dev/scripts/03_deploy.R
+rstudioapi::navigateToFile("dev/scripts/03_deploy.R")
