@@ -6,7 +6,7 @@
 #' @importFrom bslib nav_select
 #' @importFrom htmltools tags
 #' @importFrom purrr map
-#' @import leaflet 
+#' @import leaflet
 #' @importFrom dplyr %>% bind_rows mutate select filter distinct
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions pmDrawOptions
@@ -15,7 +15,7 @@
 #' @importFrom terra plot crs ifel as.polygons disagg relate vect
 #' @importFrom tidyterra filter mutate
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @import fluvgeo 
+#' @import fluvgeo
 #' @importFrom gt render_gt
 #' @noRd
 app_server <- function(input, output, session, skin = load_app_skin()) {
