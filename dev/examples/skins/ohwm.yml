@@ -1,0 +1,8 @@
+default:
+  identity:
+    app_title: Ordinary High Water Marks
+    browser_title: Ordinary High Water Marks
+
+  workflow:
+    draw_xs:
+      sidebar_title: Ordinary High Water Mark Cross Sections

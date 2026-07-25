@@ -1,0 +1,15 @@
+default:
+  identity:
+    app_title: Floodplain Connectivity
+    browser_title: Floodplain Connectivity
+
+  workflow:
+    draw_xs:
+      sidebar_title: Floodplain Connectivity Cross Sections
+      instructions:
+        - Locate the reach and floodplain area being evaluated.
+        - Draw representative cross sections across the channel and floodplain.
+        - Continue to define the reach flowline.
+
+    results:
+      nav_label: Connectivity Results

@@ -1,0 +1,35 @@
+default:
+  schema_version: 1
+
+  identity:
+    app_title: Ordinary High Water Marks
+    browser_title: Ordinary High Water Marks
+    favicon: www/favicon.png
+
+  theme:
+    bootswatch: sandstone
+    version: 5
+
+  workflow:
+    draw_xs:
+      nav_label: Draw XS
+      sidebar_title: Draw XS Instructions
+      instructions:
+        - Use the "Search" or "Zoom" tools to locate your desired area of interest (AOI).
+        - Use the "Draw Polyline" tool to draw cross sections.
+        - Click the "Draw Flowline" button to go to the next step.
+      next_button: Draw Flowline
+      progress_message: Retrieving Terrain
+
+    draw_flowline:
+      nav_label: Draw Flowline
+      sidebar_title: Draw Flowline Instructions
+      instructions:
+        - Use the "Draw Polyline" tool to draw the centerline of the stream in your AOI.
+        - Use the DEM's color ramp to trace the lowest elevation along the stream centerline.
+        - Click the "View Results" button to go to the next step.
+      next_button: View Results
+      progress_message: Calculating Geometry
+
+    results:
+      nav_label: Results

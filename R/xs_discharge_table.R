@@ -15,9 +15,7 @@
 #' @return a `gt` object
 #'
 #' @importFrom fluvgeo slope_sinuosity xs_dimensions
-#' @importFrom dplyr group_by slice_min filter .data distinct select mutate 
-#'                   rename ungroup left_join join_by relocate recode 
-#'                   across arrange everything
+#' @import dplyr
 #' @importFrom tidyr pivot_longer
 #' @importFrom nhdplusTools discover_nhdplus_id subset_nhdplus
 #' @importFrom gt gt fmt_number cols_label_with cols_label tab_options px

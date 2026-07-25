@@ -4,20 +4,22 @@
 #' resources inside the Shiny application.
 #'
 #' @import shiny
-#' @importFrom golem add_resource_path activate_js favicon bundle_resources
+#' @param skin Normalized application skin configuration.
+#'
+#' @importFrom golem add_resource_path activate_js bundle_resources
 #' @importFrom shinyjs useShinyjs
 #' @noRd
-golem_add_external_resources <- function() {
+golem_add_external_resources <- function(skin = load_app_skin()) {
   add_resource_path(
     "www",
     app_sys("app/www")
   )
   
   tags$head(
-    favicon(ext = "png"),
+    tags$link(rel = "icon", href = skin$identity$favicon),
     bundle_resources(
       path = app_sys("app/www"),
-      app_title = "Ordinary High Water"
+      app_title = skin$identity$browser_title
     ),
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert()
