@@ -16,7 +16,7 @@ test_that("check for xs dimensions table", {
   detrend <- detrend(dem, flowline, flowline_points, buffer_distance)
   rem <- detrend$rem
   trend <- detrend$trend
-  cross_section <- cross_section(xs, flowline_points)
+  cross_section <- cross_section(xs, flowline_points, watershed = "skip")
   station_distance = 5
   xs_pts <- cross_section_points(cross_section, dem, rem, station_distance)
   channel_wse <- 103
@@ -39,4 +39,19 @@ test_that("check for xs dimensions table", {
   )
   #t1
   expect_true("gt_tbl" %in% class(t1))
+})
+
+test_that("dimensions table does not require watershed area", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  xs_pts$channel <- 1
+  xs_pts$Watershed_Area_SqMile <- NA_real_
+
+  table <- xs_dimensions_table(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    bf_estimate = 103.5,
+    regions = character()
+  )
+
+  expect_s3_class(table, "gt_tbl")
 })

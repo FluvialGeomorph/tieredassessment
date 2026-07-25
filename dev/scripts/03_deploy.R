@@ -27,6 +27,7 @@ remotes::install_github("FluvialGeomorph/ohwm2@*release")
 
 ## update renv
 renv::snapshot()
+renv::status()
 
 
 # Validate

@@ -1,17 +1,15 @@
 #' The application User-Interface
 #'
-#' @param request Internal parameter for `{shiny}`.
-#'     DO NOT REMOVE.
+#' @param request Internal parameter for `{shiny}`. DO NOT REMOVE.
+#' @param skin Normalized application skin configuration.
 #' @import shiny
-#' @importFrom bslib page_navbar nav_panel layout_sidebar sidebar bs_theme
-#'                   accordion accordion_panel layout_columns card card_header
-#'                   card_body tooltip
+#' @import bslib
 #' @importFrom bsicons bs_icon
 #' @importFrom mapedit editModUI
 #' @importFrom leaflet leafletOutput
 #' @importFrom gt gt_output
 #' @noRd
-app_ui <- function(request) {
+app_ui <- function(request, skin = load_app_skin()) {
   # Help text and variable values
   channel_rem_info <- "Set the channel's water surfce level in Relative Elevation Model (REM) units."
   floodplain_rem_info <- "Set the floodplain's water surface level in Relative Elevation Model (REM) units."
@@ -36,22 +34,28 @@ app_ui <- function(request) {
         }"
       )
     ),
-    golem_add_external_resources(),
+    golem_add_external_resources(skin),
     page_navbar(
-      title = "Ordinary High Water Marks",
+      title = skin$identity$app_title,
       id = "main",
       # footer = accordion(
       #   id = "logs",
       #   open = FALSE,
       #   class = "scrollable-accordion",
       #   accordion_panel(title = "Console", htmlOutput("console")),
-      theme = bs_theme(bootswatch = "sandstone", version = 5),
+      theme = bs_theme(
+        bootswatch = skin$theme$bootswatch,
+        version = skin$theme$version
+      ),
       
-      nav_panel(title = "Draw XS", layout_sidebar(
+      nav_panel(
+        title = skin$workflow$draw_xs$nav_label,
+        value = "draw_xs",
+        layout_sidebar(
         # Display the xs editing module
         editModUI(id = "xs_editor_ui_id"),
         sidebar = sidebar(
-          title = "Draw XS Instructions",
+          title = skin$workflow$draw_xs$sidebar_title,
           position = "right",
           width = "25%",
           uiOutput("draw_xs_instructions"),
@@ -59,11 +63,14 @@ app_ui <- function(request) {
         )
       )),
       
-      nav_panel(title = "Draw Flowline", layout_sidebar(
+      nav_panel(
+        title = skin$workflow$draw_flowline$nav_label,
+        value = "draw_flowline",
+        layout_sidebar(
         # Display fl editing module
         editModUI(id = "fl_editor_ui_id"),
         sidebar = sidebar(
-          title = "Draw Flowline Instructions",
+          title = skin$workflow$draw_flowline$sidebar_title,
           position = "right",
           width = "25%",
           uiOutput("draw_fl_instructions"),
@@ -72,7 +79,10 @@ app_ui <- function(request) {
         )
       )),
       
-      nav_panel(title = "Results", layout_sidebar(
+      nav_panel(
+        title = skin$workflow$results$nav_label,
+        value = "results",
+        layout_sidebar(
         # Display results_map
         leafletOutput("results_map"),
         sidebar = sidebar(

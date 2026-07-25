@@ -1,14 +1,12 @@
 #' The application server-side
 #'
-#' @param input,output,session Internal parameters for {shiny}.
-#'     DO NOT REMOVE.
+#' @param input,output,session Internal parameters for {shiny}. DO NOT REMOVE.
+#' @param skin Normalized application skin configuration.
 #' @import shiny
 #' @importFrom bslib nav_select
 #' @importFrom htmltools tags
 #' @importFrom purrr map
-#' @importFrom leaflet leaflet addProviderTiles setView addLayersControl
-#'                     renderLeaflet leafletProxy leafletOptions leafletCRS
-#'                     removeShape addPolygons flyTo
+#' @import leaflet
 #' @importFrom dplyr %>% bind_rows mutate select filter distinct
 #' @importFrom mapedit editMod
 #' @importFrom leafpm addPmToolbar pmToolbarOptions pmDrawOptions
@@ -17,15 +15,10 @@
 #' @importFrom terra plot crs ifel as.polygons disagg relate vect
 #' @importFrom tidyterra filter mutate
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom fluvgeo sf_fix_crs get_dem detrend water_surface_poly
-#'             xs_pts_classify hydroflatten_dem floodplain_volume
-#'             get_leaflet get_terrain_leaflet get_results_leaflet
-#'             flowline flowline_points cross_section cross_section_points
-#'             compare_long_profile xs_compare_plot_L2
-#'             cross_section_dimensions_L2
+#' @import fluvgeo
 #' @importFrom gt render_gt
 #' @noRd
-app_server <- function(input, output, session) {
+app_server <- function(input, output, session, skin = load_app_skin()) {
   # Define reactives ##########################################################
   results_loaded <- reactiveVal(FALSE)
   reach_name <- reactiveVal({
@@ -120,14 +113,20 @@ app_server <- function(input, output, session) {
   observeEvent(xs_editor_ui()$finished, {
     # Add view terrain button
     output$draw_fl_button <- renderUI({
-      actionButton("draw_flowline", "Draw Flowline")
+      actionButton(
+        "draw_flowline",
+        skin$workflow$draw_xs$next_button
+      )
     })
     log_message("Cross section drawn.")
   })
 
   # Draw Flowline #############################################################
   observeEvent(input$draw_flowline, {
-    show_modal_spinner(spin = "circle", text = "Retrieving Terrain")
+    show_modal_spinner(
+      spin = "circle",
+      text = skin$workflow$draw_xs$progress_message
+    )
     # get finished xs
     xs_mapedit <- xs_editor_ui()$finished
     log_message("mapedit xs -----------------------------------------------")
@@ -171,18 +170,24 @@ app_server <- function(input, output, session) {
     )
 
     # Navigate to Draw Flowline page
-    nav_select(id = "main", selected = "Draw Flowline", session)
+    nav_select(id = "main", selected = "draw_flowline", session)
     remove_modal_spinner()
 
     observeEvent(fl_editor_ui()$finished, {
       output$view_results_button <- renderUI({
-        actionButton("view_results", "View Results")
+        actionButton(
+          "view_results",
+          skin$workflow$draw_flowline$next_button
+        )
       })
     })
   })
 
   observeEvent(input$view_results, {
-    show_modal_spinner(spin = "circle", text = "Calculating Geometry")
+    show_modal_spinner(
+      spin = "circle",
+      text = skin$workflow$draw_flowline$progress_message
+    )
     on.exit(
       {
         try(remove_modal_spinner(), silent = TRUE)
@@ -250,7 +255,7 @@ app_server <- function(input, output, session) {
         log_message(
           "process cross section ------------------------------------"
         )
-        xs <<- cross_section(xs, fl_pts)
+        xs <<- cross_section(xs, fl_pts, watershed = "skip")
         log_message(xs)
 
         log_message(
@@ -400,7 +405,7 @@ app_server <- function(input, output, session) {
           transition_state$pick_xs
         ))
 
-        nav_select(id = "main", selected = "Results", session)
+        nav_select(id = "main", selected = "results", session)
         remove_modal_spinner()
       },
       error = function(e) {
@@ -646,11 +651,7 @@ observeEvent(input$channel_mannings, {
   # Instructions ##############################################################
   ## create draw xs page instructions
   output$draw_xs_instructions <- renderUI({
-    steps <- c(
-      'Use the "Search" or "Zoom" tools to locate your desired area of interest (AOI).',
-      'Use the "Draw Polyline" tool to draw cross sections.',
-      'Click the "Draw Flowline" button to go to the next step.'
-    )
+    steps <- skin$workflow$draw_xs$instructions
     ul <- htmltools::tags$ul(purrr::map(steps, function(.x) {
       tags$li(.x)
     }))
@@ -658,11 +659,7 @@ observeEvent(input$channel_mannings, {
 
   ## create draw flowline page instructions
   output$draw_fl_instructions <- renderUI({
-    steps <- c(
-      'Use the "Draw Polyline" tool to draw the centerline of the stream in your AOI.',
-      "Use the DEM's color ramp to trace the lowest elevation along the stream centerline.",
-      'Click the "View Results" button to go to the next step.'
-    )
+    steps <- skin$workflow$draw_flowline$instructions
     ul <- htmltools::tags$ul(purrr::map(steps, function(.x) {
       tags$li(.x)
     }))

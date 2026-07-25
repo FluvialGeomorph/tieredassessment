@@ -9,6 +9,8 @@ run_app(
   options = list(),
   enableBookmarking = NULL,
   uiPattern = "/",
+  skin = NULL,
+  skin_file = NULL,
   ...
 )
 }
@@ -32,6 +34,11 @@ for more information on bookmarking your app.}
 request to determine whether the \code{ui} should be used to handle the
 request. Note that the entire request path must match the regular
 expression in order for the match to be considered successful.}
+
+\item{skin}{Optional normalized application skin. When omitted, the packaged
+defaults and any configured override are loaded.}
+
+\item{skin_file}{Optional path to a downstream skin override file.}
 
 \item{...}{arguments to pass to golem_opts.
 See `?golem::get_golem_options` for more details.}

@@ -14,10 +14,8 @@
 #'
 #' @return a `gt` object
 #'
-#' @importFrom fluvgeo slope_sinuosity xs_dimensions
-#' @importFrom dplyr group_by slice_min filter .data distinct select mutate 
-#'                   rename ungroup left_join join_by relocate recode 
-#'                   across arrange everything
+#' @importFrom fluvgeo slope_sinuosity xs_geometry
+#' @import dplyr
 #' @importFrom tidyr pivot_longer
 #' @importFrom nhdplusTools discover_nhdplus_id subset_nhdplus
 #' @importFrom gt gt fmt_number cols_label_with cols_label tab_options px
@@ -52,63 +50,30 @@ xs_discharge_table <- function(xs_pts, xs_number, bf_estimate, mannings_n) {
   print(paste0("comid: ", start_comid$comid[1]))
   
   output_file <- tempfile(fileext = ".gpkg")
+  on.exit(unlink(output_file), add = TRUE)
   nhd_flowline <- subset_nhdplus(
     comids = c(start_comid$comid[1]),
     output_file = output_file,
     nhdplus_data = "download",
     overwrite = TRUE, status = FALSE, flowline_only = TRUE)
-  unlink(output_file)
   print(paste0("GNIS Name: ", nhd_flowline$NHDFlowline_Network$gnis_name))
   
   nhd_slope <- nhd_flowline[1]$NHDFlowline_Network$slope
-  
-  # Get the channel portion of the current cross section
-  xs_pts_channel <- xs_pts %>%
-    filter(.data$Seq == xs_number) %>%
-    filter(.data$channel == 1)
-  
-  # Calculate channel dimensions
-  dims <- fluvgeo::xs_dimensions(
-    xs_points = xs_pts_channel,
-    streams = unique(xs_pts_channel$ReachName),
-    regions = c("USA", "Eastern United States"),
-    bankfull_elevations = bf_estimate)
-  
-  # Wrangle the discharge calculations
-  dims_table <- dims %>%
-    distinct() %>%
-    left_join(xs_ss, join_by(cross_section == Seq)) %>%
-    select(-c("reach_name", "cross_section", "bankfull_elevation", 
-              "discharge", "ID", "ReachName")) %>%
-    mutate(xs_type = recode(xs_type, 
-                            "DEM derived cross section" = "DEM derived")) %>%
-    mutate(nhd_slope = nhd_slope) %>%
-    mutate(mannings_n = mannings_n) %>%
-    filter(.data$xs_type == "DEM derived") %>%
-    mutate(R_proxy = .data$xs_depth) %>%
-    mutate(R = .data$xs_depth^(2/3)) %>%
-    mutate(S_proxy = nhd_slope) %>%
-    mutate(S = .data$nhd_slope^(1/2)) %>%
-    mutate(Q = (1.486 / .data$mannings_n) * .data$xs_area * .data$R * .data$S) %>%
-    mutate(V = Q / .data$xs_area) %>%
-    select(c(xs_area, xs_width, xs_depth, drainage_area, 
-             R_proxy, S_proxy, Q, V))
-    
-  dims_table_long <- dims_table %>%
-    pivot_longer(everything()) %>%
-    mutate(units = c("sq ft", "ft", "ft", "sq mi", "ft", "", "cfs", "ft sec")) %>%
-    mutate(label = c("XS Area (A)", "XS Width", "XS Mean Depth", "Drainage Area",
-                     "XS Hydraulic Radius (R)", "Slope (S)", 
-                     "Channel Flow (Q)", "Channel Velocity (V)")) %>%
-    relocate(label, .before = name) %>%
-    select(-name)
+
+  dims_table_long <- prepare_xs_discharge_values(
+    xs_pts = xs_pts,
+    xs_number = xs_number,
+    bf_estimate = bf_estimate,
+    mannings_n = mannings_n,
+    nhd_slope = nhd_slope
+  )
   
   gt_table <- dims_table_long |>
     gt() |>
     cols_label_with(fn = tools::toTitleCase) |>
     cols_label(label = "Variable") |>
     fmt_number(columns = value, decimals = 1) |>
-    fmt_number(columns = value, row = c(6), decimals = 4) |>
+    fmt_number(columns = value, rows = label == "Slope (S)", decimals = 4) |>
     tab_options(
       column_labels.font.weight = "bold",
       table.font.size = "small",
@@ -118,4 +83,83 @@ xs_discharge_table <- function(xs_pts, xs_number, bf_estimate, mannings_n) {
       table.margin.right = px(1))
   #gt_table
   return(gt_table)
+}
+
+#' Prepare DEM-derived discharge values
+#'
+#' @param xs_pts Cross-section points.
+#' @param xs_number Cross-section sequence number.
+#' @param bf_estimate Relative bankfull elevation.
+#' @param mannings_n Manning's roughness coefficient.
+#' @param nhd_slope Reach slope.
+#'
+#' @return A long-form data frame of discharge values.
+#' @noRd
+prepare_xs_discharge_values <- function(
+  xs_pts,
+  xs_number,
+  bf_estimate,
+  mannings_n,
+  nhd_slope
+) {
+  xs_pts_channel <- xs_pts %>%
+    filter(.data$Seq == xs_number) %>%
+    filter(.data$channel == 1)
+
+  dims <- fluvgeo::xs_geometry(
+    xs_points = xs_pts_channel,
+    detrend_elevation = bf_estimate
+  )
+  drainage_area <- unique(xs_pts_channel$Watershed_Area_SqMile)
+  drainage_area <- if (length(drainage_area) > 0L) {
+    as.numeric(drainage_area[[1]])
+  } else {
+    NA_real_
+  }
+  nhd_slope <- as.numeric(nhd_slope[[1]])
+  channel_flow <- (1.486 / mannings_n) *
+    dims$xs_area *
+    (dims$xs_depth^(2 / 3)) *
+    (nhd_slope^(1 / 2))
+
+  dims_table <- tibble(
+    xs_area = dims$xs_area,
+    xs_width = dims$xs_width,
+    xs_depth = dims$xs_depth,
+    drainage_area = drainage_area,
+    R_proxy = dims$xs_depth,
+    S_proxy = nhd_slope,
+    Q = channel_flow,
+    V = channel_flow / dims$xs_area
+  )
+
+  dims_table %>%
+    pivot_longer(everything()) %>%
+    filter(!is.na(.data$value)) %>%
+    mutate(
+      units = recode(
+        .data$name,
+        xs_area = "sq ft",
+        xs_width = "ft",
+        xs_depth = "ft",
+        drainage_area = "sq mi",
+        R_proxy = "ft",
+        S_proxy = "",
+        Q = "cfs",
+        V = "ft sec"
+      ),
+      label = recode(
+        .data$name,
+        xs_area = "XS Area (A)",
+        xs_width = "XS Width",
+        xs_depth = "XS Mean Depth",
+        drainage_area = "Drainage Area",
+        R_proxy = "XS Hydraulic Radius (R)",
+        S_proxy = "Slope (S)",
+        Q = "Channel Flow (Q)",
+        V = "Channel Velocity (V)"
+      )
+    ) %>%
+    relocate("label", .before = "name") %>%
+    select(-"name")
 }

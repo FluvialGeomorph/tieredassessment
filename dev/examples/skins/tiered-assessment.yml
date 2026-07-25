@@ -1,0 +1,16 @@
+default:
+  identity:
+    app_title: Tiered Assessment
+    browser_title: Tiered Assessment
+
+  workflow:
+    draw_xs:
+      nav_label: Define Assessment Sections
+      sidebar_title: Assessment Section Guidance
+
+    draw_flowline:
+      nav_label: Define Assessment Reach
+      sidebar_title: Assessment Reach Guidance
+
+    results:
+      nav_label: Assessment Results

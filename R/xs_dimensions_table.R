@@ -10,14 +10,13 @@
 #'                      requested cross section.
 #' @param bf_estimate   numeric; Detrended bankfull estimate (units:
 #'                      detrended feet).
-#' @param regions       character vector; Regions to calculate hydraulic
-#'                      dimensions for. See the `RegionalCurve` package for
-#'                      a list of regions.
+#' @param regions       Deprecated compatibility parameter. Regional-curve
+#'                      dimensions are not needed for this DEM-derived table.
 #'
 #' @return a `gt` object
 #'
-#' @importFrom fluvgeo xs_dimensions
-#' @importFrom dplyr filter .data distinct select mutate recode across arrange
+#' @importFrom fluvgeo xs_geometry
+#' @importFrom dplyr filter .data select
 #' @importFrom gt gt fmt_number cols_label tab_options px
 #'
 xs_dimensions_table <- function(xs_pts, xs_number, bf_estimate, regions) {
@@ -26,28 +25,13 @@ xs_dimensions_table <- function(xs_pts, xs_number, bf_estimate, regions) {
     filter(.data$Seq == xs_number) %>%
     filter(.data$channel == 1)
   
-  # Calculate channel dimensions
-  dims <- fluvgeo::xs_dimensions(
+  # Calculate only the DEM-derived geometry required by this table. Regional
+  # curves require drainage area, but this table does not.
+  dims_table <- fluvgeo::xs_geometry(
     xs_points = xs_pts_channel,
-    streams = unique(xs_pts_channel$ReachName),
-    regions = regions,
-    bankfull_elevations = bf_estimate
-  )
-  # Wrangle the dimensions
-  dims_table <- dims %>%
-    distinct() %>%
-    select(-c(
-      "reach_name",
-      "cross_section",
-      "bankfull_elevation",
-      "discharge"
-    )) %>%
-    mutate(xs_type = recode(.data$xs_type, 
-                            "DEM derived cross section" = "DEM derived")) %>%
-    arrange(.data$xs_type) %>%
-    arrange(match(.data$xs_type, c("DEM derived"))) %>%
-    filter(.data$xs_type == "DEM derived") %>%
-    select(-c(drainage_area, xs_type))
+    detrend_elevation = bf_estimate
+  ) %>%
+    select(xs_area, xs_width, xs_depth)
   
   gt_table <- dims_table |>
     gt() |>

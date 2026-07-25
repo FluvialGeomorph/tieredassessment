@@ -12,7 +12,43 @@ The current design direction is:
 1. preserve working behavior,
 2. improve robustness at critical transition boundaries,
 3. expose narrow orchestration seams for deterministic testing,
-4. continue incremental modularization with regression protection in place.
+4. continue incremental modularization with regression protection in place,
+5. keep task-specific presentation outside shared workflow implementation.
+
+## Application skin boundary
+
+`ohwm2` is the canonical template for the shared fluvial geomorphic
+application. Task-specific identity and user guidance are supplied through a
+versioned application skin rather than edits to `app_ui.R` or `app_server.R`.
+
+The template owns a complete default skin. Downstream applications own only a
+partial override and their customer-specific assets. The merged skin is
+validated and injected when the Shiny app is constructed; it is not read from
+reactive code.
+
+Stable internal navigation values (`draw_xs`, `draw_flowline`, and `results`)
+separate workflow identity from configurable labels. Skin configuration does
+not own calculations, stage availability, reactive transitions, or validation
+rules.
+
+See ADR 0004, `dev/features/app-skinning.md`, and
+`dev/schemas/app-skin.md`.
+
+## Optional watershed enrichment boundary
+
+The OHWM Results workflow uses
+`fluvgeo::cross_section(..., watershed = "skip")`. Watershed delineation is a
+remote enrichment and is not required for the app's DEM-derived cross-section
+geometry, water-surface volumes, plots, or Manning discharge calculation.
+
+The cross-section contract still carries numeric
+`Watershed_Area_SqMile`; its value is `NA_real_` in this workflow. Results table
+helpers use `fluvgeo::xs_geometry()` directly and omit the Drainage Area row
+when no scientifically valid value is available. The app does not fabricate a
+replacement drainage area.
+
+This requires `fluvgeo >= 2026.07.25.9000`. Release and deploy the backend
+change before deploying this client change.
 
 ## Current architecture (practical view)
 
