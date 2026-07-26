@@ -17,6 +17,31 @@ test_that("prepare_results_slider_state computes range and clamps values", {
   expect_equal(res$rem_max, 103.0)
 })
 
+test_that("prepare_results_slider_state accepts production sf points", {
+  xs_pts <- sf::st_as_sf(
+    data.frame(
+      Seq = c(1, 1, 1, 2, 2, 2),
+      Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7),
+      x = seq_len(6),
+      y = seq_len(6)
+    ),
+    coords = c("x", "y"),
+    crs = 3857
+  )
+
+  res <- prepare_results_slider_state(
+    xs_pts = xs_pts,
+    pick_xs = 2,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  expect_equal(res$rem_min, 110.2)
+  expect_equal(res$rem_max, 112.0)
+  expect_equal(res$channel_elevation_value, 110.5)
+  expect_equal(res$floodplain_elevation_value, 111.5)
+})
+
 test_that("prepare_results_slider_state enforces required columns", {
   xs_pts <- data.frame(
     Seq = c(1, 1, 1),
@@ -31,6 +56,24 @@ test_that("prepare_results_slider_state enforces required columns", {
       floodplain_elevation = 112.25
     ),
     "Detrend_DEM_Z"
+  )
+})
+
+test_that("prepare_results_slider_state rejects nonnumeric elevations", {
+  xs_pts <- data.frame(
+    Seq = c(1, 1, 1),
+    Detrend_DEM_Z = c("101.2", "102.4", "103.8")
+  )
+
+  expect_error(
+    prepare_results_slider_state(
+      xs_pts = xs_pts,
+      pick_xs = 1,
+      channel_elevation = 102,
+      floodplain_elevation = 103
+    ),
+    "must be a numeric vector",
+    fixed = TRUE
   )
 })
 

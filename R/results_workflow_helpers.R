@@ -25,9 +25,16 @@ prepare_results_slider_state <- function(
   stopifnot("Seq" %in% names(xs_pts))
   stopifnot("Detrend_DEM_Z" %in% names(xs_pts))
 
-  selected_xs <- xs_pts[
-    xs_pts$Seq == as.numeric(pick_xs),
-    "Detrend_DEM_Z"
+  detrended_elevations <- xs_pts[["Detrend_DEM_Z"]]
+  if (!is.numeric(detrended_elevations)) {
+    stop(
+      "`Detrend_DEM_Z` must be a numeric vector.",
+      call. = FALSE
+    )
+  }
+
+  selected_xs <- detrended_elevations[
+    xs_pts[["Seq"]] == as.numeric(pick_xs)
   ]
   selected_xs <- selected_xs[is.finite(selected_xs)]
   if (length(selected_xs) == 0L) {

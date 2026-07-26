@@ -105,6 +105,14 @@ The Results transition now has:
 - Added regression coverage for the formatter configuration and its inclusion
   in the Draw XS map.
 
+## Pre-release View Results `sf` stabilization
+
+- Reproduced the production failure with an `sf` cross-section-points fixture.
+- Corrected Results slider initialization to extract `Detrend_DEM_Z` as a
+  numeric attribute vector without retaining geometry.
+- Added regression coverage for production `sf` input and a clear failure
+  contract for nonnumeric detrended elevations.
+
 ## Test suite status (updated)
 
 - **Total tests written:** expanded beyond initial 21 (all currently passing)

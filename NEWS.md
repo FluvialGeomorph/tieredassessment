@@ -1,5 +1,8 @@
 # ohwm2 2026.07.25.9000
 
+* Results slider initialization now extracts detrended elevations as an
+  attribute vector from production `sf` cross-section points, preventing an
+  `is.finite()` list-method failure when **View Results** is selected.
 * Draw XS location search now normalizes the Leaflet Search formatter contract,
   preventing OpenStreetMap results from rendering as `undefined`.
 * Results initialization now clamps channel and floodplain slider values to
