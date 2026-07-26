@@ -1,5 +1,7 @@
 # ohwm2 2026.07.25.9000
 
+* Draw XS location search now normalizes the Leaflet Search formatter contract,
+  preventing OpenStreetMap results from rendering as `undefined`.
 * Results initialization now clamps channel and floodplain slider values to
   the selected cross section's computed range before updating the Shiny
   inputs, preventing invalid-value warnings that blocked Results review.

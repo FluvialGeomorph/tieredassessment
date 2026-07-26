@@ -96,6 +96,15 @@ The Results transition now has:
 - integration-level transition tests,
 - server-level seam tests validating gate-setting behavior in controlled sessions.
 
+## Pre-release Draw XS search stabilization
+
+- Diagnosed literal `undefined` search suggestions as a formatter-contract
+  mismatch in the bundled Leaflet Search client.
+- Added a Draw XS-specific formatter compatible with both the one-argument and
+  two-argument client contracts.
+- Added regression coverage for the formatter configuration and its inclusion
+  in the Draw XS map.
+
 ## Test suite status (updated)
 
 - **Total tests written:** expanded beyond initial 21 (all currently passing)

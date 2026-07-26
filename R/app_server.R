@@ -86,7 +86,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
 
   # Draw XS ###################################################################
   # Define the leaflet draw_xs_map
-  draw_xs_map <- get_leaflet(search = TRUE, zoom = 4)
+  draw_xs_map <- get_draw_xs_leaflet(zoom = 4)
 
   # Define the draw_xs mapedit module
   xs_editor_ui <- callModule(
