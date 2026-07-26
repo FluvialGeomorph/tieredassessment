@@ -30,6 +30,7 @@ Imports:
     golem,
     gt,
     htmltools,
+    htmlwidgets,
     leaflet,
     leaflet.extras,
     leafpm,
