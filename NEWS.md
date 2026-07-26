@@ -1,4 +1,4 @@
-# ohwm2 (development version)
+# ohwm2 2026.07.25.9000
 
 * Added a validated application skin layer for task-specific identity, theme,
   navigation labels, guidance, progress messages, and favicon assets while

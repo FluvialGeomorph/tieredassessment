@@ -2686,7 +2686,7 @@
     },
     "fluvgeo": {
       "Package": "fluvgeo",
-      "Version": "2025.07.08",
+      "Version": "2026.07.25.9000",
       "Source": "GitHub",
       "Title": "A Package for Fluvial Geomorphic Analysis",
       "Authors@R": "c( person(\"Michael\", \"Dougherty\", , \"Michael.P.Dougherty@usace.army.mil\",  role = \"aut\", comment = c(ORCID = \"0000-0002-1465-5927\")), person(\"Christopher\", \"Haring\", , \"Christopher.P.Haring@usace.army.mil\",  role = \"aut\"), person(\"Barrie\", \"Chileen Martinez\", , \"Barrie.V.Chileen@usace.army.mil\",  role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-6960-8167\")), person(\"Thomas\", \"Darby\", role = \"rev\"), person(\"Davi\", \"Michl\", role = \"rev\") )",
@@ -2751,13 +2751,10 @@
       "RoxygenNote": "7.3.2",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "fluvgeo",
       "RemoteUsername": "FluvialGeomorph",
-      "RemoteRef": "v2025.07.08",
-      "RemoteSha": "18cb63447f2e493a65b35eeb4e3076bb752a0938",
-      "NeedsCompilation": "no",
-      "Author": "Michael Dougherty [aut] (<https://orcid.org/0000-0002-1465-5927>), Christopher Haring [aut], Barrie Chileen Martinez [aut, cre] (<https://orcid.org/0000-0002-6960-8167>), Thomas Darby [rev], Davi Michl [rev]",
-      "Maintainer": "Barrie Chileen Martinez <Barrie.V.Chileen@usace.army.mil>"
+      "RemoteRepo": "fluvgeo",
+      "RemoteRef": "v2026.07.25",
+      "RemoteSha": "ea18479957228bcaa6599b0b024b5f643452aa02"
     },
     "fontawesome": {
       "Package": "fontawesome",

@@ -1,14 +1,14 @@
-#' Run example app
+#' Run the application audit variant
 #'
-#' @param ... arguments to pass to golem_opts.
+#' Constructs the application variant used by `shinyValidator` audits.
 #' See `?golem::get_golem_options` for more details.
 #' @inheritParams shiny::shinyApp
+#' @param ... Arguments passed to `golem::with_golem_options()`.
 #'
 #' @return A shiny app object
 #' @export
 #' @import shiny
 #' @importFrom golem with_golem_options
-#' @noRd
 run_app_audit <- function(onStart = NULL, # nolint
                     options = list(),
                     enableBookmarking = NULL, # nolint
