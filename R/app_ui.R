@@ -14,6 +14,12 @@ app_ui <- function(request, skin = load_app_skin()) {
   channel_rem_info <- "Set the channel's water surfce level in Relative Elevation Model (REM) units."
   floodplain_rem_info <- "Set the floodplain's water surface level in Relative Elevation Model (REM) units."
   discharge_info <- "This form of the *Gauckler-Manning formula* is used to calculate discharge in the tables below. "
+  slope_scale_info <- paste(
+    "USGS Reach uses the NHD reach-scale slope and is the default.",
+    "Local DEM uses the signed slope at the selected cross section.",
+    "If USGS is unavailable, the app automatically uses Local DEM only when",
+    "that slope is positive."
+  )
   mannings_choices <- c(
     "(a) Clean, straight, no deep pools (n = 0.030)" = 0.030,
     "(b) Same as (a), but more stones and weeds (n = 0.035)" = 0.035,
@@ -144,6 +150,23 @@ app_ui <- function(request, skin = load_app_skin()) {
                 tooltip(bs_icon("info-circle"), 
                         discharge_info, placement = "auto")
               ),
+              layout_columns(
+                selectInput(
+                  inputId = "slope_scale",
+                  label = "Slope scale:",
+                  choices = c(
+                    "USGS Reach (recommended)" = "usgs_reach",
+                    "Local DEM" = "dem_local"
+                  ),
+                  selected = "usgs_reach"
+                ),
+                tooltip(
+                  bs_icon("info-circle"),
+                  slope_scale_info,
+                  placement = "auto"
+                )
+              ),
+              uiOutput("discharge_service_status"),
               layout_columns(
                 card(
                   card_header("Channel", class = "p-2"),

@@ -4,7 +4,13 @@
 \alias{xs_discharge_table}
 \title{Create a Cross Section Discharge Table}
 \usage{
-xs_discharge_table(xs_pts, xs_number, bf_estimate, mannings_n)
+xs_discharge_table(
+  xs_pts,
+  xs_number,
+  bf_estimate,
+  mannings_n,
+  reach_slope_result = NULL
+)
 }
 \arguments{
 \item{xs_pts}{sf; A cross section lines feature class.}
@@ -16,6 +22,10 @@ requested cross section.}
 detrended feet).}
 
 \item{mannings_n}{numeric; The Manning's n coeficient.}
+
+\item{reach_slope_result}{A result returned by `resolve_reach_slope()`.
+When omitted, the reach slope is resolved before
+the table is calculated.}
 }
 \value{
 a `gt` object

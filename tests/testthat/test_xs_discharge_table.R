@@ -1,44 +1,28 @@
-test_that("check for discharge table", {
-  xs_mapedit <- sf::st_read(system.file("extdata", "shiny", "xs_mapedit.shp",
-                                        package = "fluvgeodata"), quiet = TRUE)
-  xs_fix <- sf_fix_crs(xs_mapedit)
-  xs <- sf::st_transform(xs_fix, crs = 3857) # Web Mercator
-  fl_mapedit <- sf::st_read(system.file("extdata", "shiny", "fl_mapedit.shp",
-                                        package = "fluvgeodata"), quiet = TRUE)
-  fl_fix <- sf_fix_crs(fl_mapedit)
-  fl_3857 <- sf::st_transform(fl_fix, crs = 3857) # Web Mercator
-  reach_name <- "current stream"
-  dem <- get_dem(xs)
-  flowline <- flowline(fl_3857, reach_name, dem)
-  station_distance = 5
-  flowline_points <- flowline_points(flowline, dem, station_distance)
-  buffer_distance <- 300
-  detrend <- detrend(dem, flowline, flowline_points, buffer_distance)
-  rem <- detrend$rem
-  trend <- detrend$trend
-  cross_section <- cross_section(xs, flowline_points, watershed = "skip")
-  station_distance = 5
-  xs_pts <- cross_section_points(cross_section, dem, rem, station_distance)
-  channel_wse <- 103
-  channel_poly <- water_surface_poly(rem, channel_wse, flowline)
-  floodplain_wse <- 112
-  floodplain_poly <- water_surface_poly(rem, floodplain_wse, flowline)
-  buffer_distance <- 5
-  xs_pts <- xs_pts_classify(xs_pts, channel_poly, floodplain_poly,
-                            buffer_distance)
-  
-  xs_number   <- 1
-  bf_estimate <- channel_wse
-  mannings_n <- 0.3
-  
-  t1 <- xs_discharge_table(
+test_that("discharge table uses a supplied cached slope", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  xs_pts$channel <- 1
+
+  table <- xs_discharge_table(
     xs_pts = xs_pts,
-    xs_number = xs_number,
-    bf_estimate = bf_estimate,
-    mannings_n = mannings_n
+    xs_number = 4,
+    bf_estimate = 103.5,
+    mannings_n = 0.035,
+    reach_slope_result = new_reach_slope_result(
+      value = 0.002,
+      source = "usgs_nhdplus",
+      status = "available",
+      reason = NULL,
+      attempts = 1,
+      message = "USGS NHDPlus reach slope is available."
+    )
   )
-  t1
-  expect_true("gt_tbl" %in% class(t1))
+
+  expect_s3_class(table, "gt_tbl")
+  expect_match(
+    paste(unlist(table[["_source_notes"]]), collapse = " "),
+    "Slope source: USGS Reach",
+    fixed = TRUE
+  )
 })
 
 test_that("DEM-derived discharge values tolerate missing drainage area", {
@@ -62,4 +46,146 @@ test_that("DEM-derived discharge values tolerate missing drainage area", {
     "Channel Flow (Q)"
   ) %in% values$label))
   expect_true(all(is.finite(values$value)))
+})
+
+test_that("reach slope succeeds without retry when USGS is available", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  sleeps <- numeric()
+
+  result <- resolve_reach_slope(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    lookup_fun = function(point) 0.002,
+    sleep_fun = function(seconds) sleeps <<- c(sleeps, seconds)
+  )
+
+  expect_equal(result$status, "available")
+  expect_equal(result$source, "usgs_nhdplus")
+  expect_equal(result$value, 0.002)
+  expect_equal(result$attempts, 1L)
+  expect_length(sleeps, 0L)
+})
+
+test_that("transient USGS failures use bounded backoff then recover", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  attempts <- 0L
+  sleeps <- numeric()
+
+  result <- resolve_reach_slope(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    lookup_fun = function(point) {
+      attempts <<- attempts + 1L
+      if (attempts < 3L) {
+        stop("temporary service failure")
+      }
+      0.003
+    },
+    sleep_fun = function(seconds) sleeps <<- c(sleeps, seconds),
+    retry_delays = c(0.25, 0.75)
+  )
+
+  expect_equal(result$status, "available")
+  expect_equal(result$value, 0.003)
+  expect_equal(result$attempts, 3L)
+  expect_equal(sleeps, c(0.25, 0.75))
+})
+
+test_that("missing USGS responses are retried before DEM fallback", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  attempts <- 0L
+  sleeps <- numeric()
+
+  result <- resolve_reach_slope(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    lookup_fun = function(point) {
+      attempts <<- attempts + 1L
+      NA_real_
+    },
+    sleep_fun = function(seconds) sleeps <<- c(sleeps, seconds)
+  )
+
+  expect_equal(result$status, "fallback")
+  expect_equal(result$source, "dem_local")
+  expect_equal(result$reason, "no_coverage_or_unavailable")
+  expect_equal(attempts, 3L)
+  expect_equal(sleeps, c(0.5, 1.5))
+  expect_true(is_usable_reach_slope(result$value))
+})
+
+test_that("USGS outage exhausts retries and falls back to DEM slope", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+  attempts <- 0L
+
+  result <- resolve_reach_slope(
+    xs_pts = xs_pts,
+    xs_number = 4,
+    lookup_fun = function(point) {
+      attempts <<- attempts + 1L
+      stop("service unreachable")
+    },
+    sleep_fun = function(seconds) NULL
+  )
+
+  expect_equal(result$status, "fallback")
+  expect_equal(result$source, "dem_local")
+  expect_equal(result$reason, "service_unavailable")
+  expect_equal(attempts, 3L)
+  expect_equal(result$attempts, 3L)
+  expect_true(is_usable_reach_slope(result$value))
+})
+
+test_that("Local DEM selection uses the selected signed slope only", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+
+  positive <- resolve_dem_reach_slope(xs_pts, xs_number = 4)
+  negative <- resolve_dem_reach_slope(xs_pts, xs_number = 8)
+
+  expect_equal(positive$status, "available")
+  expect_equal(positive$source, "dem_local")
+  expect_true(positive$value > 0)
+
+  expect_equal(negative$status, "unavailable")
+  expect_equal(negative$source, "dem_local")
+  expect_equal(negative$reason, "nonpositive_local_dem")
+  expect_true(negative$value < 0)
+})
+
+test_that("USGS fallback does not replace a negative local slope", {
+  xs_pts <- fluvgeo::sin_riffle_channel_points_sf
+
+  result <- resolve_reach_slope(
+    xs_pts = xs_pts,
+    xs_number = 8,
+    lookup_fun = function(point) stop("service unreachable"),
+    sleep_fun = function(seconds) NULL
+  )
+
+  expect_equal(result$status, "unavailable")
+  expect_equal(result$source, "dem_local")
+  expect_true(result$value < 0)
+  expect_false(is_usable_reach_slope(result$value))
+})
+
+test_that("discharge degrades to an explanatory table without any valid slope", {
+  unavailable <- new_reach_slope_result(
+    value = NA_real_,
+    source = NA_character_,
+    status = "unavailable",
+    reason = "service_unavailable",
+    attempts = 3,
+    message = "Discharge is temporarily unavailable; other results remain."
+  )
+
+  table <- xs_discharge_table(
+    xs_pts = fluvgeo::sin_riffle_channel_points_sf,
+    xs_number = 4,
+    bf_estimate = 103.5,
+    mannings_n = 0.035,
+    reach_slope_result = unavailable
+  )
+
+  expect_s3_class(table, "gt_tbl")
+  expect_match(as.character(table[["_data"]][["Details"]][[1]]), "other results")
 })

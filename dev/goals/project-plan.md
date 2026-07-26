@@ -121,6 +121,23 @@ The Results transition now has:
   floodplain, and discharge recalculation.
 - Added regression coverage using the production Shiny select-input contract.
 
+## Pre-release USGS service resilience
+
+- Moved USGS NHDPlus slope discovery behind a bounded timeout and retry/backoff
+  contract.
+- Added an explicit slope-scale selector that defaults to USGS Reach and allows
+  Local DEM exploration.
+- Cached structured slope results by cross section so REM and Manning control
+  changes no longer repeat live-service requests.
+- Added a signed, selected-cross-section Local DEM fallback and preserved all
+  non-discharge Results when neither remote nor a positive local slope is
+  available.
+- Added persistent degraded-mode messaging, notifications, and a manual retry
+  action in the Discharge panel.
+- Replaced the flaky always-live discharge regression with deterministic
+  coverage of service success, recovery, exhaustion, missing response,
+  fallback, and unavailable states.
+
 ## Test suite status (updated)
 
 - **Total tests written:** expanded beyond initial 21 (all currently passing)

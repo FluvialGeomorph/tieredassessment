@@ -2,6 +2,8 @@
 #'
 #' @param input,output,session Internal parameters for {shiny}. DO NOT REMOVE.
 #' @param skin Normalized application skin configuration.
+#' @param reach_slope_resolver Injectable USGS/fallback slope resolver.
+#' @param dem_slope_resolver Injectable local DEM slope resolver.
 #' @import shiny
 #' @importFrom bslib nav_select
 #' @importFrom htmltools tags
@@ -18,9 +20,18 @@
 #' @import fluvgeo
 #' @importFrom gt render_gt
 #' @noRd
-app_server <- function(input, output, session, skin = load_app_skin()) {
+app_server <- function(
+  input,
+  output,
+  session,
+  skin = load_app_skin(),
+  reach_slope_resolver = resolve_reach_slope,
+  dem_slope_resolver = resolve_dem_reach_slope
+) {
   # Define reactives ##########################################################
   results_loaded <- reactiveVal(FALSE)
+  reach_slope_cache <- reactiveVal(list())
+  dem_slope_cache <- reactiveVal(list())
   reach_name <- reactiveVal({
     reach_name <- NULL
   })
@@ -79,6 +90,114 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
   floodplain_vol <- reactiveVal({
     floodplain_vol <- NULL
   })
+
+  current_reach_slope <- reactive({
+    key <- as.character(input$pick_xs)
+    slope_scale <- input$slope_scale
+    if (is.null(slope_scale)) {
+      slope_scale <- "usgs_reach"
+    }
+    if (identical(slope_scale, "dem_local")) {
+      dem_slope_cache()[[key]]
+    } else {
+      reach_slope_cache()[[key]]
+    }
+  })
+
+  refresh_dem_slope <- function() {
+    xs_number <- isolate(input$pick_xs)
+    xs_pts_value <- isolate(xs_pts)
+    result <- tryCatch(
+      dem_slope_resolver(xs_pts_value, xs_number),
+      error = function(e) {
+        log_message(paste(
+          "ERROR resolving local DEM slope:",
+          conditionMessage(e)
+        ))
+        new_reach_slope_result(
+          value = NA_real_,
+          source = "dem_local",
+          status = "unavailable",
+          reason = "lookup_error",
+          attempts = 0L,
+          message = paste(
+            "The local DEM slope could not be resolved.",
+            "Map, cross-section, and storage results remain available."
+          )
+        )
+      }
+    )
+    cache <- isolate(dem_slope_cache())
+    cache[[as.character(xs_number)]] <- result
+    dem_slope_cache(cache)
+    invisible(result)
+  }
+
+  refresh_reach_slope <- function(notify_user = TRUE) {
+    xs_number <- isolate(input$pick_xs)
+    xs_pts_value <- isolate(xs_pts)
+    result <- tryCatch(
+      reach_slope_resolver(xs_pts_value, xs_number),
+      error = function(e) {
+        log_message(paste(
+          "ERROR resolving reach slope:",
+          conditionMessage(e)
+        ))
+        new_reach_slope_result(
+          value = NA_real_,
+          source = NA_character_,
+          status = "unavailable",
+          reason = "lookup_error",
+          attempts = 0L,
+          message = paste(
+            "Discharge is temporarily unavailable because a reach slope",
+            "could not be resolved. Map, cross-section, and storage results",
+            "remain available."
+          )
+        )
+      }
+    )
+    cache <- isolate(reach_slope_cache())
+    cache[[as.character(xs_number)]] <- result
+    reach_slope_cache(cache)
+
+    if (notify_user && result$status != "available") {
+      showNotification(
+        result$message,
+        type = if (result$status == "fallback") "warning" else "error",
+        duration = 12
+      )
+    }
+
+    invisible(result)
+  }
+
+  render_cached_discharge <- function(
+    xs_pts,
+    xs_number,
+    bf_estimate,
+    mannings_n
+  ) {
+    slope_result <- current_reach_slope()
+    if (is.null(slope_result)) {
+      return(discharge_unavailable_table(paste(
+        if (identical(input$slope_scale, "dem_local")) {
+          "Preparing the selected cross section's local DEM slope."
+        } else {
+          "Checking USGS stream-network coverage."
+        },
+        "Map, cross-section, and storage results are ready."
+      )))
+    }
+
+    xs_discharge_table(
+      xs_pts = xs_pts,
+      xs_number = xs_number,
+      bf_estimate = bf_estimate,
+      mannings_n = mannings_n,
+      reach_slope_result = slope_result
+    )
+  }
 
   # Ensure fl_editor_ui mapedit module available at app scope
   fl_editor_ui <- NULL
@@ -184,6 +303,8 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
   })
 
   observeEvent(input$view_results, {
+    reach_slope_cache(list())
+    dem_slope_cache(list())
     show_modal_spinner(
       spin = "circle",
       text = skin$workflow$draw_flowline$progress_message
@@ -366,7 +487,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
           req(length(input$channel_elevation) > 0)
           req(!is.na(input$channel_elevation))
 
-          xs_discharge_table(
+          render_cached_discharge(
             xs_pts = xs_pts,
             xs_number = input$pick_xs,
             bf_estimate = input$channel_elevation,
@@ -380,7 +501,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
           req(length(input$floodplain_elevation) > 0)
           req(!is.na(input$floodplain_elevation))
 
-          xs_discharge_table(
+          render_cached_discharge(
             xs_pts = xs_pts,
             xs_number = input$pick_xs,
             bf_estimate = input$floodplain_elevation,
@@ -407,6 +528,23 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
 
         nav_select(id = "main", selected = "results", session)
         remove_modal_spinner()
+        session$onFlushed(
+          function() {
+            if (isTRUE(results_loaded())) {
+              key <- as.character(isolate(input$pick_xs))
+              if (is.null(isolate(dem_slope_cache())[[key]])) {
+                refresh_dem_slope()
+              }
+              if (
+                !identical(isolate(input$slope_scale), "dem_local") &&
+                  is.null(isolate(reach_slope_cache())[[key]])
+              ) {
+                refresh_reach_slope()
+              }
+            }
+          },
+          once = TRUE
+        )
       },
       error = function(e) {
         log_message(paste("ERROR in view_results:", conditionMessage(e)))
@@ -495,7 +633,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
     })
     log_message("update discharge ---------------------------------------")
     output$channel_discharge <- render_gt(
-      xs_discharge_table(
+      render_cached_discharge(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = update_state$channel_elevation_value,
@@ -590,7 +728,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
     })
     log_message("update discharge ---------------------------------------")
     output$floodplain_discharge <- render_gt(
-      xs_discharge_table(
+      render_cached_discharge(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = update_state$floodplain_elevation_value,
@@ -616,7 +754,7 @@ observeEvent(input$channel_mannings, {
     )
     
     output$channel_discharge <- render_gt(
-      xs_discharge_table(
+      render_cached_discharge(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = input$channel_elevation,
@@ -639,7 +777,7 @@ observeEvent(input$channel_mannings, {
     )
     
     output$floodplain_discharge <- render_gt(
-      xs_discharge_table(
+      render_cached_discharge(
         xs_pts = xs_pts,
         xs_number = input$pick_xs,
         bf_estimate = input$floodplain_elevation,
@@ -647,6 +785,122 @@ observeEvent(input$channel_mannings, {
       )
     )
   }) ## End Floodplain Manning's n update ################
+
+  observeEvent(input$pick_xs, {
+    req(results_loaded())
+    key <- as.character(input$pick_xs)
+    if (is.null(isolate(dem_slope_cache())[[key]])) {
+      refresh_dem_slope()
+    }
+    if (
+      !identical(isolate(input$slope_scale), "dem_local") &&
+        is.null(isolate(reach_slope_cache())[[key]])
+    ) {
+      refresh_reach_slope()
+    }
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$slope_scale, {
+    req(results_loaded())
+    key <- as.character(input$pick_xs)
+    if (identical(input$slope_scale, "dem_local")) {
+      if (is.null(isolate(dem_slope_cache())[[key]])) {
+        refresh_dem_slope()
+      }
+    } else if (is.null(isolate(reach_slope_cache())[[key]])) {
+      refresh_reach_slope()
+    }
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$retry_usgs_slope, {
+    req(results_loaded())
+    refresh_reach_slope()
+  }, ignoreInit = TRUE)
+
+  output$discharge_service_status <- renderUI({
+    req(results_loaded())
+    slope_result <- current_reach_slope()
+    slope_scale <- input$slope_scale
+    if (is.null(slope_scale)) {
+      slope_scale <- "usgs_reach"
+    }
+
+    if (is.null(slope_result)) {
+      return(tags$div(
+        class = "alert alert-info py-2",
+        tags$strong(if (identical(slope_scale, "dem_local")) {
+          "Preparing local DEM slope"
+        } else {
+          "Checking USGS stream-network data"
+        }),
+        tags$div(
+          "Other Results remain ready while the slope is resolved."
+        )
+      ))
+    }
+
+    slope_value <- if (
+      length(slope_result$value) == 1L &&
+        is.numeric(slope_result$value) &&
+        is.finite(slope_result$value)
+    ) {
+      formatC(slope_result$value, format = "fg", digits = 6)
+    } else {
+      "not available"
+    }
+
+    if (
+      slope_result$status == "available" &&
+        slope_result$source == "usgs_nhdplus"
+    ) {
+      return(tags$div(
+        class = "alert alert-success py-2",
+        tags$strong("USGS Reach slope applied"),
+        tags$div(paste0(
+          "Applied S = ", slope_value,
+          ". The reach-scale result is cached for this cross section."
+        ))
+      ))
+    }
+
+    if (
+      slope_result$status == "available" &&
+        slope_result$source == "dem_local"
+    ) {
+      return(tags$div(
+        class = "alert alert-info py-2",
+        tags$strong("Local DEM slope applied"),
+        tags$div(paste0(
+          "Applied S = ", slope_value,
+          ". This is the signed slope at the selected cross section."
+        ))
+      ))
+    }
+
+    tags$div(
+      class = if (slope_result$status == "fallback") {
+        "alert alert-warning py-2"
+      } else {
+        "alert alert-danger py-2"
+      },
+      tags$strong(if (slope_result$status == "fallback") {
+        "USGS unavailable - Local DEM slope applied"
+      } else {
+        "Discharge temporarily unavailable"
+      }),
+      if (slope_result$status == "fallback") {
+        tags$div(paste0("Applied S = ", slope_value, "."))
+      },
+      tags$div(slope_result$message),
+      if (!identical(slope_scale, "dem_local")) {
+        actionButton(
+          "retry_usgs_slope",
+          "Retry USGS slope",
+          class = "btn-sm mt-2"
+        )
+      }
+    )
+  })
 
   # Instructions ##############################################################
   ## create draw xs page instructions

@@ -39,7 +39,7 @@ See ADR 0004, `dev/features/app-skinning.md`, and
 The OHWM Results workflow uses
 `fluvgeo::cross_section(..., watershed = "skip")`. Watershed delineation is a
 remote enrichment and is not required for the app's DEM-derived cross-section
-geometry, water-surface volumes, plots, or Manning discharge calculation.
+geometry, water-surface volumes, or plots.
 
 The cross-section contract still carries numeric
 `Watershed_Area_SqMile`; its value is `NA_real_` in this workflow. Results table
@@ -49,6 +49,32 @@ replacement drainage area.
 
 This requires `fluvgeo >= 2026.07.25.9000`. Release and deploy the backend
 change before deploying this client change.
+
+## Optional USGS reach-slope enrichment boundary
+
+Manning discharge needs a positive reach-slope proxy, but completing the
+Results workflow does not require the USGS NLDI/NHDPlus services. The preferred
+USGS lookup runs after the first Results response is flushed, with bounded
+request time and retry/backoff. Its structured result records source, status,
+reason, and attempts.
+
+Slope results are cached by cross-section sequence for the Shiny session.
+Reactive changes to REM elevations and Manning coefficients reuse the cached
+slope and never contact USGS. Selecting an uncached cross section performs one
+bounded resolution cycle; the Discharge panel provides an explicit retry for a
+degraded result.
+
+The user-facing slope-scale contract defaults to **USGS Reach** and permits
+explicit selection of **Local DEM**. When the remote result is unavailable, the
+USGS selection automatically falls back to the signed adjacent-section slope
+at the selected cross section where that slope is positive. The app never
+takes its absolute value, clamps it, or substitutes a positive slope from
+another cross section.
+
+If the requested or fallback source is not valid, only discharge is
+unavailable: renderers return an explanatory table while map, cross-section,
+and storage outputs continue. No zero, negative, or fabricated slope enters
+the Manning calculation.
 
 ## Current architecture (practical view)
 

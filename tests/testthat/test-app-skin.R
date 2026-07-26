@@ -144,6 +144,10 @@ test_that("app UI uses visible skin labels and stable navigation values", {
   expect_match(html, 'data-value="draw_xs"', fixed = TRUE)
   expect_match(html, 'data-value="draw_flowline"', fixed = TRUE)
   expect_match(html, 'data-value="results"', fixed = TRUE)
+  expect_match(html, 'id="slope_scale"', fixed = TRUE)
+  expect_match(html, "USGS Reach (recommended)", fixed = TRUE)
+  expect_match(html, 'value="usgs_reach" selected', fixed = TRUE)
+  expect_match(html, "Local DEM", fixed = TRUE)
 })
 
 test_that("run_app does not accept both a skin and a skin file", {

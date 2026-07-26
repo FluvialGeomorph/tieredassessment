@@ -1,5 +1,16 @@
 # ohwm2 2026.07.25.9000
 
+* Results now provides a slope-scale control with **USGS Reach** as the default
+  and **Local DEM** as an explicit exploratory alternative. Lookups use bounded
+  retry/backoff and a request timeout, slopes are cached by cross section, and
+  slider/Manning recalculation no longer repeats the remote request.
+* When USGS is unreachable or coverage is missing, discharge continues with
+  the selected cross section's signed Local DEM slope where it is positive.
+  Negative local slopes are reported but never transformed or substituted.
+  Persistent status
+  messaging and a manual retry action explain the degraded mode; map,
+  cross-section, and storage results remain available even if no slope can be
+  resolved.
 * Results observers now normalize Manning's values from Shiny select controls
   before validation, restoring channel and floodplain REM recalculation when
   their sliders change.

@@ -20,6 +20,8 @@ test_that("Results slider state helper can support the workflow transition", {
 test_that("view_results observer is present in the server", {
   fmls <- formals(app_server)
   expect_true(all(c("input", "output", "session") %in% names(fmls)))
+  expect_true("reach_slope_resolver" %in% names(fmls))
+  expect_true("dem_slope_resolver" %in% names(fmls))
 })
 
 test_that("Results workflow state helper marks the workflow ready", {
@@ -45,6 +47,75 @@ test_that("app server starts with Results gating disabled", {
 
   shiny::testServer(app_server, {
     expect_false(results_loaded())
+  })
+})
+
+test_that("discharge recalculation reuses the cached reach slope", {
+  skip_if_not_installed("shiny")
+
+  resolver_calls <- 0L
+  resolver <- function(xs_pts, xs_number) {
+    resolver_calls <<- resolver_calls + 1L
+    new_reach_slope_result(
+      value = 0.002,
+      source = "usgs_nhdplus",
+      status = "available",
+      reason = NULL,
+      attempts = 1L,
+      message = "USGS NHDPlus reach slope is available."
+    )
+  }
+  testthat::local_mocked_bindings(
+    resolve_reach_slope = resolver,
+    .package = "ohwm2"
+  )
+
+  shiny::testServer(app_server, {
+      xs_pts_value <- fluvgeo::sin_riffle_channel_points_sf
+      xs_pts_value$channel <- 1
+      xs_pts <<- xs_pts_value
+      session$setInputs(pick_xs = 4, slope_scale = "usgs_reach")
+
+      refresh_dem_slope()
+      refresh_reach_slope(notify_user = FALSE)
+      expect_equal(resolver_calls, 1L)
+
+      channel_table <- render_cached_discharge(
+        xs_pts = xs_pts_value,
+        xs_number = 4,
+        bf_estimate = 103.5,
+        mannings_n = 0.035
+      )
+      floodplain_table <- render_cached_discharge(
+        xs_pts = xs_pts_value,
+        xs_number = 4,
+        bf_estimate = 104,
+        mannings_n = 0.05
+      )
+
+      expect_s3_class(channel_table, "gt_tbl")
+      expect_s3_class(floodplain_table, "gt_tbl")
+
+      session$setInputs(slope_scale = "dem_local")
+      local_table <- render_cached_discharge(
+        xs_pts = xs_pts_value,
+        xs_number = 4,
+        bf_estimate = 103.5,
+        mannings_n = 0.035
+      )
+      expect_s3_class(local_table, "gt_tbl")
+
+      session$setInputs(slope_scale = "usgs_reach")
+      expect_s3_class(
+        render_cached_discharge(
+          xs_pts = xs_pts_value,
+          xs_number = 4,
+          bf_estimate = 103.5,
+          mannings_n = 0.035
+        ),
+        "gt_tbl"
+      )
+      expect_equal(resolver_calls, 1L)
   })
 })
 

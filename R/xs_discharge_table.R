@@ -11,6 +11,9 @@
 #' @param bf_estimate   numeric; Detrended bankfull estimate (units:
 #'                      detrended feet).
 #' @param mannings_n    numeric; The Manning's n coeficient.
+#' @param reach_slope_result A result returned by `resolve_reach_slope()`.
+#'                           When omitted, the reach slope is resolved before
+#'                           the table is calculated.
 #'
 #' @return a `gt` object
 #'
@@ -20,52 +23,27 @@
 #' @importFrom nhdplusTools discover_nhdplus_id subset_nhdplus
 #' @importFrom gt gt fmt_number cols_label_with cols_label tab_options px
 #'
-xs_discharge_table <- function(xs_pts, xs_number, bf_estimate, mannings_n) {
+xs_discharge_table <- function(
+  xs_pts,
+  xs_number,
+  bf_estimate,
+  mannings_n,
+  reach_slope_result = NULL
+) {
+  if (is.null(reach_slope_result)) {
+    reach_slope_result <- resolve_reach_slope(xs_pts, xs_number)
+  }
 
-  # Calculate the slope from adjacent cross sections
-  xs_ss <- xs_pts %>%
-    group_by(.data$Seq) %>%
-    slice_min(.data$DEM_Z, n = 1, with_ties = FALSE) %>%
-    rename(Z = DEM_Z) %>%
-    slope_sinuosity(lead_n = 1, lag_n = 1, use_smoothing = FALSE, 
-                    vert_units = "ft") %>%
-    ungroup()
-  
-  # Get reach slope from nhdPlus flowline
-  xs <- xs_ss %>%
-    filter(.data$Seq == xs_number)
-  
-  print(paste0("Seq: ", xs$Seq))
-  print(paste0("X: ", round(xs$POINT_X), 
-               " Y: ", round(xs$POINT_Y)))
-  
-  point_sfc <- sf::st_sfc(sf::st_point(x = c(xs$POINT_X, xs$POINT_Y), 
-                                       dim = "XY"), 
-                          crs = 3857)
-  
-  start_comid <- discover_nhdplus_id(
-    point = point_sfc, 
-    nldi_feature = "comid",
-    raindrop = TRUE)
-  print(paste0("comid: ", start_comid$comid[1]))
-  
-  output_file <- tempfile(fileext = ".gpkg")
-  on.exit(unlink(output_file), add = TRUE)
-  nhd_flowline <- subset_nhdplus(
-    comids = c(start_comid$comid[1]),
-    output_file = output_file,
-    nhdplus_data = "download",
-    overwrite = TRUE, status = FALSE, flowline_only = TRUE)
-  print(paste0("GNIS Name: ", nhd_flowline$NHDFlowline_Network$gnis_name))
-  
-  nhd_slope <- nhd_flowline[1]$NHDFlowline_Network$slope
+  if (!is_usable_reach_slope(reach_slope_result$value)) {
+    return(discharge_unavailable_table(reach_slope_result$message))
+  }
 
   dims_table_long <- prepare_xs_discharge_values(
     xs_pts = xs_pts,
     xs_number = xs_number,
     bf_estimate = bf_estimate,
     mannings_n = mannings_n,
-    nhd_slope = nhd_slope
+    nhd_slope = reach_slope_result$value
   )
   
   gt_table <- dims_table_long |>
@@ -80,9 +58,294 @@ xs_discharge_table <- function(xs_pts, xs_number, bf_estimate, mannings_n) {
       column_labels.padding = px(2),
       data_row.padding = px(1),
       table.margin.left = px(1),
-      table.margin.right = px(1))
+      table.margin.right = px(1)) |>
+    gt::tab_source_note(source_note = paste0(
+      "Slope source: ",
+      if (reach_slope_result$source == "usgs_nhdplus") {
+        "USGS Reach"
+      } else if (reach_slope_result$status == "fallback") {
+        "Local DEM (automatic fallback)"
+      } else {
+        "Local DEM"
+      },
+      " (S = ",
+      formatC(reach_slope_result$value, format = "fg", digits = 6),
+      ")"
+    ))
   #gt_table
   return(gt_table)
+}
+
+#' Resolve a reach slope with bounded USGS retries and a DEM fallback
+#'
+#' @param xs_pts Cross-section points.
+#' @param xs_number Cross-section sequence number.
+#' @param lookup_fun Function that retrieves a USGS NHDPlus slope for a point.
+#' @param sleep_fun Function used between retry attempts.
+#' @param max_attempts Maximum number of service attempts.
+#' @param retry_delays Seconds to wait after failed attempts.
+#'
+#' @return A structured reach-slope result.
+#' @noRd
+resolve_reach_slope <- function(
+  xs_pts,
+  xs_number,
+  lookup_fun = lookup_usgs_reach_slope,
+  sleep_fun = Sys.sleep,
+  max_attempts = 3L,
+  retry_delays = c(0.5, 1.5)
+) {
+  max_attempts <- as.integer(max_attempts)
+  if (length(max_attempts) != 1L || is.na(max_attempts) || max_attempts < 1L) {
+    stop("max_attempts must be a positive integer")
+  }
+
+  slope_context <- prepare_reach_slope_context(xs_pts, xs_number)
+  last_error <- NULL
+
+  for (attempt in seq_len(max_attempts)) {
+    service_slope <- tryCatch(
+      lookup_fun(slope_context$point),
+      error = function(e) {
+        last_error <<- e
+        NA_real_
+      }
+    )
+
+    if (is_usable_reach_slope(service_slope)) {
+      return(new_reach_slope_result(
+        value = service_slope,
+        source = "usgs_nhdplus",
+        status = "available",
+        reason = NULL,
+        attempts = attempt,
+        message = "USGS NHDPlus reach slope is available."
+      ))
+    }
+
+    if (attempt < max_attempts) {
+      delay_index <- min(attempt, length(retry_delays))
+      if (length(retry_delays) > 0L && retry_delays[[delay_index]] > 0) {
+        sleep_fun(retry_delays[[delay_index]])
+      }
+    }
+  }
+
+  fallback_slope <- slope_context$dem_slope
+  reason <- if (is.null(last_error)) {
+    "no_coverage_or_unavailable"
+  } else {
+    "service_unavailable"
+  }
+
+  if (is_usable_reach_slope(fallback_slope)) {
+    return(new_reach_slope_result(
+      value = fallback_slope,
+      source = "dem_local",
+      status = "fallback",
+      reason = reason,
+      attempts = max_attempts,
+      message = paste(
+        "USGS stream-network data are unavailable for this location.",
+        "Discharge is continuing with the selected cross section's",
+        "positive local DEM slope."
+      )
+    ))
+  }
+
+  new_reach_slope_result(
+    value = fallback_slope,
+    source = "dem_local",
+    status = "unavailable",
+    reason = reason,
+    attempts = max_attempts,
+    message = paste(
+      "Discharge is temporarily unavailable because neither USGS",
+      "reach slope nor a positive local DEM slope could be applied.",
+      "Map, cross-section, and storage results remain available."
+    )
+  )
+}
+
+#' Resolve the selected cross section's local DEM slope
+#'
+#' @noRd
+resolve_dem_reach_slope <- function(xs_pts, xs_number) {
+  dem_slope <- prepare_reach_slope_context(xs_pts, xs_number)$dem_slope
+
+  if (is_usable_reach_slope(dem_slope)) {
+    return(new_reach_slope_result(
+      value = dem_slope,
+      source = "dem_local",
+      status = "available",
+      reason = NULL,
+      attempts = 0L,
+      message = paste(
+        "The selected cross section's local DEM slope is being applied.",
+        "This represents the sampled local hydraulic scale."
+      )
+    ))
+  }
+
+  new_reach_slope_result(
+    value = dem_slope,
+    source = "dem_local",
+    status = "unavailable",
+    reason = "nonpositive_local_dem",
+    attempts = 0L,
+    message = paste(
+      "The selected cross section's local DEM slope is not positive,",
+      "so it cannot be applied in the Manning calculation.",
+      "Choose USGS Reach slope or select another cross section."
+    )
+  )
+}
+
+#' Prepare the service point and local fallback slope
+#'
+#' @noRd
+prepare_reach_slope_context <- function(xs_pts, xs_number) {
+  xs_ss <- xs_pts %>%
+    group_by(.data$Seq) %>%
+    slice_min(.data$DEM_Z, n = 1, with_ties = FALSE) %>%
+    rename(Z = DEM_Z) %>%
+    slope_sinuosity(
+      lead_n = 1,
+      lag_n = 1,
+      use_smoothing = FALSE,
+      vert_units = "ft"
+    ) %>%
+    ungroup()
+
+  selected_xs <- xs_ss %>%
+    filter(.data$Seq == xs_number)
+
+  if (nrow(selected_xs) < 1L) {
+    stop("The selected cross section is not present in xs_pts")
+  }
+
+  point <- sf::st_sfc(
+    sf::st_point(
+      x = c(selected_xs$POINT_X[[1]], selected_xs$POINT_Y[[1]]),
+      dim = "XY"
+    ),
+    crs = sf::st_crs(xs_pts)
+  )
+
+  list(point = point, dem_slope = selected_xs$slope[[1]])
+}
+
+#' Retrieve a reach slope from USGS NHDPlus
+#'
+#' @noRd
+lookup_usgs_reach_slope <- function(
+  point,
+  discover_fun = nhdplusTools::discover_nhdplus_id,
+  subset_fun = nhdplusTools::subset_nhdplus,
+  request_timeout = 8
+) {
+  service_call <- function() {
+    start_comid <- discover_fun(
+      point = point,
+      nldi_feature = "comid",
+      raindrop = TRUE
+    )
+    comid <- if (
+      is.data.frame(start_comid) &&
+        "comid" %in% names(start_comid) &&
+        nrow(start_comid) > 0L
+    ) {
+      suppressWarnings(as.numeric(start_comid$comid[[1]]))
+    } else if (is.atomic(start_comid) && length(start_comid) > 0L) {
+      suppressWarnings(as.numeric(start_comid[[1]]))
+    } else {
+      NA_real_
+    }
+
+    if (!is.finite(comid)) {
+      return(NA_real_)
+    }
+
+    output_file <- tempfile(fileext = ".gpkg")
+    on.exit(unlink(output_file), add = TRUE)
+    nhd_flowline <- suppressWarnings(subset_fun(
+      comids = comid,
+      output_file = output_file,
+      nhdplus_data = "download",
+      overwrite = TRUE,
+      status = FALSE,
+      flowline_only = TRUE
+    ))
+    flowlines <- nhd_flowline$NHDFlowline_Network
+
+    if (
+      is.null(flowlines) ||
+        !"slope" %in% names(flowlines) ||
+        nrow(flowlines) < 1L
+    ) {
+      return(NA_real_)
+    }
+
+    suppressWarnings(as.numeric(flowlines$slope[[1]]))
+  }
+
+  httr::with_config(
+    config = httr::timeout(request_timeout),
+    service_call()
+  )
+}
+
+#' Construct a reach-slope result
+#'
+#' @noRd
+new_reach_slope_result <- function(
+  value,
+  source,
+  status,
+  reason,
+  attempts,
+  message
+) {
+  structure(
+    list(
+      value = as.numeric(value[[1]]),
+      source = source,
+      status = status,
+      reason = reason,
+      attempts = as.integer(attempts),
+      message = message
+    ),
+    class = c("reach_slope_result", "list")
+  )
+}
+
+#' Check whether a slope can support a Manning calculation
+#'
+#' @noRd
+is_usable_reach_slope <- function(value) {
+  length(value) == 1L &&
+    is.numeric(value) &&
+    is.finite(value) &&
+    value > 0
+}
+
+#' Create a discharge-unavailable table
+#'
+#' @noRd
+discharge_unavailable_table <- function(message) {
+  tibble::tibble(
+    Variable = "Discharge unavailable",
+    Details = message
+  ) |>
+    gt::gt() |>
+    gt::tab_options(
+      column_labels.font.weight = "bold",
+      table.font.size = "small",
+      column_labels.padding = gt::px(2),
+      data_row.padding = gt::px(3),
+      table.margin.left = gt::px(1),
+      table.margin.right = gt::px(1)
+    )
 }
 
 #' Prepare DEM-derived discharge values
