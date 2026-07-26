@@ -3,7 +3,6 @@
 export(floodplain_vol_table)
 export(log_message)
 export(run_app)
-export(run_app_audit)
 export(validate_app_skin_file)
 export(xs_dimensions_table)
 export(xs_discharge_table)

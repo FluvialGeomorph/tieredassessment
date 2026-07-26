@@ -30,12 +30,6 @@ renv::snapshot()
 renv::status()
 
 
-# Validate
-#shinyValidator::use_validator()
-
-shinyValidator::audit_app()
-
-
 # Deploy
 
 ## Local, CRAN or Package Manager ----

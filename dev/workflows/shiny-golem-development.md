@@ -74,7 +74,7 @@ Before deployment, verify:
 - package tests and `R CMD check`;
 - reproducible dependency state and the intended `fluvgeo` release;
 - required environment variables and platform secrets;
-- application audit results;
+- complete workflow smoke-test results;
 - logging and monitoring expectations;
 - CPU, memory, concurrency, and known bottleneck assumptions;
 - the generated deployment manifest.
