@@ -11,7 +11,8 @@
 #' @noRd
 load_app_skin <- function(
   override_file = NULL,
-  default_file = app_sys("app/skin-default.yml")
+  default_file = app_sys("app/skin-default.yml"),
+  asset_root = app_sys("app/www")
 ) {
   defaults <- read_app_skin_file(default_file)
   resolved_override <- resolve_app_skin_override(override_file)
@@ -24,7 +25,7 @@ load_app_skin <- function(
   }
 
   skin <- normalize_app_skin(skin)
-  validate_app_skin(skin)
+  validate_app_skin(skin, asset_root = asset_root)
   skin
 }
 
@@ -129,7 +130,7 @@ normalize_app_skin <- function(skin) {
 }
 
 #' @noRd
-validate_app_skin <- function(skin) {
+validate_app_skin <- function(skin, asset_root = app_sys("app/www")) {
   assert_skin_fields(
     skin,
     path = "skin",
@@ -149,7 +150,11 @@ validate_app_skin <- function(skin) {
   assert_skin_text(skin$identity$app_title, "skin.identity.app_title")
   assert_skin_text(skin$identity$browser_title, "skin.identity.browser_title")
   assert_skin_text(skin$identity$favicon, "skin.identity.favicon")
-  validate_skin_asset(skin$identity$favicon, "skin.identity.favicon")
+  validate_skin_asset(
+    skin$identity$favicon,
+    "skin.identity.favicon",
+    asset_root = asset_root
+  )
 
   assert_skin_fields(
     skin$theme,
@@ -259,7 +264,11 @@ assert_skin_text <- function(value, path) {
 }
 
 #' @noRd
-validate_skin_asset <- function(value, path) {
+validate_skin_asset <- function(
+  value,
+  path,
+  asset_root = app_sys("app/www")
+) {
   if (!startsWith(value, "www/")) {
     stop("`", path, "` must reference an asset below `www/`.", call. = FALSE)
   }
@@ -273,8 +282,8 @@ validate_skin_asset <- function(value, path) {
          call. = FALSE)
   }
 
-  asset_path <- app_sys("app/www", relative_path)
-  if (!nzchar(asset_path) || !file.exists(asset_path)) {
+  asset_path <- file.path(asset_root, relative_path)
+  if (!nzchar(asset_root) || !file.exists(asset_path)) {
     stop("`", path, "` references a missing packaged asset: ", value,
          call. = FALSE)
   }

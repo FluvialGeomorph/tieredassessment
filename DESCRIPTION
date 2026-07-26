@@ -44,7 +44,8 @@ Imports:
     terra,
     tibble,
     tidyterra,
-    tidyr
+    tidyr,
+    yaml
 Suggests: 
     DT,
     lubridate,
