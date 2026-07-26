@@ -7,7 +7,7 @@
 
 Three related golem-based Shiny apps exist in the FluvialGeomorph organization:
 - `tieredassessment` — original proof-of-concept; semver; oldest fluvgeo pin; domain functions inline
-- `ohwm` — second-generation app; calver; domain functions migrated to fluvgeo; logging/audit infrastructure added
+- `ohwm` — second-generation app; calver; domain functions migrated to fluvgeo; logging infrastructure added
 - `ohwm2` — most recent; built from ohwm; sandstone theme; full `dev/` governance structure; most mature
 
 All three serve slightly different audiences but share >90% of functionality (same workflow: Draw XS → Draw Flowline → View Results; same fluvgeo backend; same output surfaces).
@@ -27,7 +27,7 @@ New apps (including `tieredassessment` replacement) are built from `ohwm`.
 Alignment between repos is maintained via AI-assisted manual diffing until CI workflow is warranted.
 
 ### 3. Medium/long-term strategy (Option B + D)
-- Move all shared infrastructure functions into `fluvgeo` or a dedicated shared package (eliminates copy-paste drift for `empty_raster`, `empty_sf`, `log_message`, `run_app_audit`, etc.)
+- Move shared infrastructure functions into `fluvgeo` or a dedicated shared package to eliminate copy-paste drift.
 - Parameterize app identity (title, theme, audience-specific features) via `config.yml` so a single codebase can be deployed as multiple apps
 - `tieredassessment` ArcGIS-specific logic (`arcgis_auth`, `rLFT`, `smoothr`) is audience-specific and should not be merged into the shared core
 

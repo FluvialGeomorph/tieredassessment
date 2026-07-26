@@ -47,7 +47,3 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
-
-# shinyValidator 
-public/
-recording.log

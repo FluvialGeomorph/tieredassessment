@@ -30,12 +30,6 @@ renv::snapshot()
 renv::status()
 
 
-# Validate
-#shinyValidator::use_validator()
-
-shinyValidator::audit_app()
-
-
 # Deploy
 
 ## Local, CRAN or Package Manager ----
@@ -58,7 +52,10 @@ shinyValidator::audit_app()
 ## Deploy to Posit Connect or ShinyApps.io ----
 
 ## Add/update manifest file (optional; for Git backed deployment on Posit )
-rsconnect::writeManifest()
+rsconnect::writeManifest(
+  appDir = ".",
+  dependencyResolution = "library"
+)
 
 ## In command line.
 # rsconnect::deployApp(

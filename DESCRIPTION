@@ -50,7 +50,6 @@ Suggests:
     lubridate,
     pkgload,
     rmarkdown,
-    shinyValidator,
     spelling,
     testthat,
     vdiffr,
