@@ -113,6 +113,14 @@ The Results transition now has:
 - Added regression coverage for production `sf` input and a clear failure
   contract for nonnumeric detrended elevations.
 
+## Pre-release Results REM recalculation stabilization
+
+- Identified numeric-only Manning's gates that silently stopped REM slider
+  observers because Shiny select controls supply character values.
+- Normalized and validated Manning's values at the UI boundary before channel,
+  floodplain, and discharge recalculation.
+- Added regression coverage using the production Shiny select-input contract.
+
 ## Test suite status (updated)
 
 - **Total tests written:** expanded beyond initial 21 (all currently passing)

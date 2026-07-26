@@ -1,3 +1,24 @@
+#' Normalize a Manning's n UI value
+#'
+#' Shiny select inputs return their selected value as a character string even
+#' when their configured choices are numeric.
+#'
+#' @param value One numeric or numeric-like character value.
+#'
+#' @return One validated numeric Manning's n value.
+#' @noRd
+normalize_mannings_n_input <- function(value) {
+  normalized <- suppressWarnings(as.numeric(value))
+  if (!is_mannings_n_valid(normalized)) {
+    stop(
+      "Manning's n must be one numeric value between 0.01 and 0.15.",
+      call. = FALSE
+    )
+  }
+
+  normalized
+}
+
 #' Prepare channel elevation slider update
 #'
 #' Captures and validates the state changes needed when channel_elevation slider
@@ -23,7 +44,7 @@ prepare_channel_elevation_update <- function(
   stopifnot(is.numeric(channel_elevation))
   stopifnot(!is.null(xs_pts))
   stopifnot("Seq" %in% names(xs_pts))
-  stopifnot(is.numeric(mannings_n))
+  mannings_n <- normalize_mannings_n_input(mannings_n)
 
   # Validate that the cross-section exists in xs_pts
   valid_xs <- unique(xs_pts$Seq)
@@ -62,7 +83,7 @@ prepare_floodplain_elevation_update <- function(
   stopifnot(is.numeric(floodplain_elevation))
   stopifnot(!is.null(xs_pts))
   stopifnot("Seq" %in% names(xs_pts))
-  stopifnot(is.numeric(mannings_n))
+  mannings_n <- normalize_mannings_n_input(mannings_n)
 
   # Validate that the cross-section exists in xs_pts
   valid_xs <- unique(xs_pts$Seq)
@@ -128,7 +149,7 @@ prepare_channel_mannings_update <- function(
   xs_pts
 ) {
   stopifnot(is.numeric(channel_elevation))
-  stopifnot(is.numeric(channel_mannings))
+  channel_mannings <- normalize_mannings_n_input(channel_mannings)
   stopifnot(!is.null(xs_pts))
   stopifnot("Seq" %in% names(xs_pts))
 
@@ -167,7 +188,7 @@ prepare_floodplain_mannings_update <- function(
   xs_pts
 ) {
   stopifnot(is.numeric(floodplain_elevation))
-  stopifnot(is.numeric(floodplain_mannings))
+  floodplain_mannings <- normalize_mannings_n_input(floodplain_mannings)
   stopifnot(!is.null(xs_pts))
   stopifnot("Seq" %in% names(xs_pts))
 
@@ -197,6 +218,7 @@ is_mannings_n_valid <- function(mannings_n) {
   if (!is.numeric(mannings_n)) return(FALSE)
   if (is.null(mannings_n)) return(FALSE)
   if (length(mannings_n) != 1) return(FALSE)  # Must be single value, not vector
+  if (is.na(mannings_n) || !is.finite(mannings_n)) return(FALSE)
 
   # Manning's n is typically between 0.02 and 0.1 for natural channels
   # Allow range: 0.01 to 0.15 for generality
