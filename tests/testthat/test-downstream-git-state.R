@@ -92,6 +92,20 @@ create_downstream_repository <- function() {
       "https://github.com/FluvialGeomorph/ohwm2.git"
     )
   )
+  run_test_git(
+    repository,
+    c("remote", "set-url", "--push", "upstream", "DISABLED")
+  )
+  run_test_git(
+    repository,
+    c(
+      "remote",
+      "add",
+      "origin",
+      "https://github.com/FluvialGeomorph/floodplain-connectivity.git"
+    )
+  )
+  run_test_git(repository, c("config", "remote.pushDefault", "origin"))
 
   metadata <- git_test_downstream_metadata()
   yaml::write_yaml(metadata, file.path(repository, ".fluvial-app.yml"))
@@ -136,6 +150,11 @@ test_that("downstream Git evidence is returned for an allowed divergence", {
 
   expect_equal(evidence$schema_version, 1L)
   expect_equal(evidence$metadata$application_id, "floodplain-connectivity")
+  expect_equal(
+    evidence$git$origin$repository,
+    "https://github.com/FluvialGeomorph/floodplain-connectivity.git"
+  )
+  expect_equal(evidence$git$upstream$push_repository, "DISABLED")
   expect_equal(evidence$git$upstream$release, "2026.07.25")
   expect_match(evidence$git$head, "^[0-9a-f]{40,64}$")
   expect_equal(evidence$application$schema_version, 1L)
@@ -151,6 +170,27 @@ test_that("downstream Git evidence is returned for an allowed divergence", {
       "inst/app/www/customer/favicon.png"
     )
   )
+})
+
+test_that("operator check prints a concise success summary", {
+  repository <- create_downstream_repository()
+  withr::defer(unlink(repository, recursive = TRUE))
+
+  expect_output(
+    evidence <- check_downstream_repository(
+      file.path(repository, ".fluvial-app.yml"),
+      repository
+    ),
+    paste(
+      "PASS: downstream repository preflight",
+      "Application: floodplain-connectivity",
+      "Customer repository: https://github.com/FluvialGeomorph/",
+      "Upstream release: 2026.07.25",
+      "Referenced customer assets: 1",
+      sep = ".*"
+    )
+  )
+  expect_equal(evidence$metadata$application_id, "floodplain-connectivity")
 })
 
 test_that("downstream repository must have a clean working tree", {
@@ -194,6 +234,58 @@ test_that("downstream repository requires the canonical upstream remote", {
       repository
     ),
     "must resolve to"
+  )
+})
+
+test_that("downstream repository protects customer push direction", {
+  repository <- create_downstream_repository()
+  withr::defer(unlink(repository, recursive = TRUE))
+  metadata_file <- file.path(repository, ".fluvial-app.yml")
+
+  run_test_git(
+    repository,
+    c(
+      "remote",
+      "set-url",
+      "--push",
+      "upstream",
+      "https://github.com/FluvialGeomorph/ohwm2.git"
+    )
+  )
+  expect_error(
+    validate_downstream_repository(metadata_file, repository),
+    "protected push URL"
+  )
+
+  run_test_git(
+    repository,
+    c("remote", "set-url", "--push", "upstream", "DISABLED")
+  )
+  run_test_git(repository, c("config", "remote.pushDefault", "upstream"))
+  expect_error(
+    validate_downstream_repository(metadata_file, repository),
+    "remote.pushDefault"
+  )
+})
+
+test_that("downstream repository requires a distinct customer origin", {
+  repository <- create_downstream_repository()
+  withr::defer(unlink(repository, recursive = TRUE))
+  metadata_file <- file.path(repository, ".fluvial-app.yml")
+
+  run_test_git(
+    repository,
+    c(
+      "remote",
+      "set-url",
+      "origin",
+      "https://github.com/FluvialGeomorph/ohwm2.git"
+    )
+  )
+
+  expect_error(
+    validate_downstream_repository(metadata_file, repository),
+    "customer repository"
   )
 })
 

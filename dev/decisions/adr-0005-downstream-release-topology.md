@@ -29,6 +29,8 @@ skin, test, manifest, and deployment steps for every customer.
   ancestry from `ohwm2`.
 - A downstream uses `origin` for its customer repository and `upstream` for
   `FluvialGeomorph/ohwm2`.
+- A downstream sets `remote.pushDefault` to `origin` and assigns `upstream` the
+  disabled push URL `DISABLED` so an accidental customer push fails.
 - The OHWM deployment will ultimately use a downstream repository too; the
   canonical upstream is not itself customer-owned.
 
@@ -70,6 +72,20 @@ architecture decision; it must not become an undocumented downstream patch.
 - Rollback redeploys the previous known-good downstream commit and manifest;
   it does not move a release tag or rewrite Git history.
 
+### Operator model
+
+- Customer application maintainers are geospatial data scientists using
+  Positron or VS Code Source Control, not DevOps specialists.
+- Normal feature branching, review, commit, and push work should remain in the
+  Source Control UI.
+- Procedures must explain repository roles in plain language and provide
+  reviewed copy/paste commands for the limited actions the UI does not express
+  clearly, including remote setup, fetching tags, and merging a release tag.
+- Read-only tooling must print an operator-friendly result while preserving
+  machine-readable evidence.
+- Mutating setup automation, if added later, must preview exact remote and
+  branch changes and require deliberate confirmation.
+
 ## Consequences
 
 ### Positive
@@ -101,3 +117,5 @@ architecture decision; it must not become an undocumented downstream patch.
    output.
 4. Pilot the contract with the OHWM downstream application before creating the
    other two customer repositories.
+5. After the manual pilot, evaluate a guarded one-time setup assistant for
+   remote configuration and initial branch publication.

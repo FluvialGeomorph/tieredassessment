@@ -1,91 +1,247 @@
-# Synchronizing a skinned downstream application
+# Update a customer application from an `ohwm2` release
+
+## Purpose and audience
+
+Use this procedure to bring a published `ohwm2` release into an existing
+customer application. Normal branch, commit, and push work uses Positron or
+VS Code Source Control. A few reviewed terminal commands fetch and merge the
+specific release.
+
+Read
+[Working with a customer application repository](downstream-repository-basics.md)
+first. Remember:
+
+- `origin` is the customer repository and receives your branch;
+- `upstream` is `FluvialGeomorph/ohwm2` and supplies the release;
+- the PR is opened in the customer repository, not in `ohwm2`.
 
 ## Ownership boundary
 
-The `ohwm2` upstream owns:
-
-- R application code and tests;
-- `inst/app/skin-default.yml`;
-- the skin schema and loader;
-- generic assets required by the default skin.
-
-A downstream application owns:
+The customer repository may normally change only:
 
 - `.fluvial-app.yml`;
 - `inst/app/skin.yml`;
-- customer-specific assets under `inst/app/www/customer/`;
-- its generated deployment manifest;
-- deployment configuration selecting a non-packaged override, if used.
+- files below `inst/app/www/customer/`;
+- `manifest.json`;
+- documented platform deployment metadata.
 
-Downstream repositories should not customize `app_ui.R` or `app_server.R` for
-branding or guidance.
+Shared R code, tests, `inst/app/skin-default.yml`, schemas, `DESCRIPTION`,
+`renv.lock`, and renv activation files come from `upstream`. Do not edit these
+files to resolve a customer preference.
 
-## Initial setup
+## Before starting
 
-Follow `dev/workflows/downstream-app-bootstrap.md`. Do not create a downstream
-repository through a mechanism that discards `ohwm2` Git ancestry.
+Obtain the exact published `<release>` tag, such as `2026.08.15`, and review
+the release and migration notes.
 
-## Periodic synchronization
+In Positron or VS Code:
 
-### Inputs
+1. Open the customer application folder.
+2. Switch to `main`.
+3. Pull from `origin`.
+4. Confirm Source Control shows no changed files.
 
-- clean downstream `main`;
-- target immutable upstream release;
-- current `.fluvial-app.yml`;
-- reviewed release and migration notes.
+Then run:
 
-### Ordered actions
+```powershell
+git rev-parse --show-toplevel
+git status --short --branch
+git remote -v
+git config --get remote.pushDefault
+```
 
-1. Create `sync/<release>` from downstream `main`.
-2. Fetch the `upstream` remote and verify the intended tag exists.
-3. Merge the intended upstream release tag. Do not rebase long-lived
-   downstream history.
-4. Stop on conflicts in upstream-owned paths until ownership and intent are
-   understood.
-5. Preserve the downstream-owned skin, customer assets, and metadata.
-6. Update `.fluvial-app.yml` to record the merged upstream release.
-7. Review changes to `skin-default.yml`, `dev/schemas/app-skin.md`,
-   `DESCRIPTION`, `renv.lock`, and release migration notes.
-8. Hydrate or restore dependencies and require `renv::status()` to report a
-   consistent project.
-9. Run `ohwm2::validate_app_skin_file("inst/app/skin.yml")`, focused skin
-   tests, the full package tests, `R CMD check`, and the normal Shiny smoke
-   test.
-10. Verify the customer title, navigation labels, instructions, assets, and
-    complete workflow.
-11. Regenerate the manifest using the dependency-resolution mode recorded in
-    `.fluvial-app.yml`.
-12. Run the current preflight in `downstream-verification.md`, followed by its
-    listed manual checks. Release mode is planned but not yet implemented.
-13. Open and review the synchronization pull request.
-14. Follow `dev/workflows/downstream-promotion-and-rollback.md`.
+Stop unless the folder, clean `main` branch, and remote URLs are exactly what
+you expect and the final command prints `origin`. If a fresh clone has no
+`upstream`, follow
+[Configure a fresh clone on another computer](downstream-repository-basics.md#configure-a-fresh-clone-on-another-computer)
+before creating the sync branch.
 
-### Stop conditions
+## Step 1: create the synchronization branch
 
-Stop synchronization when:
+Use Source Control to create a branch named:
 
-- the target release is not immutable or is not from the configured upstream;
-- the merge introduces unexplained shared-code divergence;
-- the skin schema requires an undocumented migration;
-- dependencies, tests, workflow behavior, or manifest generation fail;
-- staging cannot use the exact proposed production commit.
+```text
+sync/<release>
+```
 
-### Durable outputs
+Example: `sync/2026.08.15`.
 
-- merge commit retaining upstream ancestry;
-- updated downstream metadata and manifest;
-- verification report;
-- staged and promoted downstream release record.
+Confirm the status bar shows the sync branch before continuing. Never perform
+the release merge directly on customer `main`.
 
-## Schema changes
+## Step 2: fetch the published release
 
-New optional presentation fields should normally be supplied by
-`skin-default.yml`, allowing downstream skins to inherit them. A schema-version
-change requires explicit downstream migration before deployment.
+In the terminal:
 
-If an upstream change requires customer-specific functional behavior, stop the
-sync and make an architecture decision. That change is outside the skin
-boundary.
+```powershell
+$appRelease = "2026.08.15"
+git fetch upstream --tags
+git tag --list $appRelease
+git show --no-patch --decorate $appRelease
+```
 
-See ADR 0005 and `dev/schemas/downstream-app-metadata.md` for the repository and
-metadata contracts.
+The tag-list command must print the exact `<release>`. The show command lets
+you review the tagged commit. If the tag is missing or unexpected, stop.
+
+Fetching is safe: it downloads information but does not modify the current
+branch or customer files.
+
+## Step 3: merge the release
+
+Confirm once more that the status bar shows `sync/<release>` and Source
+Control is clean. Then run:
+
+```powershell
+$appRelease = "2026.08.15"
+git merge --no-ff $appRelease
+```
+
+This creates a merge that preserves the relationship between the customer
+application and the shared release.
+
+### If the merge succeeds
+
+Continue to Step 4. Source Control will show the shared release changes.
+
+### If Git reports conflicts
+
+Stop before choosing any conflict-resolution buttons.
+
+1. Copy the complete terminal message into an issue or team note.
+2. In Source Control, record the files under **Merge Changes**.
+3. Ask the `ohwm2` maintainer and a customer-app maintainer to decide the
+   correct resolution.
+
+Do not use **Accept All Current**, **Accept All Incoming**, rebase, Force Push,
+or another merge command. If the reviewed decision is to abandon the attempt,
+the maintainer can use:
+
+```powershell
+git merge --abort
+```
+
+That command returns the sync branch to its pre-merge state.
+
+## Step 4: update customer metadata
+
+In `.fluvial-app.yml`, change only:
+
+```yaml
+upstream:
+  release: "<release>"
+```
+
+Preserve the customer skin and assets. Review changes to:
+
+- `inst/app/skin-default.yml`;
+- `dev/schemas/app-skin.md`;
+- `DESCRIPTION`;
+- `renv.lock`;
+- release and migration notes.
+
+If the skin schema changed, complete the documented migration. Do not guess at
+new fields.
+
+## Step 5: restore dependencies and test
+
+In a fresh R console:
+
+```r
+renv::restore()
+renv::status()
+```
+
+Require `renv::status()` to report no issues. Then run:
+
+```r
+devtools::test()
+devtools::check()
+source("dev/scripts/run_dev.R")
+```
+
+In the running app:
+
+1. confirm customer titles, labels, instructions, theme, and images;
+2. complete Draw XS, Draw Flowline, and Results.
+
+Stop if scientific behavior fails or a customer-specific code patch appears
+necessary. Fix shared behavior in `ohwm2`, publish a new release, and restart
+this workflow with that release.
+
+## Step 6: regenerate the manifest
+
+Generate `manifest.json` with the mode recorded in `.fluvial-app.yml`. For
+schema version 1:
+
+```r
+rsconnect::writeManifest(dependencyResolution = "library")
+```
+
+Review Source Control to confirm no secrets or unexpected files were added.
+
+## Step 7: commit the downstream updates
+
+Use Source Control to review, stage, and commit the metadata and regenerated
+manifest. Use a message such as:
+
+```text
+synchronize ohwm2 release <release>
+```
+
+The upstream merge commit may already be present. A second commit for metadata
+and the manifest is expected and keeps those downstream decisions visible.
+
+## Step 8: run the preflight
+
+The repository must be clean. In the R console:
+
+```r
+pkgload::load_all()
+check_downstream_repository()
+```
+
+Require the printed PASS summary, then complete the remaining manual checks in
+[Check a customer application repository](downstream-verification.md).
+
+## Step 9: publish and open the customer PR
+
+In Source Control, choose **Publish Branch**. If prompted, select `origin`.
+
+Equivalent terminal command:
+
+```powershell
+$syncBranch = "sync/2026.08.15"
+git push --set-upstream origin $syncBranch
+```
+
+Open a PR in the customer repository with:
+
+- base branch: `main`;
+- compare branch: `sync/<release>`.
+
+The PR is not opened against `FluvialGeomorph/ohwm2`. Include the release tag,
+preflight result, tests, interactive review, and manifest-generation result in
+the PR description.
+
+## Step 10: after the customer PR is merged
+
+In Source Control:
+
+1. switch to customer `main`;
+2. pull from `origin`;
+3. confirm the working tree is clean;
+4. rerun `check_downstream_repository()`;
+5. follow
+   [Stage, promote, and roll back](downstream-promotion-and-rollback.md).
+
+## Stop and ask for help when
+
+- `origin` or `upstream` points to an unexpected URL;
+- the release tag is missing;
+- the merge is being attempted on `main`;
+- Git reports conflicts, unrelated histories, or a rejected push;
+- shared files contain unexplained customer-only changes;
+- the skin migration, renv state, tests, app workflow, or manifest fails;
+- staging cannot use the exact PR merge commit and manifest.
+
+Never use Force Push or rebase to get around a stop condition.

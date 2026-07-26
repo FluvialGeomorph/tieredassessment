@@ -71,6 +71,57 @@ inspect_downstream_git_state <- function(
       call. = FALSE
     )
   }
+  upstream_push_url <- run_downstream_git(
+    root,
+    c("remote", "get-url", "--push", remote_name),
+    description = paste0("read the `", remote_name, "` push URL")
+  )
+  if (length(upstream_push_url) != 1L ||
+      !identical(upstream_push_url, "DISABLED")) {
+    stop(
+      "Git remote `", remote_name,
+      "` must use the protected push URL `DISABLED`.",
+      call. = FALSE
+    )
+  }
+
+  origin_url <- run_downstream_git(
+    root,
+    c("remote", "get-url", "origin"),
+    description = "read the customer `origin` remote"
+  )
+  if (length(origin_url) != 1L ||
+      !nzchar(origin_url) ||
+      identical(origin_url, metadata$upstream$repository)) {
+    stop(
+      "Git remote `origin` must resolve to the customer repository, not ",
+      "canonical `ohwm2`.",
+      call. = FALSE
+    )
+  }
+  origin_push_url <- run_downstream_git(
+    root,
+    c("remote", "get-url", "--push", "origin"),
+    description = "read the customer `origin` push URL"
+  )
+  if (length(origin_push_url) != 1L ||
+      !identical(origin_push_url, origin_url)) {
+    stop(
+      "Git remote `origin` must use the same reviewed URL for fetch and push.",
+      call. = FALSE
+    )
+  }
+  push_default <- run_downstream_git(
+    root,
+    c("config", "--get", "remote.pushDefault"),
+    description = "read Git setting `remote.pushDefault`"
+  )
+  if (length(push_default) != 1L || !identical(push_default, "origin")) {
+    stop(
+      "Git setting `remote.pushDefault` must be `origin`.",
+      call. = FALSE
+    )
+  }
 
   release_ref <- paste0("refs/tags/", metadata$upstream$release)
   run_downstream_git(
@@ -149,9 +200,15 @@ inspect_downstream_git_state <- function(
     application_id = metadata$application_id,
     repository_root = root,
     head = head,
+    origin = list(
+      remote = "origin",
+      repository = origin_url,
+      push_repository = origin_push_url
+    ),
     upstream = list(
       remote = remote_name,
       repository = remote_url,
+      push_repository = upstream_push_url,
       release = metadata$upstream$release,
       release_commit = release_commit
     ),
