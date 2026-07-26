@@ -55,7 +55,8 @@ repository through a mechanism that discards `ohwm2` Git ancestry.
     complete workflow.
 11. Regenerate the manifest using the dependency-resolution mode recorded in
     `.fluvial-app.yml`.
-12. Run the downstream verification command in release mode.
+12. Run the current preflight in `downstream-verification.md`, followed by its
+    listed manual checks. Release mode is planned but not yet implemented.
 13. Open and review the synchronization pull request.
 14. Follow `dev/workflows/downstream-promotion-and-rollback.md`.
 

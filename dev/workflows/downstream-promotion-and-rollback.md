@@ -16,7 +16,8 @@ presentation change has passed automated verification.
 ## Staging
 
 1. Require a clean working tree and record `git rev-parse HEAD`.
-2. Run the downstream verification command in release mode.
+2. Run the current preflight in `downstream-verification.md`, followed by its
+   listed manual checks. Release mode is planned but not yet implemented.
 3. Generate or confirm the manifest from that exact commit and dependency
    state.
 4. Deploy the commit to staging.

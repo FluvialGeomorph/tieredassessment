@@ -30,8 +30,10 @@ Use this workflow once for each customer application after an approved
 8. Validate the skin, run package tests, and exercise the complete workflow.
 9. Generate a manifest using the dependency-resolution mode recorded in
    `.fluvial-app.yml`.
-10. Commit the downstream-owned files and push the initial downstream `main`.
-11. Deploy the exact commit to staging, review it, then explicitly promote that
+10. Commit the downstream-owned files and run the current read-only repository
+    preflight described in `downstream-verification.md`.
+11. Push the initial downstream `main`.
+12. Deploy the exact commit to staging, review it, then explicitly promote that
     same commit to production.
 
 ## Stop conditions
