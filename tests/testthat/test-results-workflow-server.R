@@ -50,6 +50,20 @@ test_that("app server starts with Results gating disabled", {
   })
 })
 
+test_that("post-flush Results gate is safe without an active reactive consumer", {
+  skip_if_not_installed("shiny")
+
+  results_gate <- shiny::reactiveVal(TRUE)
+
+  expect_no_error(
+    ready <- read_deferred_results_gate(results_gate)
+  )
+  expect_true(ready)
+
+  results_gate(FALSE)
+  expect_false(read_deferred_results_gate(results_gate))
+})
+
 test_that("discharge recalculation reuses the cached reach slope", {
   skip_if_not_installed("shiny")
 
