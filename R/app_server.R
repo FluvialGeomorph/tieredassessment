@@ -419,7 +419,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
 
   observeEvent(input$channel_elevation, {
     req(results_loaded())
-    req(is.numeric(input$channel_mannings))
+    req(!is.null(input$channel_mannings))
     log_message(paste("Channel elevation value:", input$channel_elevation))
     
     # Validate state capture via helper
@@ -509,7 +509,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
 
   observeEvent(input$floodplain_elevation, {
     req(results_loaded())
-    req(is.numeric(input$floodplain_mannings))
+    req(!is.null(input$floodplain_mannings))
     log_message(paste(
       "Floodplain elevation value:",
       input$floodplain_elevation
@@ -604,7 +604,7 @@ app_server <- function(input, output, session, skin = load_app_skin()) {
 
 observeEvent(input$channel_mannings, {
     req(results_loaded())
-    req(is.numeric(input$channel_mannings))
+    req(!is.null(input$channel_mannings))
     log_message("update discharge ---------------------------------------")
     
     # Validate state capture via helper
@@ -627,7 +627,7 @@ observeEvent(input$channel_mannings, {
 
   observeEvent(input$floodplain_mannings, {
     req(results_loaded())
-    req(is.numeric(input$floodplain_mannings))
+    req(!is.null(input$floodplain_mannings))
     log_message("update discharge ---------------------------------------")
     
     # Validate state capture via helper

@@ -38,6 +38,29 @@ test_that("Floodplain elevation update captures slider values correctly", {
   expect_equal(update_state$mannings_n, 0.07)
 })
 
+test_that("REM updates accept Manning inputs from Shiny select controls", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  channel_state <- prepare_channel_elevation_update(
+    channel_elevation = 111.0,
+    pick_xs = 2,
+    xs_pts = xs_pts_value,
+    mannings_n = "0.05"
+  )
+  floodplain_state <- prepare_floodplain_elevation_update(
+    floodplain_elevation = 112.0,
+    pick_xs = 2,
+    xs_pts = xs_pts_value,
+    mannings_n = "0.07"
+  )
+
+  expect_identical(channel_state$mannings_n, 0.05)
+  expect_identical(floodplain_state$mannings_n, 0.07)
+})
+
 test_that("Elevation value validation works for valid values", {
   xs_pts_value <- data.frame(
     Seq = c(1, 1, 1, 2, 2, 2),
@@ -153,6 +176,29 @@ test_that("Floodplain Manning's n update captures slider values correctly", {
   expect_equal(update_state$pick_xs, 2)
 })
 
+test_that("Manning updates accept values from Shiny select controls", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  channel_state <- prepare_channel_mannings_update(
+    channel_elevation = 111.0,
+    channel_mannings = "0.04",
+    pick_xs = 2,
+    xs_pts = xs_pts_value
+  )
+  floodplain_state <- prepare_floodplain_mannings_update(
+    floodplain_elevation = 112.0,
+    floodplain_mannings = "0.07",
+    pick_xs = 2,
+    xs_pts = xs_pts_value
+  )
+
+  expect_identical(channel_state$channel_mannings_value, 0.04)
+  expect_identical(floodplain_state$floodplain_mannings_value, 0.07)
+})
+
 test_that("Manning's n value validation works for valid values", {
   # Typical values from app UI
   valid <- is_mannings_n_valid(0.03)
@@ -187,6 +233,14 @@ test_that("Manning's n value validation rejects non-numeric values", {
 
   valid <- is_mannings_n_valid(c(0.05, 0.06))
   expect_false(valid)
+
+  expect_false(is_mannings_n_valid(NA_real_))
+  expect_false(is_mannings_n_valid(Inf))
+  expect_error(
+    normalize_mannings_n_input("not-a-number"),
+    "must be one numeric value",
+    fixed = TRUE
+  )
 })
 
 test_that("Channel Manning's n update rejects missing required data", {

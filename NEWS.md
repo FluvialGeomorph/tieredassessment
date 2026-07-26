@@ -1,5 +1,8 @@
 # ohwm2 2026.07.25.9000
 
+* Results observers now normalize Manning's values from Shiny select controls
+  before validation, restoring channel and floodplain REM recalculation when
+  their sliders change.
 * Results slider initialization now extracts detrended elevations as an
   attribute vector from production `sf` cross-section points, preventing an
   `is.finite()` list-method failure when **View Results** is selected.
