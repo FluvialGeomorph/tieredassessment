@@ -10,6 +10,11 @@ where its skin lives, and how its manifest is generated.
 This metadata describes expected state. Git and generated artifacts remain the
 authoritative evidence of actual state.
 
+Application maintainers normally create this file by copying
+`dev/examples/downstream-app.yml`. For schema version 1, edit only
+`application_id` and `upstream.release` unless a schema migration explicitly
+instructs otherwise.
+
 ## Version 1 contract
 
 ```yaml
@@ -50,6 +55,8 @@ deployment:
 
 - `repository` is the canonical HTTPS Git URL for `ohwm2`.
 - `remote` is the local Git remote name and must be `upstream` in version 1.
+- Local Git configuration protects this fetch-only role with push URL
+  `DISABLED`; `remote.pushDefault` is `origin`.
 - `release` is a non-empty immutable Git tag that exists in the upstream
   repository.
 - Verification must prove that the tagged commit is an ancestor of the

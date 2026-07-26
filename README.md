@@ -30,6 +30,15 @@ sites. It has the following features:
 -   Tools for choosing a bankfull elevation for ungaged streams
 -   Calculate stream channel dimensions
 
+## Customer application maintainers
+
+Geospatial data scientists maintaining OHWM, Floodplain Connectivity,
+or Tiered Assessment applications should begin with the
+[customer application maintainer
+guide](dev/workflows/downstream-operator-index.md). It provides
+Positron/VS Code-oriented procedures for repository setup,
+synchronization, verification, deployment promotion, and rollback.
+
 ## Funding
 
 <img src="man/figures/chl.png" width=125 align="right" />

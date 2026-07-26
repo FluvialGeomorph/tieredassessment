@@ -1,64 +1,123 @@
-# Promoting and rolling back a downstream application
+# Stage, promote, and roll back a customer application
 
-## Trigger
+## Purpose
 
-Use this workflow after a downstream synchronization or customer-only
-presentation change has passed automated verification.
+Use this procedure after a customer configuration or synchronization PR has
+been merged. It records exactly what was tested and ensures production uses
+the same customer commit and manifest as staging.
 
-## Inputs
+This procedure does not require changing Git remotes. All Git work is in the
+customer repository, whose local name is `origin`.
 
-- verified downstream commit;
-- generated manifest for that commit;
-- staging and production deployment targets;
-- previous known-good production commit;
-- reviewer approval.
+## Before staging
 
-## Staging
+In Positron or VS Code, open the customer repository, switch to `main`, pull
+from `origin`, and confirm Source Control is clean.
 
-1. Require a clean working tree and record `git rev-parse HEAD`.
-2. Run the current preflight in `downstream-verification.md`, followed by its
-   listed manual checks. Release mode is planned but not yet implemented.
-3. Generate or confirm the manifest from that exact commit and dependency
-   state.
-4. Deploy the commit to staging.
-5. Verify customer presentation and the complete workflow in a fresh session.
-6. Record the staging URL or target identifier outside secrets-bearing files.
-7. Obtain explicit promotion approval.
+Run the read-only preflight in the R console:
 
-## Production promotion
+```r
+pkgload::load_all()
+check_downstream_repository()
+```
 
-1. Confirm `HEAD` and the manifest checksum still match the staged evidence.
-2. Deploy the same commit and manifest to production.
-3. Run a concise production smoke test.
-4. Record deployment time, downstream commit, upstream release, R version, and
-   manifest checksum.
-5. Preserve the prior known-good deployment record for rollback.
+Then record the exact evidence in the terminal:
 
-## Stop conditions
+```powershell
+git rev-parse HEAD
+git remote get-url origin
+git remote get-url upstream
+Get-FileHash -Algorithm SHA256 manifest.json
+```
 
-Stop promotion when:
+Copy the complete commit and manifest hash into the deployment record. Do not
+use only a branch name such as `main`; branch names can move.
 
-- any tracked file changed after staging verification;
-- staging and production would use different commits or manifests;
-- a required secret or external service is unavailable;
-- the customer workflow fails;
-- the previous known-good commit is unknown.
+## Deployment record template
 
-## Rollback
+Store this record in the team's approved non-secret operational location:
 
-1. Select the previous known-good downstream commit and its manifest.
-2. Redeploy that immutable pair to production.
-3. Run the production smoke test.
-4. Record the rollback and the failed release evidence.
-5. Diagnose and fix the issue through normal upstream or downstream ownership
-   rules.
+```text
+Application:
+Environment:
+Deployment date and time:
+Downstream repository:
+Downstream commit:
+Upstream release:
+R version:
+Manifest SHA-256:
+Deployment destination:
+Interactive reviewer:
+Previous production commit:
+Previous manifest SHA-256:
+Notes:
+```
 
-Do not move a release tag, rewrite branch history, or create an unreviewed code
-revert during an operational rollback.
+Do not include tokens, passwords, client secrets, or other credentials.
 
-## Durable outputs
+## Stage the application
 
-- staging and production deployment records;
-- exact commit and manifest provenance;
-- preserved rollback target;
-- incident or follow-up record when rollback was required.
+1. Regenerate or confirm `manifest.json` for the recorded commit and
+   dependency state.
+2. Confirm `git status --short` prints nothing.
+3. Deploy that commit and manifest to staging using the team's normal
+   rsconnect procedure.
+4. Start a fresh staging session.
+5. Confirm customer title, instructions, theme, and images.
+6. Complete Draw XS, Draw Flowline, and Results.
+7. Record the staging destination and reviewer.
+8. Obtain explicit approval to promote.
+
+If any file changes during staging review, stop. Commit the change through a
+new customer PR, regenerate the manifest, and repeat staging.
+
+## Confirm the evidence before production
+
+Immediately before production, rerun:
+
+```powershell
+git rev-parse HEAD
+Get-FileHash -Algorithm SHA256 manifest.json
+git status --short
+```
+
+The commit and hash must exactly match the staging record, and the status
+command must print nothing. If they differ, do not deploy.
+
+## Promote to production
+
+1. Deploy the same recorded commit and manifest to production.
+2. Run a concise production smoke test in a fresh session.
+3. Complete the deployment record.
+4. Preserve the previous production commit and manifest hash as the rollback
+   target.
+
+Promotion is a deployment action. Do not create a new Git commit, merge,
+rebase, or move a tag during promotion.
+
+## Roll back production
+
+Rollback means redeploying the previous known-good commit and its matching
+manifest. It does not mean undoing Git history.
+
+1. Select the previous commit and manifest pair from the deployment record.
+2. Confirm both identifiers with a second maintainer.
+3. Redeploy that pair to production.
+4. Run the production smoke test.
+5. Record the rollback time, restored commit and hash, failed deployment, and
+   observed problem.
+6. Diagnose the issue through a normal `ohwm2` or customer feature branch and
+   PR.
+
+Do not move a release tag, Force Push, reset customer `main`, or create an
+unreviewed code revert during an operational rollback.
+
+## Stop and ask for help when
+
+- Source Control is not clean;
+- `origin` or `upstream` has an unexpected URL;
+- the preflight fails;
+- the commit or manifest hash differs from staging;
+- the previous known-good commit and manifest are unknown;
+- a credential or external service is unavailable;
+- the customer workflow fails.

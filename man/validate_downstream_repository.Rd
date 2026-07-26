@@ -17,12 +17,13 @@ A machine-readable list of validated metadata and local Git
 }
 \description{
 Validate `.fluvial-app.yml` and inspect local Git evidence for a downstream
-customer application. The repository must be clean, its configured
-`upstream` remote must use the canonical URL, the recorded release tag must
-resolve locally and be an ancestor of `HEAD`, and changes since that release
-must remain within downstream-owned paths. The configured skin is merged
-with the repository's template defaults, validated, and checked for tracked
-customer-asset references.
+customer application. The repository must be clean, its configured `origin`
+must be the protected default push destination, its configured `upstream`
+remote must use the canonical fetch URL and a disabled push URL, the
+recorded release tag must resolve locally and be an ancestor of `HEAD`, and
+changes since that release must remain within downstream-owned paths. The
+configured skin is merged with the repository's template defaults,
+validated, and checked for tracked customer-asset references.
 }
 \details{
 This function is read-only. It does not fetch tags, modify Git state,
