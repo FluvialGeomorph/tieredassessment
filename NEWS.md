@@ -1,5 +1,8 @@
 # ohwm2 2026.07.25.9000
 
+* Results initialization now clamps channel and floodplain slider values to
+  the selected cross section's computed range before updating the Shiny
+  inputs, preventing invalid-value warnings that blocked Results review.
 * Added a validated application skin layer for task-specific identity, theme,
   navigation labels, guidance, progress messages, and favicon assets while
   preserving shared workflow behavior.

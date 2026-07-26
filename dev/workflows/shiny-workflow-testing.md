@@ -6,7 +6,8 @@ The initial Results workflow helper-based regression tests are in place and pass
 Coverage has now been expanded with:
 - repeat-run stability checks,
 - readiness/output gating checks,
-- server transition seam tests across fresh sessions.
+- server transition seam tests across fresh sessions,
+- cross-section-specific slider clamping before programmatic updates.
 
 A small injectable seam (`set_results_loaded`) has been added to `run_results_workflow_transition()` so server-level gate-setting behavior can be tested deterministically without brittle coupling to implicit reactive internals.
 
@@ -130,6 +131,8 @@ The suite should catch cases where:
 These tests should encode the following rules as durable expectations:
 
 - Capture reactive values into local variables before using them in `update*Input()` calls.
+- Clamp captured slider values to newly computed bounds before updating both
+  bounds and values in one `updateSliderInput()` call.
 - Avoid reading and writing the same reactive input in the same control path when possible.
 - Prefer explicit workflow state over implicit sequencing.
 - Keep output registration stable where possible.

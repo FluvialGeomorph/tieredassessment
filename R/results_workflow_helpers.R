@@ -1,7 +1,7 @@
 #' Prepare Results slider state for update
 #'
-#' Captures the current slider values and computes the slider range used during
-#' Results initialization.
+#' Captures the current slider values, computes the slider range used during
+#' Results initialization, and clamps each value into that range.
 #'
 #' @param xs_pts A data frame-like object containing at least `Seq` and
 #'   `Detrend_DEM_Z` columns.
@@ -25,23 +25,73 @@ prepare_results_slider_state <- function(
   stopifnot("Seq" %in% names(xs_pts))
   stopifnot("Detrend_DEM_Z" %in% names(xs_pts))
 
-  rem_min <- round(
-    min(dplyr::filter(xs_pts, Seq == as.numeric(pick_xs))$Detrend_DEM_Z),
-    1
-  ) + 0.1
-  rem_min <- ifelse(rem_min > 100, rem_min, 100)
+  selected_xs <- xs_pts[
+    xs_pts$Seq == as.numeric(pick_xs),
+    "Detrend_DEM_Z"
+  ]
+  selected_xs <- selected_xs[is.finite(selected_xs)]
+  if (length(selected_xs) == 0L) {
+    stop(
+      "Selected cross section has no finite `Detrend_DEM_Z` values.",
+      call. = FALSE
+    )
+  }
 
-  rem_max <- round(
-    max(dplyr::filter(xs_pts, Seq == as.numeric(pick_xs))$Detrend_DEM_Z),
-    0
-  ) - 1
+  rem_min <- max(round(min(selected_xs), 1) + 0.1, 100)
+  rem_max <- round(max(selected_xs), 0) - 1
+  if (!is.finite(rem_min) ||
+      !is.finite(rem_max) ||
+      rem_min >= rem_max) {
+    stop(
+      "Selected cross section does not provide a valid Results slider range.",
+      call. = FALSE
+    )
+  }
 
   list(
     rem_min = rem_min,
     rem_max = rem_max,
-    channel_elevation_value = channel_elevation,
-    floodplain_elevation_value = floodplain_elevation
+    channel_elevation_value = clamp_results_slider_value(
+      channel_elevation,
+      lower = rem_min,
+      upper = rem_max,
+      input_name = "channel_elevation"
+    ),
+    floodplain_elevation_value = clamp_results_slider_value(
+      floodplain_elevation,
+      lower = rem_min,
+      upper = rem_max,
+      input_name = "floodplain_elevation"
+    )
   )
+}
+
+#' Clamp a Results slider value
+#'
+#' @param value Current slider value.
+#' @param lower Computed lower slider bound.
+#' @param upper Computed upper slider bound.
+#' @param input_name Input name used in validation errors.
+#'
+#' @return One finite numeric value within `lower` and `upper`.
+#' @noRd
+clamp_results_slider_value <- function(
+  value,
+  lower,
+  upper,
+  input_name
+) {
+  if (!is.numeric(value) ||
+      length(value) != 1L ||
+      is.na(value) ||
+      !is.finite(value)) {
+    stop(
+      "`", input_name, "` must be one finite numeric value.",
+      call. = FALSE
+    )
+  }
+
+  max(lower, min(upper, as.numeric(value)))
 }
 
 #' Prepare Results workflow state
@@ -111,7 +161,7 @@ run_results_workflow_transition <- function(session,
 
   slider_state <- workflow_state$slider_state
 
-  # Keep existing slider update behavior
+  # Values are clamped to the new cross-section-specific bounds before update.
   updateSliderInput(
     session = session,
     inputId = "channel_elevation",

@@ -11,8 +11,8 @@ test_that("Results slider state helper can support the workflow transition", {
     floodplain_elevation = 115.25
   )
 
-  expect_equal(slider_state$channel_elevation_value, 108.5)
-  expect_equal(slider_state$floodplain_elevation_value, 115.25)
+  expect_equal(slider_state$channel_elevation_value, 110.2)
+  expect_equal(slider_state$floodplain_elevation_value, 112.0)
   expect_equal(slider_state$rem_min, 110.2)
   expect_equal(slider_state$rem_max, 112.0)
 })
@@ -63,16 +63,26 @@ test_that("run_results_workflow_transition marks Results ready", {
       pick_xs = 2
     )
 
-    transition_state <- run_results_workflow_transition(
-      session = session,
-      input = input,
-      xs_pts = xs_pts_value,
-      set_results_loaded = function(...) NULL
+    expect_no_warning(
+      transition_state <- run_results_workflow_transition(
+        session = session,
+        input = input,
+        xs_pts = xs_pts_value,
+        set_results_loaded = function(...) NULL
+      )
     )
 
     expect_true(is.list(transition_state))
     expect_true(transition_state$results_loaded)
     expect_true(is.list(transition_state$slider_state))
+    expect_equal(
+      transition_state$slider_state$channel_elevation_value,
+      110.2
+    )
+    expect_equal(
+      transition_state$slider_state$floodplain_elevation_value,
+      112.0
+    )
   })
 })
 

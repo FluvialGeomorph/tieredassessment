@@ -14,8 +14,8 @@ test_that("prepare_results_workflow_state returns slider state and readiness", {
   expect_true(is.list(res))
   expect_true(is.list(res$slider_state))
   expect_true(res$results_loaded)
-  expect_equal(res$slider_state$channel_elevation_value, 103.5)
-  expect_equal(res$slider_state$floodplain_elevation_value, 112.25)
+  expect_equal(res$slider_state$channel_elevation_value, 103.0)
+  expect_equal(res$slider_state$floodplain_elevation_value, 103.0)
   expect_equal(res$slider_state$rem_min, 101.3)
   expect_equal(res$slider_state$rem_max, 103.0)
 })
@@ -35,6 +35,8 @@ test_that("prepare_results_workflow_state preserves pick_xs selection", {
 
   expect_equal(res$slider_state$rem_min, 110.2)
   expect_equal(res$slider_state$rem_max, 112.0)
+  expect_equal(res$slider_state$channel_elevation_value, 110.2)
+  expect_equal(res$slider_state$floodplain_elevation_value, 112.0)
   expect_true(res$results_loaded)
 })
 
