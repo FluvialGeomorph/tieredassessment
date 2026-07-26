@@ -24,6 +24,9 @@ The current implementation validates:
 - local resolution of the recorded immutable release tag;
 - ancestry from that release commit to downstream `HEAD`;
 - confinement of changes since that release to downstream-owned paths.
+- the tracked downstream skin merged with template-owned defaults;
+- agreement between metadata and merged skin schema versions;
+- safe, existing, tracked customer assets referenced by the merged skin.
 
 The command does not fetch or prove remote publication by itself. Fetch the
 canonical remote as an explicit synchronization step, and review the published
@@ -34,8 +37,7 @@ release before treating a local tag as authoritative.
 Until later tooling increments are implemented, continue to run these checks
 separately:
 
-- `ohwm2::validate_app_skin_file("inst/app/skin.yml")`;
-- referenced customer-asset review;
+- visual review of customer guidance, branding, and assets;
 - `renv::status()` and dependency-source review;
 - focused and complete tests, `R CMD check`, and an interactive workflow test;
 - manifest regeneration and comparison for the exact downstream commit;
@@ -49,11 +51,10 @@ is not yet sufficient for deployment.
 
 The verifier will be extended without gaining mutation authority:
 
-1. compose skin and customer-asset checks;
-2. report dependency and manifest evidence;
-3. represent each check in a stable machine-readable report;
-4. add a command-line entry point suitable for CI;
-5. add release mode after all required checks have deterministic evidence.
+1. report dependency and manifest evidence;
+2. represent each check in a stable machine-readable report;
+3. add a command-line entry point suitable for CI;
+4. add release mode after all required checks have deterministic evidence.
 
 It will not fetch, merge, tag, resolve conflicts, generate manifests, deploy,
 or promote releases.

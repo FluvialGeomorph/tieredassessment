@@ -44,7 +44,43 @@ create_downstream_repository <- function() {
   run_test_git(repository, c("config", "commit.gpgsign", "false"))
 
   writeLines("shared upstream content", file.path(repository, "README.md"))
-  run_test_git(repository, c("add", "README.md"))
+  dir.create(file.path(repository, "inst", "app", "www"), recursive = TRUE)
+  writeLines(
+    c(
+      "default:",
+      "  schema_version: 1",
+      "  identity:",
+      "    app_title: Upstream Test",
+      "    browser_title: Upstream Test",
+      "    favicon: www/favicon.png",
+      "  theme:",
+      "    bootswatch: sandstone",
+      "    version: 5",
+      "  workflow:",
+      "    draw_xs:",
+      "      nav_label: Draw XS",
+      "      sidebar_title: Draw a cross section",
+      "      instructions:",
+      "        - Draw the cross section.",
+      "      next_button: Draw Flowline",
+      "      progress_message: Retrieving elevation data",
+      "    draw_flowline:",
+      "      nav_label: Draw Flowline",
+      "      sidebar_title: Draw a flowline",
+      "      instructions:",
+      "        - Draw the flowline.",
+      "      next_button: Review Results",
+      "      progress_message: Calculating results",
+      "    results:",
+      "      nav_label: Results"
+    ),
+    file.path(repository, "inst", "app", "skin-default.yml")
+  )
+  writeBin(
+    as.raw(c(137, 80, 78, 71)),
+    file.path(repository, "inst", "app", "www", "favicon.png")
+  )
+  run_test_git(repository, c("add", "README.md", "inst/app"))
   run_test_git(repository, c("commit", "-m", shQuote("upstream release")))
   run_test_git(repository, c("tag", "2026.07.25"))
   run_test_git(
@@ -59,17 +95,29 @@ create_downstream_repository <- function() {
 
   metadata <- git_test_downstream_metadata()
   yaml::write_yaml(metadata, file.path(repository, ".fluvial-app.yml"))
-  dir.create(
-    file.path(repository, "inst", "app"),
-    recursive = TRUE
-  )
   writeLines(
-    c("default:", "  identity:", "    app_title: Test"),
+    c(
+      "default:",
+      "  identity:",
+      "    app_title: Test",
+      "    browser_title: Test",
+      "    favicon: www/customer/favicon.png"
+    ),
     file.path(repository, "inst", "app", "skin.yml")
+  )
+  dir.create(file.path(repository, "inst", "app", "www", "customer"))
+  writeBin(
+    as.raw(c(137, 80, 78, 71)),
+    file.path(repository, "inst", "app", "www", "customer", "favicon.png")
   )
   run_test_git(
     repository,
-    c("add", ".fluvial-app.yml", "inst/app/skin.yml")
+    c(
+      "add",
+      ".fluvial-app.yml",
+      "inst/app/skin.yml",
+      "inst/app/www/customer/favicon.png"
+    )
   )
   run_test_git(repository, c("commit", "-m", shQuote("add downstream skin")))
 
@@ -90,9 +138,18 @@ test_that("downstream Git evidence is returned for an allowed divergence", {
   expect_equal(evidence$metadata$application_id, "floodplain-connectivity")
   expect_equal(evidence$git$upstream$release, "2026.07.25")
   expect_match(evidence$git$head, "^[0-9a-f]{40,64}$")
+  expect_equal(evidence$application$schema_version, 1L)
+  expect_equal(
+    evidence$application$referenced_customer_assets,
+    "inst/app/www/customer/favicon.png"
+  )
   expect_setequal(
     evidence$git$changed_paths,
-    c(".fluvial-app.yml", "inst/app/skin.yml")
+    c(
+      ".fluvial-app.yml",
+      "inst/app/skin.yml",
+      "inst/app/www/customer/favicon.png"
+    )
   )
 })
 
@@ -194,5 +251,23 @@ test_that("downstream shared-code divergence is rejected", {
       repository
     ),
     "outside owned paths.*R/patch.R"
+  )
+})
+
+test_that("downstream skin rejects a missing customer asset", {
+  repository <- create_downstream_repository()
+  withr::defer(unlink(repository, recursive = TRUE))
+  run_test_git(
+    repository,
+    c("rm", "inst/app/www/customer/favicon.png")
+  )
+  run_test_git(repository, c("commit", "-m", shQuote("remove customer asset")))
+
+  expect_error(
+    validate_downstream_repository(
+      file.path(repository, ".fluvial-app.yml"),
+      repository
+    ),
+    "missing packaged asset"
   )
 })
