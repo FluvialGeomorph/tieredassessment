@@ -6,3 +6,6 @@ should review all identity and guidance text before using one in a deployment.
 
 Copy the relevant file to `inst/app/skin.yml` in a downstream repository and
 keep only fields that differ from `inst/app/skin-default.yml`.
+
+Use `dev/examples/downstream-app.yml` as the starting point for the downstream
+repository's `.fluvial-app.yml`.
