@@ -530,7 +530,7 @@ app_server <- function(
         remove_modal_spinner()
         session$onFlushed(
           function() {
-            if (isTRUE(results_loaded())) {
+            if (read_deferred_results_gate(results_loaded)) {
               key <- as.character(isolate(input$pick_xs))
               if (is.null(isolate(dem_slope_cache())[[key]])) {
                 refresh_dem_slope()

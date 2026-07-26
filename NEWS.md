@@ -1,5 +1,8 @@
 # ohwm2 2026.07.25.9000
 
+* The deferred post-flush slope lookup now reads the Results readiness gate in
+  an isolated Shiny context, preventing **View Results** from raising
+  `Operation not allowed without an active reactive context`.
 * Results now provides a slope-scale control with **USGS Reach** as the default
   and **Local DEM** as an explicit exploratory alternative. Lookups use bounded
   retry/backoff and a request timeout, slopes are cached by cross section, and

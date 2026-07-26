@@ -134,6 +134,24 @@ prepare_results_workflow_state <- function(
   )
 }
 
+#' Read the Results gate from a deferred Shiny callback
+#'
+#' Deferred callbacks such as `session$onFlushed()` do not run inside a
+#' reactive consumer. Isolating the read supplies the required context without
+#' creating a reactive dependency.
+#'
+#' @param results_loaded A Shiny reactive-value getter.
+#'
+#' @return One logical value.
+#' @noRd
+read_deferred_results_gate <- function(results_loaded) {
+  if (!is.function(results_loaded)) {
+    stop("results_loaded must be a reactive-value getter")
+  }
+
+  isTRUE(shiny::isolate(results_loaded()))
+}
+
 #' Run the Results workflow transition
 #'
 #' Prepares workflow state for Results, updates relevant slider inputs, and marks
