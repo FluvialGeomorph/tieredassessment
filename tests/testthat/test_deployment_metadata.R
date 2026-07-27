@@ -4,8 +4,10 @@ test_that("deployment metadata excludes obsolete and circular dependencies", {
   }
 
   app <- readLines(project_file("app.R"), warn = FALSE)
+  description <- readLines(project_file("DESCRIPTION"), warn = FALSE)
   lockfile <- readLines(project_file("renv.lock"), warn = FALSE)
   manifest <- readLines(project_file("manifest.json"), warn = FALSE)
+  terra_source_sha <- "2cb1414647067df4fe2b738dc1f5c95772902578"
 
   expect_true(any(grepl("run_app()", app, fixed = TRUE)))
   expect_false(any(grepl("ohwm2::run_app", app, fixed = TRUE)))
@@ -13,4 +15,11 @@ test_that("deployment metadata excludes obsolete and circular dependencies", {
   expect_false(any(grepl('"ohwm2": {', manifest, fixed = TRUE)))
   expect_false(any(grepl("shinyValidator", lockfile, fixed = TRUE)))
   expect_false(any(grepl("shinyValidator", manifest, fixed = TRUE)))
+  expect_true(any(grepl(
+    paste0("rspatial/terra@", terra_source_sha),
+    description,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(terra_source_sha, lockfile, fixed = TRUE)))
+  expect_true(any(grepl(terra_source_sha, manifest, fixed = TRUE)))
 })
