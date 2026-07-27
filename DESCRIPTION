@@ -64,5 +64,6 @@ Config/testthat/edition: 3
 Language: en-US
 Remotes: 
     FluvialGeomorph/fluvgeo@*release,
-    FluvialGeomorph/fluvgeodata@v2025.04.12
+    FluvialGeomorph/fluvgeodata@v2025.04.12,
+    rspatial/terra@2cb1414647067df4fe2b738dc1f5c95772902578
 Config/roxygen2/version: 8.0.0
