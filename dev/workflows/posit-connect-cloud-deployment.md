@@ -95,6 +95,22 @@ Confirm the public URL is unchanged and repeat the production smoke test.
 Do not move an `ohwm2` release tag, rewrite Git history, force-push customer
 `main`, or create a replacement content item as an operational rollback.
 
+## Hosted geospatial binary ABI failures
+
+If a compiled R package loads unsuccessfully because a shared-library SONAME
+such as `libproj.so.*` is absent, distinguish the package's declared system
+requirements from the libraries against which its installed binary was built.
+Connect Cloud is managed: do not prescribe `apt` commands or edit a customer
+manifest by hand.
+
+Retry the same existing-content build once. If the identical loader error
+recurs, retain the failed log and public URL, submit them through Connect
+Cloud's in-app support option, and repair the dependency in `ohwm2`. When the
+package otherwise supports Connect Cloud's documented system libraries, prefer
+an immutable upstream source commit for the same package version so the hosted
+build compiles against its own runtime ABI. Publish and validate a new `ohwm2`
+release before synchronizing customer repositories.
+
 ## Stop conditions
 
 Stop and obtain review when:

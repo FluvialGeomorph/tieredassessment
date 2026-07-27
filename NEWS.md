@@ -1,5 +1,8 @@
 # ohwm2 2026.07.26.9000
 
+* Pinned `terra 1.9-34` to its immutable upstream source commit so managed
+  Linux deployments compile against the geospatial libraries in their runtime
+  image instead of reusing an ABI-incompatible hosted binary.
 * Deployment metadata no longer treats the package-style Shiny application as
   its own installed dependency. The manifest now includes the complete shared
   release source and excludes the obsolete `shinyValidator` record.
