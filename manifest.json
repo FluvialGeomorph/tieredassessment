@@ -5373,7 +5373,14 @@
         "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
         "Repository": "CRAN",
         "Date/Publication": "2026-05-16 21:50:15 UTC",
-        "Built": "R 4.6.1; ; 2026-07-21 01:04:39 UTC; windows"
+        "Built": "R 4.6.1; ; 2026-07-21 01:04:39 UTC; windows",
+        "RemoteType": "standard",
+        "RemoteRef": "renv",
+        "RemotePkgRef": "renv",
+        "RemoteRepos": "https://cloud.r-project.org",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "1.2.3"
       }
     },
     "reshape2": {
@@ -7503,7 +7510,7 @@
   },
   "files": {
     ".fluvial-app.yml": {
-      "checksum": "faac928d83513a2799a06aa9b4abfa11"
+      "checksum": "5d179dacd9b7a4e46a75fb556485393f"
     },
     ".lintr": {
       "checksum": "90fe41ffbbef2f635be6650fb440fae5"
@@ -7512,7 +7519,7 @@
       "checksum": "167a25dbb4d91d9f8ff511d792bd1a77"
     },
     ".Rprofile": {
-      "checksum": "4f5e58ea598c46167b0e629ad9482c83"
+      "checksum": "f47a0f8a5d5a904eb9431aa2fb26856e"
     },
     "AGENTS.md": {
       "checksum": "4eb04b721f86eaa6a07ee9a9871af435"
@@ -7521,7 +7528,7 @@
       "checksum": "57a5e4d5e53e1fa19289783240029906"
     },
     "DESCRIPTION": {
-      "checksum": "131a1e7dbe1f93780c0d68b729274104"
+      "checksum": "71a59d6d0383d57fd737e45e3d8543ea"
     },
     "inst/app/skin-default.yml": {
       "checksum": "dff8f3454f05463288387ec854939b8a"
