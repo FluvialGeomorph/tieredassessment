@@ -26,7 +26,8 @@ immutable synchronization point for downstream customer applications.
 5. Run focused tests, the complete test suite, `R CMD check`, and the full
    interactive Draw XS through Results workflow.
 6. Generate the deployment manifest using the repository's documented
-   dependency-resolution mode.
+   dependency-resolution mode. Confirm the manifest includes every deployable
+   shared source file and does not list `ohwm2` as its own package dependency.
 7. Review the Git diff, dependency sources, skin-schema changes, and migration
    notes.
 8. Merge the release-preparation pull request into `main`.
@@ -44,6 +45,7 @@ Stop the release when:
 - the working tree or renv state is inconsistent;
 - tests, package checks, or the interactive workflow fail;
 - the manifest contains a local or otherwise unreproducible package source;
+- the lockfile or manifest lists `ohwm2` as an installed dependency of itself;
 - a required skin migration is undocumented;
 - the proposed tag already exists.
 
@@ -57,6 +59,8 @@ The release record must demonstrate:
 - skin-schema version;
 - R version;
 - test and package-check results;
+- no circular `ohwm2` package record or obsolete dependency in the lockfile or
+  manifest;
 - successful `@*release` installation.
 
 ## Durable outputs
