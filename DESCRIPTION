@@ -65,5 +65,6 @@ Language: en-US
 Remotes: 
     FluvialGeomorph/fluvgeo@*release,
     FluvialGeomorph/fluvgeodata@v2025.04.12,
-    rspatial/terra@70ad1a4363888e78fa3ddb1a9a59f9dbf50cef18
+    rspatial/terra@70ad1a4363888e78fa3ddb1a9a59f9dbf50cef18,
+    cloudyr/aws.signature@144af741c9e55badf3eafe18d184f8ecb717cb00
 Config/roxygen2/version: 8.0.0

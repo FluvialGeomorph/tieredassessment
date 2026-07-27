@@ -1,5 +1,8 @@
 # ohwm2 2026.07.27.1
 
+* Pinned `aws.signature 0.6.0` to its immutable upstream source commit so
+  package installation does not attempt to read Connect Cloud's unavailable
+  build-time OIDC token file while loading `mapboxapi`.
 * Pinned `terra 1.9-27` to its immutable upstream source commit. This is the
   newest release before `terra` began calling a GDAL 3.8 API that is absent
   from Posit Connect Cloud's GDAL 3.4.1 build environment. Deployment metadata
