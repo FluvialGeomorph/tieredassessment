@@ -38,6 +38,27 @@ Remote settings do not travel with commits or GitHub PRs. Each fresh clone on
 each maintainer's computer must configure `upstream` and the push safeguards
 once.
 
+## Know which folder Positron is showing
+
+Positron and VS Code Source Control show changes only for the repository folder
+open in that window. They do not automatically combine sibling customer
+repositories, the canonical `ohwm2` checkout, or a separate Git worktree.
+
+Before reviewing or committing, run:
+
+```powershell
+git rev-parse --show-toplevel
+git status --short --branch
+```
+
+The first command must print the folder you intend to change. The second must
+print the expected branch. A committed or merged change will not appear as an
+uncommitted Source Control change; use the repository history to review it.
+
+When two Codex tasks are active, give each task a different repository or Git
+worktree and open that exact folder in its own Positron window. Do not allow
+two writing tasks to share one working folder.
+
 ## Configure a fresh clone on another computer
 
 Use this only after the customer repository has been created. Clone the
