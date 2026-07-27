@@ -111,6 +111,13 @@ an immutable upstream source commit for the same package version so the hosted
 build compiles against its own runtime ABI. Publish and validate a new `ohwm2`
 release before synchronizing customer repositories.
 
+If that source build fails at compile time, compare the failing call with the
+hosted system-library headers and the package's official source history. Select
+the newest immutable upstream release before the incompatible API was
+introduced, confirm that all locked dependents accept that version, and run the
+scientific regression suite. Do not jump to an arbitrarily old package version
+or modify managed system libraries.
+
 ## Stop conditions
 
 Stop and obtain review when:
