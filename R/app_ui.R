@@ -15,10 +15,13 @@ app_ui <- function(request, skin = load_app_skin()) {
   floodplain_rem_info <- "Set the floodplain's water surface level in Relative Elevation Model (REM) units."
   discharge_info <- "This form of the *Gauckler-Manning formula* is used to calculate discharge in the tables below. "
   slope_scale_info <- paste(
-    "USGS Reach uses the NHD reach-scale slope and is the default.",
-    "Local DEM uses the signed slope at the selected cross section.",
-    "If USGS is unavailable, the app automatically uses Local DEM only when",
-    "that slope is positive."
+    "USGS Reach uses one NHD reach-scale slope for every cross section and",
+    "is the default. Sampled DEM Reach uses the elevation range and length",
+    "of the flowline points in the longitudinal profile.",
+    "Local XS Neighborhood uses adjacent cross-section thalweg elevations",
+    "and changes with the selected cross section.",
+    "If USGS is unavailable, the app automatically uses Sampled DEM Reach",
+    "when that slope is positive."
   )
   mannings_choices <- c(
     "(a) Clean, straight, no deep pools (n = 0.030)" = 0.030,
@@ -74,7 +77,7 @@ app_ui <- function(request, skin = load_app_skin()) {
         value = "draw_flowline",
         layout_sidebar(
         # Display fl editing module
-        editModUI(id = "fl_editor_ui_id"),
+        uiOutput("flowline_editor_ui", fill = TRUE),
         sidebar = sidebar(
           title = skin$workflow$draw_flowline$sidebar_title,
           position = "right",
@@ -136,6 +139,7 @@ app_ui <- function(request, skin = load_app_skin()) {
                   )
                 )
               ),
+              uiOutput("interactive_flooding_status"),
               plotOutput("xs_plot_channel", height = "250px"),
               plotOutput("xs_plot_floodplain", height = "250px"),
               card(
@@ -156,7 +160,8 @@ app_ui <- function(request, skin = load_app_skin()) {
                   label = "Slope scale:",
                   choices = c(
                     "USGS Reach (recommended)" = "usgs_reach",
-                    "Local DEM" = "dem_local"
+                    "Sampled DEM Reach" = "dem_reach",
+                    "Local XS Neighborhood" = "dem_xs_local"
                   ),
                   selected = "usgs_reach"
                 ),

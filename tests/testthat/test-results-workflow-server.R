@@ -22,6 +22,10 @@ test_that("view_results observer is present in the server", {
   expect_true(all(c("input", "output", "session") %in% names(fmls)))
   expect_true("reach_slope_resolver" %in% names(fmls))
   expect_true("dem_slope_resolver" %in% names(fmls))
+  expect_true("sampled_dem_slope_resolver" %in% names(fmls))
+  expect_true("dem_resolver" %in% names(fmls))
+  expect_true("dem_max_span_m" %in% names(fmls))
+  expect_true("polygon_cache_max_entries" %in% names(fmls))
 })
 
 test_that("Results workflow state helper marks the workflow ready", {
@@ -47,7 +51,87 @@ test_that("app server starts with Results gating disabled", {
 
   shiny::testServer(app_server, {
     expect_false(results_loaded())
+    expect_true(is.function(channel_vol))
+    expect_true(is.function(floodplain_vol))
+    expect_s3_class(channel_xs_pts(), "sf")
+    expect_s3_class(floodplain_xs_pts(), "sf")
   })
+})
+
+test_that("interactive flooding separates map and analytical update rates", {
+  server_text <- paste(deparse(body(app_server)), collapse = "\n")
+
+  expect_match(
+    server_text,
+    "throttle\\(channel_elevation_live,\\s+millis = 120\\)"
+  )
+  expect_match(
+    server_text,
+    "debounce\\(channel_elevation_live,\\s+millis = 400\\)"
+  )
+  expect_match(
+    server_text,
+    "throttle\\(floodplain_elevation_live,\\s+millis = 120\\)"
+  )
+  expect_match(
+    server_text,
+    "debounce\\(floodplain_elevation_live,\\s+millis = 400\\)"
+  )
+  expect_false(grepl("flyTo(", server_text, fixed = TRUE))
+})
+
+test_that("interactive flooding keeps classification lanes independent", {
+  server_text <- paste(deparse(body(app_server)), collapse = "\n")
+
+  expect_match(server_text, "channel_xs_pts\\(update_xs_polygon_classification")
+  expect_match(
+    server_text,
+    "floodplain_xs_pts\\(update_xs_polygon_classification"
+  )
+  expect_false(grepl("xs_pts <<- update_xs_polygon_classification", server_text))
+  expect_false(grepl("channel_ws", server_text, fixed = TRUE))
+  expect_false(grepl("floodplain_ws", server_text, fixed = TRUE))
+})
+
+test_that("selected cross sections refresh REM slider bounds", {
+  server_text <- paste(deparse(body(app_server)), collapse = "\n")
+
+  expect_match(server_text, "observeEvent\\(input\\$pick_xs")
+  expect_match(server_text, "slider_state <- prepare_results_slider_state")
+  expect_match(
+    server_text,
+    'updateSliderInput\\(session, "channel_elevation"'
+  )
+  expect_match(
+    server_text,
+    'updateSliderInput\\(session, "floodplain_elevation"'
+  )
+})
+
+test_that("Results outputs are registered only once", {
+  server_text <- paste(deparse(body(app_server)), collapse = "\n")
+  output_ids <- c(
+    "results_map",
+    "long_profile",
+    "xs_plot_floodplain",
+    "xs_plot_channel",
+    "channel_discharge",
+    "floodplain_discharge",
+    "floodplain_volumes"
+  )
+
+  for (output_id in output_ids) {
+    assignments <- gregexpr(
+      paste0("output$", output_id, " <-"),
+      server_text,
+      fixed = TRUE
+    )[[1]]
+    expect_equal(
+      sum(assignments > 0L),
+      1L,
+      info = paste(output_id, "should be registered once")
+    )
+  }
 })
 
 test_that("post-flush Results gate is safe without an active reactive consumer", {
@@ -68,7 +152,7 @@ test_that("discharge recalculation reuses the cached reach slope", {
   skip_if_not_installed("shiny")
 
   resolver_calls <- 0L
-  resolver <- function(xs_pts, xs_number) {
+  resolver <- function(xs_pts, xs_number, fallback_result = NULL) {
     resolver_calls <<- resolver_calls + 1L
     new_reach_slope_result(
       value = 0.002,
@@ -91,6 +175,14 @@ test_that("discharge recalculation reuses the cached reach slope", {
       session$setInputs(pick_xs = 4, slope_scale = "usgs_reach")
 
       refresh_dem_slope()
+      sampled_dem_slope_cache(new_reach_slope_result(
+        value = 0.0015,
+        source = "dem_reach",
+        status = "available",
+        reason = NULL,
+        attempts = 0L,
+        message = "Sampled DEM Reach slope is available."
+      ))
       refresh_reach_slope(notify_user = FALSE)
       expect_equal(resolver_calls, 1L)
 
@@ -110,7 +202,7 @@ test_that("discharge recalculation reuses the cached reach slope", {
       expect_s3_class(channel_table, "gt_tbl")
       expect_s3_class(floodplain_table, "gt_tbl")
 
-      session$setInputs(slope_scale = "dem_local")
+      session$setInputs(slope_scale = "dem_xs_local")
       local_table <- render_cached_discharge(
         xs_pts = xs_pts_value,
         xs_number = 4,
@@ -118,6 +210,15 @@ test_that("discharge recalculation reuses the cached reach slope", {
         mannings_n = 0.035
       )
       expect_s3_class(local_table, "gt_tbl")
+
+      session$setInputs(slope_scale = "dem_reach")
+      sampled_table <- render_cached_discharge(
+        xs_pts = xs_pts_value,
+        xs_number = 4,
+        bf_estimate = 103.5,
+        mannings_n = 0.035
+      )
+      expect_s3_class(sampled_table, "gt_tbl")
 
       session$setInputs(slope_scale = "usgs_reach")
       expect_s3_class(
@@ -129,6 +230,10 @@ test_that("discharge recalculation reuses the cached reach slope", {
         ),
         "gt_tbl"
       )
+      expect_equal(resolver_calls, 1L)
+
+      session$setInputs(pick_xs = 8)
+      expect_equal(current_reach_slope()$value, 0.002)
       expect_equal(resolver_calls, 1L)
   })
 })
@@ -160,6 +265,8 @@ test_that("run_results_workflow_transition marks Results ready", {
     expect_true(is.list(transition_state))
     expect_true(transition_state$results_loaded)
     expect_true(is.list(transition_state$slider_state))
+    expect_equal(transition_state$cross_section_choices, c(1, 2))
+    expect_equal(transition_state$pick_xs, 2)
     expect_equal(
       transition_state$slider_state$channel_elevation_value,
       110.2

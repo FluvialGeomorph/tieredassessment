@@ -9,6 +9,10 @@ test_that("template default skin preserves the OHWM presentation", {
   expect_equal(skin$workflow$draw_xs$nav_label, "Draw XS")
   expect_equal(skin$workflow$draw_flowline$nav_label, "Draw Flowline")
   expect_equal(skin$workflow$results$nav_label, "Results")
+  expect_equal(
+    skin$workflow$results$progress_message,
+    "Preparing Slope and Discharge Data"
+  )
 })
 
 test_that("partial downstream skin overrides inherit template defaults", {
@@ -37,6 +41,10 @@ test_that("partial downstream skin overrides inherit template defaults", {
     "Draw Flowline"
   )
   expect_equal(skin$workflow$results$nav_label, "Results")
+  expect_equal(
+    skin$workflow$results$progress_message,
+    "Preparing Slope and Discharge Data"
+  )
 })
 
 test_that("environment variable can select a downstream skin override", {
@@ -144,10 +152,20 @@ test_that("app UI uses visible skin labels and stable navigation values", {
   expect_match(html, 'data-value="draw_xs"', fixed = TRUE)
   expect_match(html, 'data-value="draw_flowline"', fixed = TRUE)
   expect_match(html, 'data-value="results"', fixed = TRUE)
+  expect_match(html, 'id="flowline_editor_ui"', fixed = TRUE)
+  expect_match(
+    html,
+    'class="shiny-html-output html-fill-item html-fill-container" id="flowline_editor_ui"',
+    fixed = TRUE
+  )
   expect_match(html, 'id="slope_scale"', fixed = TRUE)
   expect_match(html, "USGS Reach (recommended)", fixed = TRUE)
   expect_match(html, 'value="usgs_reach" selected', fixed = TRUE)
-  expect_match(html, "Local DEM", fixed = TRUE)
+  expect_match(html, "Sampled DEM Reach", fixed = TRUE)
+  expect_match(html, 'value="dem_reach"', fixed = TRUE)
+  expect_match(html, "Local XS Neighborhood", fixed = TRUE)
+  expect_match(html, 'value="dem_xs_local"', fixed = TRUE)
+  expect_match(html, 'id="interactive_flooding_status"', fixed = TRUE)
 })
 
 test_that("run_app does not accept both a skin and a skin file", {

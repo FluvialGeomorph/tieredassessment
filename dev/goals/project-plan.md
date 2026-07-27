@@ -120,18 +120,29 @@ The Results transition now has:
 - Normalized and validated Manning's values at the UI boundary before channel,
   floodplain, and discharge recalculation.
 - Added regression coverage using the production Shiny select-input contract.
+- Split interactive flooding into a 120 ms throttled map lane and a 400 ms
+  debounced analytical lane so polygon display is not blocked by plots,
+  storage, and discharge.
+- Registered Results outputs once and preserved the current Leaflet viewport
+  during polygon replacement.
+- Added a bounded shared polygon cache, exact precomputed storage-volume
+  lookup, and independent Channel/Floodplain classification updates.
+- Split immutable base cross-section points from the two classified reactive
+  views, refreshed REM bounds from cached points when the selected cross
+  section changes, and removed unused full water-surface raster state.
+- Verified cached volume equivalence against the production `fluvgeo`
+  calculation on deterministic and live terrain fixtures.
 
 ## Pre-release USGS service resilience
 
 - Moved USGS NHDPlus slope discovery behind a bounded timeout and retry/backoff
   contract.
-- Added an explicit slope-scale selector that defaults to USGS Reach and allows
-  Local DEM exploration.
-- Cached structured slope results by cross section so REM and Manning control
-  changes no longer repeat live-service requests.
-- Added a signed, selected-cross-section Local DEM fallback and preserved all
-  non-discharge Results when neither remote nor a positive local slope is
-  available.
+- Added an explicit three-scale selector: USGS Reach, Sampled DEM Reach, and
+  Local XS Neighborhood.
+- Cached both reach-wide slopes once for all cross sections and built the
+  complete local cross-section slope profile in one pass.
+- Added a positive Sampled DEM Reach fallback for USGS failures while retaining
+  signed local-scale observations and all non-discharge Results.
 - Added persistent degraded-mode messaging, notifications, and a manual retry
   action in the Discharge panel.
 - Replaced the flaky always-live discharge regression with deterministic
@@ -212,3 +223,18 @@ Apply the same robustness pattern used for Results to the Draw XS transition bou
 - gating behavior is test-covered
 - all tests green
 - docs updated with completed coverage and any new seam decision
+
+## Pre-release backward-edit and DEM request stabilization
+
+- Separated raw XS and flowline editor snapshots from processed Results
+  geometry.
+- Replaced repeated same-ID Flowline module creation with generation-specific
+  editor modules tied to the current XS/DEM submission.
+- Ensured every forward action invalidates stale Results state and recomputes
+  from the current editor snapshot.
+- Added a configurable 10 km default buffered DEM request limit, supported-map
+  preflight, finite-raster validation, and recoverable service/coverage
+  messaging.
+- Added deterministic coverage for XS add/delete/resequence behavior, current
+  flowline selection, DEM size and bounds rejection, service error
+  classification, and empty terrain responses.

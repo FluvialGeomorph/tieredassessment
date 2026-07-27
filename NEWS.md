@@ -1,15 +1,52 @@
 # ohwm2 2026.07.25.9000
 
+* Interactive flooding map polygons now follow REM slider motion through a
+  throttled fast path, while plots, storage, and discharge recalculate after
+  the slider settles. Results outputs are registered once, and polygon updates
+  preserve the current map viewport.
+* Interactive flooding now reuses a bounded cache of water-surface polygons,
+  calculates exact storage volumes from a precomputed lookup, and updates only
+  the Channel or Floodplain classification changed by each slider. Base
+  cross-section points remain immutable, selected cross sections refresh REM
+  bounds without terrain reprocessing, and unused water-surface raster state
+  is no longer retained.
+* Reach-slope lookup now returns promptly outside USGS NHDPlus coverage,
+  including locations with otherwise valid DEM coverage, and immediately
+  continues with a valid Sampled DEM Reach slope instead of retrying an
+  inapplicable raindrop trace.
+* Results now exposes three explicit slope scales: **USGS Reach**, **Sampled
+  DEM Reach**, and **Local XS Neighborhood**. The sampled reach value uses the
+  minimum and maximum elevations and profile length of the flowline points
+  plotted in the longitudinal profile.
+* USGS Reach and Sampled DEM Reach are cached once for every cross section.
+  The entire Local XS Neighborhood profile is also calculated and cached in
+  one pass, making scale and cross-section changes immediately responsive.
+* Backward workflow navigation now uses explicit raw-geometry snapshots.
+  Every **Draw Flowline** action resubmits the current cross-section editor
+  contents, retrieves a matching DEM, and creates a fresh Flowline editor;
+  every **View Results** action resubmits the current flowline and recomputes
+  Results from the raw cross sections rather than previously processed output.
+* DEM requests now receive a local small-site extent preflight before the
+  terrain service is contacted. The default buffered span limit is 10 km
+  (`options(ohwm2.max_dem_span_m = ...)` can adjust it), and out-of-map,
+  no-coverage, empty-raster, and unavailable-service outcomes produce
+  recoverable user messages.
+* Repeated **View Results** runs now rebuild the cross-section selector from
+  the latest drawn geometry, so added and deleted cross sections are reflected
+  immediately. Cross sections without a usable sampled terrain range are
+  omitted with a warning instead of blocking all Results.
+* Results now displays a distinct progress stage while local and USGS reach
+  slope data are prepared, eliminating the unexplained pause after geometry
+  rendering.
 * The deferred post-flush slope lookup now reads the Results readiness gate in
   an isolated Shiny context, preventing **View Results** from raising
   `Operation not allowed without an active reactive context`.
-* Results now provides a slope-scale control with **USGS Reach** as the default
-  and **Local DEM** as an explicit exploratory alternative. Lookups use bounded
-  retry/backoff and a request timeout, slopes are cached by cross section, and
-  slider/Manning recalculation no longer repeats the remote request.
+* Results now provides a slope-scale control with **USGS Reach** as the default.
+  Lookups use bounded retry/backoff and a request timeout, and slider/Manning
+  recalculation no longer repeats the remote request.
 * When USGS is unreachable or coverage is missing, discharge continues with
-  the selected cross section's signed Local DEM slope where it is positive.
-  Negative local slopes are reported but never transformed or substituted.
+  the Sampled DEM Reach slope where it is positive. Negative local
+  neighborhood slopes are reported but never transformed or substituted.
   Persistent status
   messaging and a manual retry action explain the degraded mode; map,
   cross-section, and storage results remain available even if no slope can be
