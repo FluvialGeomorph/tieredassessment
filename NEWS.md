@@ -1,5 +1,8 @@
 # ohwm2 2026.07.26.9000
 
+* Deployment metadata no longer treats the package-style Shiny application as
+  its own installed dependency. The manifest now includes the complete shared
+  release source and excludes the obsolete `shinyValidator` record.
 * Documented the one-time migration of existing customer repositories and the
   GitHub-backed Posit Connect Cloud deployment contract, including stable
   production URLs, explicit operator approval gates, and recovery boundaries.
