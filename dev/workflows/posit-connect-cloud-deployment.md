@@ -118,6 +118,20 @@ introduced, confirm that all locked dependents accept that version, and run the
 scientific regression suite. Do not jump to an arbitrarily old package version
 or modify managed system libraries.
 
+## Hosted credential auto-discovery during package installation
+
+Some packages inspect cloud-provider environment variables from `.onLoad()`.
+During a managed build, an environment variable can name a credential file
+that is not mounted in the package-installation phase. Do not add dummy
+credentials, copy tokens into Git, or edit a generated manifest by hand.
+
+Trace the failing package's required dependency chain and reproduce the load
+with process-scoped placeholder environment variables and a missing file. If
+the dependency is required, pin the newest immutable upstream release before
+the incompatible auto-discovery behavior and verify that all dependent version
+constraints accept it. Confirm the formerly failing namespace loads with the
+same placeholder environment, then regenerate and inspect the manifest.
+
 ## Stop conditions
 
 Stop and obtain review when:
