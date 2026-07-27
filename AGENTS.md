@@ -24,8 +24,10 @@
 - R package API, implementation, documentation, or tests: `DESCRIPTION`, `NAMESPACE`, `R/`, `man/`, `tests/testthat/`, and `dev/workflows/r-package-development.md`
 - Shiny or golem architecture, reactivity, configuration, or deployment: `dev/workflows/shiny-golem-development.md`
 - Application skins, presentation configuration, or downstream synchronization: `dev/features/app-skinning.md`, `dev/schemas/app-skin.md`, `dev/schemas/downstream-app-metadata.md`, and `dev/workflows/downstream-skin-synchronization.md`
-- Upstream releases, downstream repository topology, deployment promotion, or rollback: `dev/decisions/adr-0005-downstream-release-topology.md` and the applicable procedure under `dev/workflows/`
+- Upstream releases, downstream repository topology, deployment promotion, or rollback: `dev/decisions/adr-0005-downstream-release-topology.md`, `dev/decisions/adr-0006-posit-connect-cloud-deployment.md`, and the applicable procedure under `dev/workflows/`
 - Operator-facing customer repository procedures: begin with `dev/workflows/downstream-operator-index.md` and `dev/workflows/downstream-repository-basics.md`
+- Existing unrelated customer repositories: `dev/workflows/downstream-legacy-repository-migration.md`
+- Posit Connect Cloud publication and stable public URLs: `dev/workflows/posit-connect-cloud-deployment.md`
 - Downstream verification behavior and current automation boundary: `dev/workflows/downstream-verification.md`
 - Reactive transition or regression testing: `dev/workflows/shiny-workflow-testing.md`
 - Current deadline work, including Draw XS hardening: `dev/goals/project-plan.md`

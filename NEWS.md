@@ -1,5 +1,8 @@
-# ohwm2 2026.07.25.9000
+# ohwm2 2026.07.26.9000
 
+* Documented the one-time migration of existing customer repositories and the
+  GitHub-backed Posit Connect Cloud deployment contract, including stable
+  production URLs, explicit operator approval gates, and recovery boundaries.
 * Interactive flooding map polygons now follow REM slider motion through a
   throttled fast path, while plots, storage, and discharge recalculate after
   the slider settles. Results outputs are registered once, and polygon updates

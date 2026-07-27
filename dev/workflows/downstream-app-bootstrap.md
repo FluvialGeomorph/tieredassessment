@@ -31,6 +31,9 @@ and platform secrets. Do not place secrets in Git.
 The customer GitHub repository must already exist and must be empty. When
 creating it, do not initialize it with a README, `.gitignore`, or license. If
 the repository is not empty, stop rather than force-pushing over its history.
+Use
+[Migrate an existing customer repository](downstream-legacy-repository-migration.md)
+when its URL and legacy history must be retained.
 
 ## Step 1: clone the approved release
 
@@ -188,6 +191,8 @@ Open the customer repository on GitHub and confirm its `main` branch contains
 Follow
 [Stage, promote, and roll back](downstream-promotion-and-rollback.md).
 Staging and production must use the same customer commit and manifest.
+For the current production host, also follow
+[Publish through Posit Connect Cloud](posit-connect-cloud-deployment.md).
 
 ## Stop and ask for help when
 

@@ -17,9 +17,11 @@ rules.
 | I need to... | Follow... |
 |---|---|
 | Create a customer repository for the first time | [Create a customer application repository](downstream-app-bootstrap.md) |
+| Replace an existing unrelated customer app while retaining its repository | [Migrate an existing customer repository](downstream-legacy-repository-migration.md) |
 | Bring a published `ohwm2` release into a customer app | [Update a customer application from an `ohwm2` release](downstream-skin-synchronization.md) |
 | Check repository, release, skin, and asset state | [Check a customer application repository](downstream-verification.md) |
 | Stage, promote, or roll back a customer app | [Stage, promote, and roll back](downstream-promotion-and-rollback.md) |
+| Publish an existing customer app to Posit Connect Cloud | [Publish through Posit Connect Cloud](posit-connect-cloud-deployment.md) |
 | Change only customer wording or images | Use the routine customer-change procedure below |
 | Change calculations or shared Shiny behavior | Stop and create an `ohwm2` feature branch; do not patch one customer repo |
 
@@ -60,3 +62,9 @@ application maintainers:
 
 The reviewer does not need advanced Git skills; they compare the displayed
 values with the approved release and customer repository.
+
+Codex may execute the documented Git, dependency, validation, and evidence
+steps when requested. The operator still performs scientific acceptance
+testing and approves GitHub mutations and production publication. The
+runbooks are the execution contract and audit trail; maintainers are not
+expected to remember or manually reproduce every command.

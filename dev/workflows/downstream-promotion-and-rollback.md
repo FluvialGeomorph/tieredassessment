@@ -6,6 +6,10 @@ Use this procedure after a customer configuration or synchronization PR has
 been merged. It records exactly what was tested and ensures production uses
 the same customer commit and manifest as staging.
 
+The current production host is Posit Connect Cloud. Use
+[Publish a customer application through Posit Connect Cloud](posit-connect-cloud-deployment.md)
+for the platform-specific publication and stable-URL checks.
+
 This procedure does not require changing Git remotes. All Git work is in the
 customer repository, whose local name is `origin`.
 
@@ -60,8 +64,8 @@ Do not include tokens, passwords, client secrets, or other credentials.
 1. Regenerate or confirm `manifest.json` for the recorded commit and
    dependency state.
 2. Confirm `git status --short` prints nothing.
-3. Deploy that commit and manifest to staging using the team's normal
-   rsconnect procedure.
+3. Deploy that commit and manifest to the approved staging destination using
+   the platform-specific procedure.
 4. Start a fresh staging session.
 5. Confirm customer title, instructions, theme, and images.
 6. Complete Draw XS, Draw Flowline, and Results.
