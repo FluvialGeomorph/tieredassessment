@@ -899,37 +899,36 @@
       }
     },
     "aws.signature": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Source": "github",
+      "Repository": null,
       "description": {
         "Package": "aws.signature",
         "Type": "Package",
         "Title": "Amazon Web Services Request Signatures",
-        "Version": "0.6.2",
+        "Version": "0.6.0",
         "Date": "2020-06-01",
-        "Authors@R": "c(person(\"Thomas J.\", \"Leeper\",\n                    role = \"aut\",\n                    email = \"thosjleeper@gmail.com\",\n                    comment = c(ORCID = \"0000-0003-4097-6326\")),\n             person(\"Jonathan\", \"Stott\", email = \"jonathan.stott@magairports.com\", role = \"aut\"),\n             person(\"Gonzalo\", \"Diaz\", email = \"gonzalomartindiaz22@gmail.com\", role = c(\"cre\", \"aut\"),\n                    comment = c(ORCID = \"0009-0003-9056-4896\")),\n             person(\"Mike\", \"Kaminsky\", email = \"kaminsky.michael@gmail.com\", role = \"ctb\"),\n             person(\"Mark\", \"Douthwaite\", email = \"mark.douthwaite@peak.ai\", role = \"ctb\"),\n             person(\"Jason\", \"Gofford\", email = \"jason.gofford@peak.ai\", role = \"ctb\"),\n             person(\"Luke\", \"Dyer\", email = \"luke.dyer@peak.ai\", role = \"ctb\")\n            )",
+        "Authors@R": "c(person(\"Thomas J.\", \"Leeper\",\n                    role = c(\"aut\"),\n                    email = \"thosjleeper@gmail.com\",\n                    comment = c(ORCID = \"0000-0003-4097-6326\")),\n             person(\"Jonathan\", \"Stott\", email = \"jonathan.stott@magairports.com\", role = c(\"cre\", \"aut\")),\n             person(\"Mike\", \"Kaminsky\", email = \"kaminsky.michael@gmail.com\", role = \"ctb\")\n            )",
         "Description": "Generates version 2 and version 4 request signatures for Amazon Web Services ('AWS') <https://aws.amazon.com/> Application Programming Interfaces ('APIs') and provides a mechanism for retrieving credentials from environment variables, 'AWS' credentials files, and 'EC2' instance metadata. For use on 'EC2' instances, users will need to install the suggested package 'aws.ec2metadata' <https://cran.r-project.org/package=aws.ec2metadata>.",
         "License": "GPL (>= 2)",
-        "Encoding": "UTF-8",
-        "Imports": "digest, base64enc, jsonlite, curl",
-        "Suggests": "devtools, testthat (>= 2.1.0), aws.ec2metadata (>= 0.1.6)",
+        "Imports": "digest,\nbase64enc",
+        "Suggests": "testthat (>= 2.1.0),\naws.ec2metadata (>= 0.1.6)",
         "URL": "https://github.com/cloudyr/aws.signature",
         "BugReports": "https://github.com/cloudyr/aws.signature/issues",
-        "Config/roxygen2/version": "8.0.0",
-        "NeedsCompilation": "no",
-        "Packaged": "2026-07-18 03:25:52 UTC; gonzalo",
-        "Author": "Thomas J. Leeper [aut] (ORCID: <https://orcid.org/0000-0003-4097-6326>),\n  Jonathan Stott [aut],\n  Gonzalo Diaz [cre, aut] (ORCID:\n    <https://orcid.org/0009-0003-9056-4896>),\n  Mike Kaminsky [ctb],\n  Mark Douthwaite [ctb],\n  Jason Gofford [ctb],\n  Luke Dyer [ctb]",
-        "Maintainer": "Gonzalo Diaz <gonzalomartindiaz22@gmail.com>",
-        "Repository": "CRAN",
-        "Date/Publication": "2026-07-21 05:40:02 UTC",
-        "Built": "R 4.6.1; ; 2026-07-22 23:51:42 UTC; windows",
-        "RemoteType": "standard",
-        "RemoteRef": "aws.signature",
-        "RemotePkgRef": "aws.signature",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "0.6.2"
+        "RoxygenNote": "7.1.0",
+        "Author": "Thomas J. Leeper [aut] (ORCID: <https://orcid.org/0000-0003-4097-6326>),\n  Jonathan Stott [cre, aut],\n  Mike Kaminsky [ctb]",
+        "Maintainer": "Jonathan Stott <jonathan.stott@magairports.com>",
+        "Built": "R 4.6.0; ; 2026-07-27 22:10:30 UTC; windows",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteUsername": "cloudyr",
+        "RemoteRepo": "aws.signature",
+        "RemoteRef": "144af741c9e55badf3eafe18d184f8ecb717cb00",
+        "RemoteSha": "144af741c9e55badf3eafe18d184f8ecb717cb00",
+        "GithubHost": "api.github.com",
+        "GithubRepo": "aws.signature",
+        "GithubUsername": "cloudyr",
+        "GithubRef": "144af741c9e55badf3eafe18d184f8ecb717cb00",
+        "GithubSHA1": "144af741c9e55badf3eafe18d184f8ecb717cb00"
       }
     },
     "base64enc": {
@@ -7513,7 +7512,7 @@
       "checksum": "167a25dbb4d91d9f8ff511d792bd1a77"
     },
     ".Rprofile": {
-      "checksum": "0461a9ad513d5651ca134866444413fc"
+      "checksum": "4f5e58ea598c46167b0e629ad9482c83"
     },
     "AGENTS.md": {
       "checksum": "4eb04b721f86eaa6a07ee9a9871af435"
@@ -7522,7 +7521,7 @@
       "checksum": "57a5e4d5e53e1fa19289783240029906"
     },
     "DESCRIPTION": {
-      "checksum": "c8d4f5d71576e3ba964bd75b31da72e1"
+      "checksum": "131a1e7dbe1f93780c0d68b729274104"
     },
     "inst/app/skin-default.yml": {
       "checksum": "dff8f3454f05463288387ec854939b8a"
