@@ -101,6 +101,76 @@ clamp_results_slider_value <- function(
   max(lower, min(upper, as.numeric(value)))
 }
 
+#' Prepare the Results cross-section selection
+#'
+#' Rebuilds the selector choices from cross sections with enough finite
+#' detrended elevations to initialize the Results sliders, and preserves the
+#' current selection when it is still usable.
+#'
+#' @param xs_pts A data frame-like object containing a `Seq` column.
+#' @param pick_xs The currently selected cross-section identifier.
+#'
+#' @return A list containing numeric `choices`, one numeric `selected` value,
+#'   and numeric `unavailable` identifiers omitted from the selector.
+#' @noRd
+prepare_results_cross_section_selection <- function(xs_pts, pick_xs) {
+  stopifnot(!is.null(xs_pts))
+  stopifnot("Seq" %in% names(xs_pts))
+  stopifnot("Detrend_DEM_Z" %in% names(xs_pts))
+
+  sequence_values <- suppressWarnings(as.numeric(xs_pts[["Seq"]]))
+  detrended_elevations <- xs_pts[["Detrend_DEM_Z"]]
+  if (!is.numeric(detrended_elevations)) {
+    stop(
+      "`Detrend_DEM_Z` must be a numeric vector.",
+      call. = FALSE
+    )
+  }
+
+  candidates <- sort(unique(sequence_values[is.finite(sequence_values)]))
+  usable <- vapply(candidates, function(candidate) {
+    values <- detrended_elevations[sequence_values == candidate]
+    values <- values[is.finite(values)]
+    if (length(values) == 0L) {
+      return(FALSE)
+    }
+
+    rem_min <- max(round(min(values), 1) + 0.1, 100)
+    rem_max <- round(max(values), 0) - 1
+    is.finite(rem_min) && is.finite(rem_max) && rem_min < rem_max
+  }, logical(1))
+
+  choices <- candidates[usable]
+  unavailable <- candidates[!usable]
+  if (length(choices) == 0L) {
+    stop(
+      paste(
+        "No cross section contains enough finite detrended terrain",
+        "elevations to initialize Results. Adjust or redraw the cross",
+        "sections and try again."
+      ),
+      call. = FALSE
+    )
+  }
+
+  current <- suppressWarnings(as.numeric(pick_xs))
+  selected <- if (
+    length(current) == 1L &&
+      is.finite(current) &&
+      current %in% choices
+  ) {
+    current
+  } else {
+    choices[[1]]
+  }
+
+  list(
+    choices = choices,
+    selected = selected,
+    unavailable = unavailable
+  )
+}
+
 #' Prepare Results workflow state
 #'
 #' This helper captures the workflow values needed to transition the app into
@@ -113,6 +183,9 @@ clamp_results_slider_value <- function(
 #'
 #' @return A list containing:
 #'   - `slider_state`: output from `prepare_results_slider_state()`
+#'   - `cross_section_choices`: choices rebuilt from the current geometry
+#'   - `pick_xs`: the preserved or fallback selection
+#'   - `unavailable_cross_sections`: identifiers omitted from Results
 #'   - `results_loaded`: always `TRUE` for a successful transition
 #' @noRd
 prepare_results_workflow_state <- function(
@@ -121,15 +194,23 @@ prepare_results_workflow_state <- function(
   channel_elevation,
   floodplain_elevation
 ) {
+  cross_section_state <- prepare_results_cross_section_selection(
+    xs_pts = xs_pts,
+    pick_xs = pick_xs
+  )
+
   slider_state <- prepare_results_slider_state(
     xs_pts = xs_pts,
-    pick_xs = pick_xs,
+    pick_xs = cross_section_state$selected,
     channel_elevation = channel_elevation,
     floodplain_elevation = floodplain_elevation
   )
 
   list(
     slider_state = slider_state,
+    cross_section_choices = cross_section_state$choices,
+    pick_xs = cross_section_state$selected,
+    unavailable_cross_sections = cross_section_state$unavailable,
     results_loaded = TRUE
   )
 }
@@ -185,6 +266,14 @@ run_results_workflow_transition <- function(session,
   )
 
   slider_state <- workflow_state$slider_state
+
+  # Rebuild choices on every transition so edited geometry is represented.
+  updateSelectInput(
+    session = session,
+    inputId = "pick_xs",
+    choices = workflow_state$cross_section_choices,
+    selected = workflow_state$pick_xs
+  )
 
   # Values are clamped to the new cross-section-specific bounds before update.
   updateSliderInput(

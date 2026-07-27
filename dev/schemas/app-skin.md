@@ -16,6 +16,8 @@ at `inst/app/skin.yml` or provide its path through `FLUVIAL_APP_SKIN_FILE`.
 - The downstream mapping is recursively merged over the complete defaults.
 - Sequences, including instruction lists, replace the default sequence.
 - Missing downstream values inherit template defaults.
+- Version 1 skins created before `workflow.results.progress_message` inherit
+  `Preparing Slope and Discharge Data` during normalization.
 - Unknown fields are rejected.
 - Missing required fields after merging are rejected.
 - Empty text values are rejected.
@@ -57,6 +59,7 @@ default:
 
     results:
       nav_label: non-empty string
+      progress_message: non-empty string
 ```
 
 ## Invariants

@@ -33,3 +33,4 @@ default:
 
     results:
       nav_label: Results
+      progress_message: Preparing Slope and Discharge Data

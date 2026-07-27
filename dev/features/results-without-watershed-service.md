@@ -11,13 +11,18 @@ runs.
 USGS NHDPlus reach slope is preferred for the Manning calculation. The app:
 
 - defaults the **Slope scale** control to **USGS Reach (recommended)** while
-  allowing the user to select **Local DEM** for local-scale exploration,
+  allowing **Sampled DEM Reach** and **Local XS Neighborhood** exploration,
 - bounds remote requests with a timeout and retry/backoff policy,
-- caches the result per cross section so slider and Manning changes do not
-  repeat a live request,
-- retries the currently selected cross section when the user requests it,
-- falls back to the selected cross section's Local DEM slope when USGS is
-  unreachable or returns no usable coverage and that signed slope is positive,
+- uses a fast NHDPlus catchment-coverage lookup rather than a potentially
+  long-running raindrop trace,
+- treats a location with no NHDPlus COMID as a terminal coverage result,
+  immediately skips retries, and explains when the Sampled DEM Reach fallback
+  is being used,
+- caches USGS Reach and Sampled DEM Reach once for all cross sections,
+- calculates and caches the complete Local XS Neighborhood profile in one pass,
+- retries the single USGS Reach lookup when the user requests it,
+- falls back to Sampled DEM Reach when USGS is unreachable or returns no
+  coverage and the sampled reach slope is positive,
   and
 - leaves map, cross-section, and storage results usable if neither source
   yields a scientifically valid positive slope.
@@ -37,9 +42,12 @@ messages.
 - DEM-derived area, width, and depth are calculated through
   `fluvgeo::xs_geometry()`.
 - The discharge table omits Drainage Area when it is unavailable.
-- Local DEM uses only the signed adjacent-section slope at the selected cross
-  section.
-- A negative Local DEM slope remains visible as a local-scale observation but
+- Sampled DEM Reach uses `(max(Z) - min(Z)) / profile length`, where `Z` and
+  `POINT_M` come from the flowline points plotted in the longitudinal profile.
+- Local XS Neighborhood uses only the signed adjacent-section thalweg slope
+  centered at the selected cross section.
+- A negative Local XS Neighborhood slope remains visible as a local-scale
+  observation but
   is not converted to an absolute value, clamped, or replaced with another
   cross section's positive slope.
 - Zero, negative, non-finite, or missing slopes are never passed to the Manning
@@ -56,5 +64,6 @@ released before this client is deployed from its configured `*release` remote.
 Focused backend tests protect required, optional, and skipped watershed lookup
 modes. OHWM tests deterministically protect immediate USGS success, transient
 failure followed by success, exhausted retries, missing responses, DEM
-fallback, and complete discharge unavailability. Live services are not a
-requirement for the regression suite.
+fallback, all three scale definitions, bulk local-profile caching, and complete
+discharge unavailability. Live services are not a requirement for the
+regression suite.

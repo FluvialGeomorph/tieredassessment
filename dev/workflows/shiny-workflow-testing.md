@@ -37,6 +37,8 @@ The test suite should ensure that:
 7. Behavior remains stable across fresh server sessions.
 8. Safe reactive patterns validated during troubleshooting remain enforced over time.
 9. Transition gate-setting behavior is explicitly testable.
+10. Backward edits are carried forward through fresh raw-geometry snapshots.
+11. Predictably invalid DEM extents are rejected without contacting a service.
 
 ## Non-goals
 
@@ -119,6 +121,8 @@ The suite should catch cases where:
 - state from a previous run leaks into the current one
 - behavior differs across fresh sessions
 - outputs or slider values become invalid after repeated use
+- an earlier XS, flowline, DEM, or processed cross section leaks into a later
+  pass after backward navigation
 
 ### 5. Output/readiness gating failures
 The suite should catch cases where:

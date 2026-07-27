@@ -63,10 +63,14 @@ xs_discharge_table <- function(
       "Slope source: ",
       if (reach_slope_result$source == "usgs_nhdplus") {
         "USGS Reach"
-      } else if (reach_slope_result$status == "fallback") {
-        "Local DEM (automatic fallback)"
+      } else if (reach_slope_result$source == "dem_reach") {
+        if (reach_slope_result$status == "fallback") {
+          "Sampled DEM Reach (automatic fallback)"
+        } else {
+          "Sampled DEM Reach"
+        }
       } else {
-        "Local DEM"
+        "Local XS Neighborhood"
       },
       " (S = ",
       formatC(reach_slope_result$value, format = "fg", digits = 6),
@@ -81,6 +85,7 @@ xs_discharge_table <- function(
 #' @param xs_pts Cross-section points.
 #' @param xs_number Cross-section sequence number.
 #' @param lookup_fun Function that retrieves a USGS NHDPlus slope for a point.
+#' @param fallback_result Precomputed DEM slope result used when USGS fails.
 #' @param sleep_fun Function used between retry attempts.
 #' @param max_attempts Maximum number of service attempts.
 #' @param retry_delays Seconds to wait after failed attempts.
@@ -91,6 +96,7 @@ resolve_reach_slope <- function(
   xs_pts,
   xs_number,
   lookup_fun = lookup_usgs_reach_slope,
+  fallback_result = NULL,
   sleep_fun = Sys.sleep,
   max_attempts = 3L,
   retry_delays = c(0.5, 1.5)
@@ -100,12 +106,22 @@ resolve_reach_slope <- function(
     stop("max_attempts must be a positive integer")
   }
 
-  slope_context <- prepare_reach_slope_context(xs_pts, xs_number)
+  service_point <- prepare_usgs_lookup_point(xs_pts, xs_number)
+  if (is.null(fallback_result)) {
+    fallback_result <- resolve_dem_reach_slope(xs_pts, xs_number)
+  }
   last_error <- NULL
+  outside_coverage <- FALSE
+  attempts_used <- 0L
 
   for (attempt in seq_len(max_attempts)) {
+    attempts_used <- attempt
     service_slope <- tryCatch(
-      lookup_fun(slope_context$point),
+      lookup_fun(service_point),
+      usgs_no_coverage = function(e) {
+        outside_coverage <<- TRUE
+        NA_real_
+      },
       error = function(e) {
         last_error <<- e
         NA_real_
@@ -123,6 +139,10 @@ resolve_reach_slope <- function(
       ))
     }
 
+    if (outside_coverage) {
+      break
+    }
+
     if (attempt < max_attempts) {
       delay_index <- min(attempt, length(retry_delays))
       if (length(retry_delays) > 0L && retry_delays[[delay_index]] > 0) {
@@ -131,37 +151,52 @@ resolve_reach_slope <- function(
     }
   }
 
-  fallback_slope <- slope_context$dem_slope
-  reason <- if (is.null(last_error)) {
+  fallback_slope <- fallback_result$value
+  reason <- if (outside_coverage) {
+    "outside_nhdplus_coverage"
+  } else if (is.null(last_error)) {
     "no_coverage_or_unavailable"
   } else {
     "service_unavailable"
+  }
+  coverage_message <- if (outside_coverage) {
+    paste(
+      "USGS NHDPlus does not have reach coverage at this location.",
+      "No further USGS retries are needed."
+    )
+  } else {
+    "USGS stream-network data are unavailable for this location."
   }
 
   if (is_usable_reach_slope(fallback_slope)) {
     return(new_reach_slope_result(
       value = fallback_slope,
-      source = "dem_local",
+      source = fallback_result$source,
       status = "fallback",
       reason = reason,
-      attempts = max_attempts,
+      attempts = attempts_used,
       message = paste(
-        "USGS stream-network data are unavailable for this location.",
-        "Discharge is continuing with the selected cross section's",
-        "positive local DEM slope."
+        coverage_message,
+        "Discharge is continuing with the positive",
+        if (identical(fallback_result$source, "dem_reach")) {
+          "Sampled DEM Reach slope."
+        } else {
+          "Local XS Neighborhood slope."
+        }
       )
     ))
   }
 
   new_reach_slope_result(
     value = fallback_slope,
-    source = "dem_local",
+    source = fallback_result$source,
     status = "unavailable",
     reason = reason,
-    attempts = max_attempts,
+    attempts = attempts_used,
     message = paste(
-      "Discharge is temporarily unavailable because neither USGS",
-      "reach slope nor a positive local DEM slope could be applied.",
+      coverage_message,
+      "Discharge is unavailable because a positive DEM slope",
+      "could not be applied either.",
       "Map, cross-section, and storage results remain available."
     )
   )
@@ -171,40 +206,58 @@ resolve_reach_slope <- function(
 #'
 #' @noRd
 resolve_dem_reach_slope <- function(xs_pts, xs_number) {
-  dem_slope <- prepare_reach_slope_context(xs_pts, xs_number)$dem_slope
+  results <- resolve_local_xs_slope_results(xs_pts)
+  result <- results[[as.character(xs_number)]]
 
-  if (is_usable_reach_slope(dem_slope)) {
-    return(new_reach_slope_result(
-      value = dem_slope,
-      source = "dem_local",
-      status = "available",
-      reason = NULL,
-      attempts = 0L,
-      message = paste(
-        "The selected cross section's local DEM slope is being applied.",
-        "This represents the sampled local hydraulic scale."
-      )
-    ))
+  if (is.null(result)) {
+    stop("The selected cross section is not present in xs_pts")
   }
 
-  new_reach_slope_result(
-    value = dem_slope,
-    source = "dem_local",
-    status = "unavailable",
-    reason = "nonpositive_local_dem",
-    attempts = 0L,
-    message = paste(
-      "The selected cross section's local DEM slope is not positive,",
-      "so it cannot be applied in the Manning calculation.",
-      "Choose USGS Reach slope or select another cross section."
-    )
-  )
+  result
 }
 
-#' Prepare the service point and local fallback slope
+#' Resolve and cache every Local XS Neighborhood slope in one pass
 #'
 #' @noRd
-prepare_reach_slope_context <- function(xs_pts, xs_number) {
+resolve_local_xs_slope_results <- function(xs_pts) {
+  profile <- prepare_local_xs_slope_profile(xs_pts)
+  results <- lapply(seq_len(nrow(profile)), function(index) {
+    dem_slope <- profile$slope[[index]]
+    if (is_usable_reach_slope(dem_slope)) {
+      return(new_reach_slope_result(
+        value = dem_slope,
+        source = "dem_xs_local",
+        status = "available",
+        reason = NULL,
+        attempts = 0L,
+        message = paste(
+          "The Local XS Neighborhood slope is being applied.",
+          "It is calculated from adjacent cross-section thalweg elevations."
+        )
+      ))
+    }
+
+    new_reach_slope_result(
+      value = dem_slope,
+      source = "dem_xs_local",
+      status = "unavailable",
+      reason = "nonpositive_local_dem",
+      attempts = 0L,
+      message = paste(
+        "The Local XS Neighborhood slope is not positive, so it cannot",
+        "be applied in the Manning calculation. Choose a reach-scale slope",
+        "or select another cross section."
+      )
+    )
+  })
+  names(results) <- as.character(profile$Seq)
+  results
+}
+
+#' Prepare the complete Local XS Neighborhood slope profile
+#'
+#' @noRd
+prepare_local_xs_slope_profile <- function(xs_pts) {
   xs_ss <- xs_pts %>%
     group_by(.data$Seq) %>%
     slice_min(.data$DEM_Z, n = 1, with_ties = FALSE) %>%
@@ -217,22 +270,93 @@ prepare_reach_slope_context <- function(xs_pts, xs_number) {
     ) %>%
     ungroup()
 
-  selected_xs <- xs_ss %>%
-    filter(.data$Seq == xs_number)
+  xs_ss
+}
+
+#' Resolve one Sampled DEM Reach slope from longitudinal-profile points
+#'
+#' @noRd
+resolve_sampled_dem_reach_slope <- function(flowline_pts) {
+  required <- c("Z", "POINT_M")
+  missing <- setdiff(required, names(flowline_pts))
+  if (length(missing) > 0L) {
+    stop(
+      "Flowline points are missing required field(s): ",
+      paste(missing, collapse = ", ")
+    )
+  }
+  if (!is.numeric(flowline_pts$Z) || !is.numeric(flowline_pts$POINT_M)) {
+    stop("Flowline point Z and POINT_M fields must be numeric.")
+  }
+
+  usable <- is.finite(flowline_pts$Z) & is.finite(flowline_pts$POINT_M)
+  if (sum(usable) < 2L) {
+    return(new_reach_slope_result(
+      value = NA_real_,
+      source = "dem_reach",
+      status = "unavailable",
+      reason = "insufficient_flowline_points",
+      attempts = 0L,
+      message = paste(
+        "Sampled DEM Reach slope is unavailable because the longitudinal",
+        "profile has fewer than two finite flowline points."
+      )
+    ))
+  }
+
+  elevations <- flowline_pts$Z[usable]
+  stations_km <- flowline_pts$POINT_M[usable]
+  rise_ft <- max(elevations) - min(elevations)
+  run_ft <- (max(stations_km) - min(stations_km)) * 3280.84
+  dem_slope <- rise_ft / run_ft
+
+  if (is_usable_reach_slope(dem_slope)) {
+    return(new_reach_slope_result(
+      value = dem_slope,
+      source = "dem_reach",
+      status = "available",
+      reason = NULL,
+      attempts = 0L,
+      message = paste(
+        "The Sampled DEM Reach slope is being applied.",
+        "It uses the minimum and maximum elevations of the flowline points",
+        "shown in the longitudinal profile."
+      )
+    ))
+  }
+
+  new_reach_slope_result(
+    value = dem_slope,
+    source = "dem_reach",
+    status = "unavailable",
+    reason = "nonpositive_sampled_dem_reach",
+    attempts = 0L,
+    message = paste(
+      "Sampled DEM Reach slope is unavailable because the longitudinal",
+      "profile does not have a positive elevation range and length."
+    )
+  )
+}
+
+#' Prepare a point for USGS NHDPlus reach discovery
+#'
+#' @noRd
+prepare_usgs_lookup_point <- function(xs_pts, xs_number) {
+  selected_xs <- xs_pts %>%
+    filter(.data$Seq == xs_number) %>%
+    slice_min(.data$DEM_Z, n = 1, with_ties = FALSE)
 
   if (nrow(selected_xs) < 1L) {
     stop("The selected cross section is not present in xs_pts")
   }
 
-  point <- sf::st_sfc(
+  sf::st_sfc(
     sf::st_point(
       x = c(selected_xs$POINT_X[[1]], selected_xs$POINT_Y[[1]]),
       dim = "XY"
     ),
     crs = sf::st_crs(xs_pts)
   )
-
-  list(point = point, dem_slope = selected_xs$slope[[1]])
 }
 
 #' Retrieve a reach slope from USGS NHDPlus
@@ -248,7 +372,7 @@ lookup_usgs_reach_slope <- function(
     start_comid <- discover_fun(
       point = point,
       nldi_feature = "comid",
-      raindrop = TRUE
+      raindrop = FALSE
     )
     comid <- if (
       is.data.frame(start_comid) &&
@@ -263,7 +387,7 @@ lookup_usgs_reach_slope <- function(
     }
 
     if (!is.finite(comid)) {
-      return(NA_real_)
+      stop(new_usgs_no_coverage_condition())
     }
 
     output_file <- tempfile(fileext = ".gpkg")
@@ -292,6 +416,19 @@ lookup_usgs_reach_slope <- function(
   httr::with_config(
     config = httr::timeout(request_timeout),
     service_call()
+  )
+}
+
+#' Construct a terminal USGS NHDPlus no-coverage condition
+#'
+#' @noRd
+new_usgs_no_coverage_condition <- function() {
+  structure(
+    list(
+      message = "USGS NHDPlus has no reach coverage at this location.",
+      call = NULL
+    ),
+    class = c("usgs_no_coverage", "error", "condition")
   )
 }
 

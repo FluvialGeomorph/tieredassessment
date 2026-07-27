@@ -34,6 +34,17 @@ rules.
 See ADR 0004, `dev/features/app-skinning.md`, and
 `dev/schemas/app-skin.md`.
 
+## Editable workflow state
+
+Raw editor geometry and processed geomorphic outputs have separate ownership.
+Each Draw Flowline submission snapshots the current XS editor state and creates
+a generation-specific Flowline editor after terrain validation. Each Results
+submission snapshots that active flowline and recomputes from the raw XS
+snapshot. Previously processed cross sections are never reused as raw input,
+and Shiny module IDs are never recreated for a later terrain generation.
+
+See `dev/features/editable-workflow-and-dem-guardrails.md`.
+
 ## Optional watershed enrichment boundary
 
 The OHWM Results workflow uses
@@ -58,18 +69,21 @@ USGS lookup runs after the first Results response is flushed, with bounded
 request time and retry/backoff. Its structured result records source, status,
 reason, and attempts.
 
-Slope results are cached by cross-section sequence for the Shiny session.
-Reactive changes to REM elevations and Manning coefficients reuse the cached
-slope and never contact USGS. Selecting an uncached cross section performs one
-bounded resolution cycle; the Discharge panel provides an explicit retry for a
-degraded result.
+The Results transition computes and caches three slope scales. **USGS Reach**
+and **Sampled DEM Reach** are each one reach-wide value reused for every cross
+section. **Local XS Neighborhood** is a complete profile keyed by
+cross-section sequence and is also computed in one pass. Reactive changes to
+cross-section selection, REM elevations, and Manning coefficients reuse these
+caches and never repeat slope-profile work or contact USGS.
 
-The user-facing slope-scale contract defaults to **USGS Reach** and permits
-explicit selection of **Local DEM**. When the remote result is unavailable, the
-USGS selection automatically falls back to the signed adjacent-section slope
-at the selected cross section where that slope is positive. The app never
-takes its absolute value, clamps it, or substitutes a positive slope from
-another cross section.
+The user-facing slope-scale contract defaults to **USGS Reach**. **Sampled DEM
+Reach** divides the elevation range of the same flowline points shown in the
+longitudinal profile by their profile length. **Local XS Neighborhood** is the
+signed slope centered at the selected cross section from adjacent thalweg
+elevations. When USGS is unavailable, it automatically falls back to the
+positive Sampled DEM Reach slope. Local negative slopes remain observable but
+are never made positive, clamped, or replaced with another cross section's
+slope.
 
 If the requested or fallback source is not valid, only discharge is
 unavailable: renderers return an explanatory table while map, cross-section,
@@ -80,6 +94,20 @@ the Manning calculation.
 
 The app remains server-centric, with workflow behavior coordinated through `app_server` and helper functions.  
 Instead of large structural rewrites, the architecture now emphasizes **small, explicit contracts** at fragile workflow boundaries.
+
+Interactive flooding uses separate reactive timing lanes. Throttled REM values
+drive Leaflet polygon replacement, while debounced values drive classification,
+plots, volume, and discharge after slider motion settles. Results renderers are
+registered once and consume the resulting reactive state; slider observers do
+not recreate outputs. A bounded shared polygon cache avoids repeated
+polygonization at revisited REM levels, and a geometry-generation-specific
+volume lookup converts each settled elevation to an exact volume through
+sorted thresholds and cumulative sums. Channel and floodplain classification
+views are derived independently from immutable base cross-section points, so
+one slider does not invalidate the other lane. Selecting another cross section
+refreshes REM bounds from those cached points without terrain reprocessing.
+Obsolete full water-surface raster state is not retained. See
+`dev/features/interactive-flooding-responsiveness.md`.
 
 For the Results path, this means:
 

@@ -105,6 +105,17 @@ merge_app_skin <- function(defaults, override) {
 
 #' @noRd
 normalize_app_skin <- function(skin) {
+  # Preserve schema-version 1 compatibility for complete default skins copied
+  # before Results exposed its second progress stage.
+  if (
+    is.list(skin$workflow) &&
+      is.list(skin$workflow$results) &&
+      !("progress_message" %in% names(skin$workflow$results))
+  ) {
+    skin$workflow$results$progress_message <-
+      "Preparing Slope and Discharge Data"
+  }
+
   instruction_paths <- list(
     c("workflow", "draw_xs", "instructions"),
     c("workflow", "draw_flowline", "instructions")
@@ -186,23 +197,31 @@ validate_app_skin <- function(skin, asset_root = app_sys("app/www")) {
   validate_workflow_skin(
     skin$workflow$results,
     "skin.workflow.results",
-    needs_guidance = FALSE
+    needs_guidance = FALSE,
+    needs_progress = TRUE
   )
 
   invisible(skin)
 }
 
 #' @noRd
-validate_workflow_skin <- function(section, path, needs_guidance) {
+validate_workflow_skin <- function(
+  section,
+  path,
+  needs_guidance,
+  needs_progress = needs_guidance
+) {
   required <- "nav_label"
   if (needs_guidance) {
     required <- c(
       required,
       "sidebar_title",
       "instructions",
-      "next_button",
-      "progress_message"
+      "next_button"
     )
+  }
+  if (needs_progress) {
+    required <- c(required, "progress_message")
   }
   assert_skin_fields(section, path = path, required = required)
 

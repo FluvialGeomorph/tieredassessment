@@ -162,6 +162,89 @@ test_that("Results workflow state preparation remains stable across repeated run
   expect_lte(second$slider_state$channel_elevation_value, second$slider_state$rem_max)
 })
 
+test_that("Results choices refresh when a second cross section is added", {
+  first_xs_pts <- data.frame(
+    Seq = rep(1, 3),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8)
+  )
+  second_xs_pts <- data.frame(
+    Seq = c(1, 1, 1, 2, 2, 2),
+    Detrend_DEM_Z = c(101.2, 102.4, 103.8, 110.1, 111.3, 112.7)
+  )
+
+  first <- prepare_results_workflow_state(
+    xs_pts = first_xs_pts,
+    pick_xs = 1,
+    channel_elevation = 102,
+    floodplain_elevation = 102.5
+  )
+  second <- prepare_results_workflow_state(
+    xs_pts = second_xs_pts,
+    pick_xs = first$pick_xs,
+    channel_elevation = 102,
+    floodplain_elevation = 102.5
+  )
+
+  expect_equal(first$cross_section_choices, 1)
+  expect_equal(second$cross_section_choices, c(1, 2))
+  expect_equal(second$pick_xs, 1)
+})
+
+test_that("Results selection falls back when a cross section is deleted", {
+  xs_pts_value <- data.frame(
+    Seq = c(2, 2, 2, 3, 3, 3),
+    Detrend_DEM_Z = c(110.1, 111.3, 112.7, 120.1, 121.3, 122.7)
+  )
+
+  selection <- prepare_results_cross_section_selection(
+    xs_pts = xs_pts_value,
+    pick_xs = 1
+  )
+
+  expect_equal(selection$choices, c(2, 3))
+  expect_equal(selection$selected, 2)
+  expect_length(selection$unavailable, 0)
+})
+
+test_that("Results selection skips a cross section without usable terrain", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 2, 2, 2, 3, 3, 3),
+    Detrend_DEM_Z = c(
+      NA_real_, Inf,
+      110.1, 111.3, 112.7,
+      120.1, 121.3, 122.7
+    )
+  )
+
+  workflow_state <- prepare_results_workflow_state(
+    xs_pts = xs_pts_value,
+    pick_xs = 1,
+    channel_elevation = 110.5,
+    floodplain_elevation = 111.5
+  )
+
+  expect_equal(workflow_state$cross_section_choices, c(2, 3))
+  expect_equal(workflow_state$pick_xs, 2)
+  expect_equal(workflow_state$unavailable_cross_sections, 1)
+  expect_equal(workflow_state$slider_state$rem_min, 110.2)
+  expect_equal(workflow_state$slider_state$rem_max, 112)
+})
+
+test_that("Results reports when no cross section has usable terrain", {
+  xs_pts_value <- data.frame(
+    Seq = c(1, 1, 2, 2),
+    Detrend_DEM_Z = c(NA_real_, Inf, 100.1, 100.2)
+  )
+
+  expect_error(
+    prepare_results_cross_section_selection(
+      xs_pts = xs_pts_value,
+      pick_xs = 1
+    ),
+    "No cross section contains enough finite detrended terrain"
+  )
+})
+
 test_that("Results outputs are gated until workflow is ready", {
   xs_pts_value <- data.frame(
     Seq = c(1, 1, 1, 2, 2, 2),
