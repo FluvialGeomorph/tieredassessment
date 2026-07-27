@@ -1,14 +1,24 @@
-# ohwm2 2026.07.26.9000
+# ohwm2 2026.07.27.1
 
+* Pinned `terra 1.9-27` to its immutable upstream source commit. This is the
+  newest release before `terra` began calling a GDAL 3.8 API that is absent
+  from Posit Connect Cloud's GDAL 3.4.1 build environment. Deployment metadata
+  now targets Connect Cloud's documented R 4.6.0 runtime.
+
+# ohwm2 2026.07.27
 * Pinned `terra 1.9-34` to its immutable upstream source commit so managed
   Linux deployments compile against the geospatial libraries in their runtime
   image instead of reusing an ABI-incompatible hosted binary.
-* Deployment metadata no longer treats the package-style Shiny application as
-  its own installed dependency. The manifest now includes the complete shared
-  release source and excludes the obsolete `shinyValidator` record.
+
+# ohwm2 2026.07.26.1
 * Documented the one-time migration of existing customer repositories and the
   GitHub-backed Posit Connect Cloud deployment contract, including stable
   production URLs, explicit operator approval gates, and recovery boundaries.
+* Deployment metadata no longer treats the package-style Shiny application as
+  its own installed dependency. The manifest now includes the complete shared
+  release source and excludes the obsolete `shinyValidator` record.
+
+# ohwm2 2026.07.26.9000
 * Interactive flooding map polygons now follow REM slider motion through a
   throttled fast path, while plots, storage, and discharge recalculate after
   the slider settles. Results outputs are registered once, and polygon updates

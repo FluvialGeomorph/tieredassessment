@@ -5,7 +5,7 @@ application_id: tiered-assessment
 upstream:
   repository: https://github.com/FluvialGeomorph/ohwm2.git
   remote: upstream
-  release: "2026.07.27"
+  release: "2026.07.27.1"
 
 skin:
   file: inst/app/skin.yml
