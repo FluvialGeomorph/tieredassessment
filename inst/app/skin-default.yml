@@ -7,7 +7,7 @@ default:
     favicon: www/favicon.png
 
   theme:
-    bootswatch: sandstone
+    bootswatch: yeti
     version: 5
 
   workflow:
